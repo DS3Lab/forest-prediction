@@ -1,11 +1,13 @@
 
-NN models: https://github.com/DS3Lab/forest-prediction/blob/master/model/model.py
-Download data: 
-	https://github.com/DS3Lab/forest-prediction/blob/master/data_scraping/web_mercator/download_quality_planet.py
-	https://github.com/DS3Lab/forest-prediction/blob/master/data_scraping/web_mercator/download_quality_hansen.py
+- NN models: https://github.com/DS3Lab/forest-prediction/blob/master/model/model.py
+- Download data: 
+	* [Hansen][data_scraping/web_mercator/download_quality_hansen.py]
+	* [Planet][data_scraping/web_mercator/download_quality_planet.py]
 
-Run model:
+- Run model:
+```
 	python train.py -c config.json -d <gpu_devices>
+```
 
 Dataset format:
         Project/
