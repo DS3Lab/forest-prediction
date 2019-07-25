@@ -9,18 +9,18 @@
 	python train.py -c config.json -d <gpu_devices>
 ```
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-- Dataset format:
-&nbsp;&nbsp;Project/
+- Dataset format:  
+&nbsp;&nbsp;Project/  
 &nbsp;&nbsp;&nbsp;&nbsp;|-- min_quality/  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;|-- hansen/  
-        |   |   |-- five_pct/  
-        |   |   |   |-- 2018/  
-        |   |   |   |   |-- *.png  
-        |   |   |   |-- 2017/  
-        |   |   |   |-- ...  
-        |   |   |-- four_pct/  
-        |   |   |   |-- 2018/  
-        |   |   |   |-- 2017/  
-        |   |   |   |-- ...  
-        |   |-- planet/  
-        |   |   |   |-- *.png  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |-- five_pct/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2018/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |   |-- *.png  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2017/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- ...  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |-- four_pct/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2018/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2017/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- ...  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |-- planet/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- *.png  
