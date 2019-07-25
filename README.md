@@ -10,17 +10,17 @@
 ```
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 - Dataset format:  
-&nbsp;&nbsp;Project/  
-&nbsp;&nbsp;&nbsp;&nbsp;|-- min_quality/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;|-- hansen/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |-- five_pct/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2018/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |   |-- *.png  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2017/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- ...  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |-- four_pct/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2018/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- 2017/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- ...  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |-- planet/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|   |   |   |-- *.png  
+&nbsp;&nbsp;&nbsp;&nbsp;Project/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|-- min_quality/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|-- hansen/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- five_pct/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- 2018/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- *.png  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- 2017/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- ...  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- four_pct/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- 2018/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- 2017/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- ...  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|-- planet/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|&nbsp;&nbsp;|-- *.png  
