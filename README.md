@@ -8,11 +8,11 @@
 ```
 	python train.py -c config.json -d <gpu_devices>
 ```
-
-Dataset format:
-        Project/
-        |-- min_quality/
-        |   |-- hansen/
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- Dataset format:
+&nbsp;&nbsp;Project/
+&nbsp;&nbsp;&nbsp;&nbsp;|-- min_quality/
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;|-- hansen/
         |   |   |-- five_pct/
         |   |   |   |-- 2018/
         |   |   |   |   |-- *.png
