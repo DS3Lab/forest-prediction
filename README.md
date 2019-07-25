@@ -1,5 +1,5 @@
 
-- NN models: https://github.com/DS3Lab/forest-prediction/blob/master/model/model.py
+- NN models: [link](model/model.py): 
 - Download data: 
 	* [Hansen](data_scraping/web_mercator/download_quality_hansen.py)
 	* [Planet](data_scraping/web_mercator/download_quality_planet.py)
