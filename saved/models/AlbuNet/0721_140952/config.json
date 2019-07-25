@@ -1,0 +1,80 @@
+{
+    "loss": {
+        "type": "LossBinary",
+        "args": {
+            "jaccard_weight": 0
+        }
+    },
+    "lr_scheduler": {
+        "type": "StepLR",
+        "args": {
+            "step_size": 50,
+            "gamma": 0.1
+        }
+    },
+    "name": "AlbuNet",
+    "trainer": {
+        "epochs": 100,
+        "save_dir": "saved/",
+        "save_period": 10,
+        "tensorboard": true,
+        "monitor": "min val_loss",
+        "keep_last": 15,
+        "verbosity": 2,
+        "early_stop": 10
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.0004,
+            "amsgrad": true,
+            "weight_decay": 0
+        }
+    },
+    "metrics": [
+        "get_jaccard"
+    ],
+    "data_loader_train": {
+        "type": "PlanetDataLoader",
+        "args": {
+            "years": [
+                "2017"
+            ],
+            "num_workers": 16,
+            "qualities": [
+                "five_pct",
+                "four_pct"
+            ],
+            "max_dataset_size": "inf",
+            "training": true,
+            "data_dir": "/home/ming/master-thesis/data/copy",
+            "timelapse": "quarter",
+            "batch_size": 32,
+            "shuffle": true
+        }
+    },
+    "n_gpu": 0,
+    "arch": {
+        "type": "AlbuNet",
+        "args": {}
+    },
+    "data_loader_val": {
+        "type": "PlanetDataLoader",
+        "args": {
+            "years": [
+                "2018"
+            ],
+            "num_workers": 16,
+            "qualities": [
+                "five_pct",
+                "four_pct"
+            ],
+            "max_dataset_size": "inf",
+            "training": false,
+            "data_dir": "/home/ming/master-thesis/data/copy",
+            "timelapse": "quarter",
+            "batch_size": 32,
+            "shuffle": true
+        }
+    }
+}

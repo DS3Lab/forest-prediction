@@ -1,0 +1,71 @@
+{
+    "data_loader_val": {
+        "args": {
+            "data_dir": "/home/ming/master-thesis/data/val",
+            "years": [
+                "2018"
+            ],
+            "shuffle": true,
+            "training": false,
+            "batch_size": 32,
+            "max_dataset_size": "inf",
+            "num_workers": 16
+        },
+        "type": "PlanetDataLoader"
+    },
+    "trainer": {
+        "early_stop": 10,
+        "verbosity": 2,
+        "keep_last": 15,
+        "monitor": "min val_loss",
+        "save_period": 10,
+        "tensorboard": true,
+        "epochs": 100,
+        "save_dir": "saved/"
+    },
+    "data_loader_train": {
+        "args": {
+            "data_dir": "/home/ming/master-thesis/data/train",
+            "years": [
+                "2017"
+            ],
+            "shuffle": true,
+            "training": true,
+            "batch_size": 32,
+            "filetype": "npy",
+            "max_dataset_size": "inf",
+            "num_workers": 16
+        },
+        "type": "PlanetDataLoader"
+    },
+    "n_gpu": 0,
+    "lr_scheduler": {
+        "args": {
+            "step_size": 50,
+            "gamma": 0.1
+        },
+        "type": "StepLR"
+    },
+    "metrics": [
+        "get_jaccard"
+    ],
+    "arch": {
+        "args": {},
+        "type": "AlbuNet"
+    },
+    "name": "AlbuNet",
+    "optimizer": {
+        "args": {
+            "amsgrad": true,
+            "weight_decay": 0,
+            "lr": 0.0004
+        },
+        "type": "Adam"
+    },
+    "loss": {
+        "args": {
+            "jaccard_weight": 0
+        },
+        "type": "LossBinary"
+    }
+}
