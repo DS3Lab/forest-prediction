@@ -2,4 +2,4 @@
 =1.9.0
 data/
 logs/*model*
-
+*.pyc
