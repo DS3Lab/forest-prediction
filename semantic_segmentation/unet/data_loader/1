@@ -1,0 +1,209 @@
+import os
+import glob
+import numpy as np
+import torch
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import datasets, transforms
+from base import BaseDataLoader
+
+
+def loadFiles(input_dir, years=None):
+    """
+    Assemble dict of file paths.
+    :param split: string in ['train', 'val']
+    :param input_path: string
+    :param years: list of strings or None
+    :param instance: bool
+    :return: dict
+    """
+    print('===============YEARS IN LOADFILES==============', years)
+    paths_dict = {}
+    for path, dirs, files in os.walk(input_dir):
+        # print('path', path)
+        # print('dirs', dirs)
+        # print('files', files)
+        skip_year = False
+        if years is not None:
+            current_city = path.rsplit('/', 1)[-1]
+            # print('current_city', current_city)
+            if current_city not in years:
+                skip_year = True
+
+        if not skip_year:
+            print('Reading from {}'.format(path))
+            label_paths, img_paths = searchFiles(path)
+            # logging.info('{} found {}, {}'.format(path, len(label_paths), len(img_paths)))
+            # print('EXAMPLE', label_paths[0], img_paths[0]
+            paths_dict = {**paths_dict, **zipPaths(label_paths, img_paths)}
+    if not paths_dict:
+        print("WARNING: NOT LOADING ANY FILES")
+    return paths_dict
+
+
+def searchFiles(path):
+    """
+    Get file paths via wildcard search.
+    :param path: path to files for each city
+    :param instance: bool
+    :return: 2 lists
+    """
+    label_wildcard_search = os.path.join(path, "ly*.npy")
+    label_paths = glob.glob(label_wildcard_search)
+    label_paths.sort()
+    # img_wildcard_search = os.path.join(path, "ld*.npy")
+    img_wildcard_search = os.path.join(path, "pl*.npy")
+    img_paths = glob.glob(img_wildcard_search)
+    img_paths.sort()
+    return label_paths, img_paths
+
+
+def zipPaths(label_paths, img_paths):
+    """
+    zip paths in form of dict.
+    :param label_paths: list of strings
+    :param img_paths: list of strings
+    :return: dict
+    """
+    try:
+        assert len(label_paths) == len(img_paths)
+    except:
+        raise Exception('Missmatch: {} label paths vs. {} img paths!'.format(len(label_paths), len(img_paths)))
+
+    paths_dict = {}
+    for i, img_path in enumerate(img_paths):
+        # img_spec = ('_').join(img_paths[i].split('/')[-1].split('_')[:-1])
+        img_spec = ('_').join(img_paths[i].split('/')[-1].split('_'))[:-4]
+        try:
+            assert img_spec[2:] in label_paths[i][2:]
+        except:
+            raise Exception('img and label name mismatch: {} vs. {}'.format(img_paths[i], label_paths[i]))
+        if img_spec in paths_dict:
+            print('zipPaths WARNING', img_spec, paths_dict[img_spec])
+        paths_dict[img_spec] = {"img": img_paths[i], "mask": label_paths[i], 'img_spec': img_spec}
+    print('zipPaths', len(label_paths), len(img_paths), len(paths_dict))
+    return paths_dict
+
+
+class PlanetDataset(Dataset):
+    """
+    Planet 3-month mosaic dataset
+    """
+    def __init__(self, data_dir, 
+            years, 
+            max_dataset_size=float("inf")):
+        """Initizalize dataset.
+            Params:
+                data_dir: absolute path, string
+                years: list
+                batch_size: 
+                shuffle:
+                num_workers:
+                training: mode
+        """
+        self.paths_dict = loadFiles(data_dir, years)
+        self.keys = list(self.paths_dict.keys())
+        print('=========================',self.paths_dict[self.keys[0]], '========================')
+        # trsfm = transforms.Compose([
+        #     transforms.ToTensor(),
+        #     transforms.Normalize((0.1307,), (0.3081,))
+        # ])
+        # TODO: join data dir and years, otherwise it finds nothing
+        # self.img_paths = sorted(make_dataset(data_dir, 'pl', years, max_dataset_size))   # load images from '/path/to/data/trainA'
+        # self.mask_paths = sorted(make_dataset(data_dir, 'ly', years, max_dataset_size))    # load images from '/path/to/data/trainB'
+         
+        # self.img_size = len(self.img_paths)  # get the size of dataset A
+        # self.mask_size = len(self.mask_paths)  # get the size of dataset B
+        
+        # assert self.img_size == self.mask_size
+        self.data_size = len(self.paths_dict)
+        self.data_dir = data_dir
+    
+    def __len__(self):
+        return self.data_size
+
+    def __getitem__(self, index):
+        r"""Returns data point and its binary mask"""
+
+        # img_path = self.img_paths[index % self.img_size]  # make sure index is within then range
+        # mask_path = self.mask_paths[index % self.mask_size]
+        path_dict = self.paths_dict[self.keys[index % self.data_size]]
+        img_path = path_dict['img']
+        mask_path = path_dict['mask']
+        img = torch.from_numpy(np.load(img_path)).float()
+        mask = torch.from_numpy(np.load(mask_path)).int().unsqueeze(0)
+        return img, mask
+    
+
+class PlanetDataLoader(BaseDataLoader):
+
+    def __init__(self, data_dir,
+            batch_size,
+            years,
+            max_dataset_size=float("inf"),
+            shuffle=True,
+            num_workers=1,
+            training=True):
+        
+        if training:
+            subdir = os.path.join(data_dir, 'train')
+        else:
+            subdir = os.path.join(data_dir, 'val')
+
+        self.dataset = PlanetDataset(
+                data_dir,
+                years,
+                max_dataset_size)
+        super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
+    ''' 
+    def _split_sampler(self, split):
+        idx_full = np.arange(self.n_samples)
+        np.random.seed(0)
+        np.random.shuffle(idx_full)
+
+        if isinstance(split, int):
+            assert split >= 0
+            assert split < self.n_samples, "validation set size is configured to be larger than entire dataset."
+            len_valid = split
+        else:
+            len_valid = int(self.n_samples * split)
+        
+        if split == 0.0:  # Return only train sampler, valid_sampler is None
+            train_idx = np.arange(self.n_samples)
+            train_sampler = SubsetRandomSampler(train_idx)
+            valid_sampler = None
+        else:
+            valid_idx = idx_full[0:len_valid]
+            train_idx = np.delete(idx_full, np.arange(0, len_valid))
+
+            train_sampler = SubsetRandomSampler(train_idx)
+            valid_sampler = SubsetRandomSampler(valid_idx)
+
+        self.shuffle = False
+        self.n_samples = len(train_idx)
+        return train_sampler, valid_sampler
+    '''        
+
+
+
+
+def make_dataset(dir, keyname, years, max_dataset_size=float("inf")):
+    images = []
+    assert os.path.isdir(dir), '%s is not a valid directory' % dir
+    if years == 'all':
+        years = list(next(os.walk(dir))[1])
+    if max_dataset_size == 'inf':
+        max_dataset_size = float("inf")
+    # for subdir in next(os.walk(dir))[1]:
+    for year in years:
+        images.extend([file for file in glob.glob(os.path.join(dir, year, keyname + '*'))])
+    return images
+
+def get_data_dir(full_path, mode):
+    """
+    Params
+        full_path: string
+        mode: {train, val}
+    """
+  
+    return os.path.join(full_path, mode)
