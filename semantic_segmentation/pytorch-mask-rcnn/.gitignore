@@ -1,0 +1,11 @@
+.idea/
+logs/
+*.pth
+*.so
+*.pyc
+*.o
+pycocotools
+*_ext*
+images/
+__pycache__/
+*__pycache__*
