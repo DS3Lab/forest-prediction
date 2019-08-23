@@ -46,7 +46,7 @@ def get_loss_pred(img0, img1):
 def save_images_single(batch_size, images, out_dir, idx_start, limit):
 
     for i in range(0, images['img'].shape[0], batch_size):
-        num_y_tiles = 4
+        num_y_tiles = 5
         f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
         gs = gridspec.GridSpec(num_y_tiles, batch_size, wspace=0.0, hspace=0.0)
         tiles = list(range(i, i + batch_size))
@@ -56,6 +56,7 @@ def save_images_single(batch_size, images, out_dir, idx_start, limit):
             img = images['img'][tile]
             gt = images['gt'][tile]
             pred = images['pred'][tile]
+            loss_gt = images['loss'][tile]
             if tile > i:
                 loss = get_loss_pred(images['pred'][tile-1], images['pred'][tile-2])
             else:
@@ -82,6 +83,12 @@ def save_images_single(batch_size, images, out_dir, idx_start, limit):
             ax.get_yaxis().set_visible(False)
             print('plot 3')
             plt.imshow(loss[0], cmap=plt.cm.binary)
+
+            ax = plt.subplot(gs[4, tile%batch_size])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            print('plot 3')
+            plt.imshow(loss_gt[0], cmap=plt.cm.binary)
         out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
         print('Saved!', out_imgs_dir)
         plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
