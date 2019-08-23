@@ -173,6 +173,8 @@ def main(config):
                 udata = torch.cat((uimg0, uimg1, uimg2, uimg3), 0)
 
                 target = torch.cat((mask, mask, mask, mask), 0)
+                loss = batch['loss']
+                loss = torch.cat((loss, loss, loss, loss), 0)
                 print('MINI BATCH', data.shape)
             else: # 'annual'
                 if img_mode == 'same':
