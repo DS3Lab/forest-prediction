@@ -184,7 +184,7 @@ def main(config):
                     imgs = batch['imgs']
                     # mask = batch['mask'].unsqueeze(0) # 1, 1, 256, 256
                     mask = batch['mask'] # 1, 1, 256, 256
-
+                    loss = batch['loss']
                     img0, img1 = imgs[0], imgs[1]
                     uimg0, uimg1 = normalize_inverse(img0, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353), input_type), \
                             normalize_inverse(img1, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353), input_type)
@@ -193,6 +193,7 @@ def main(config):
                     udata = torch.cat((uimg0, uimg1), 0)
 
                     target = torch.cat((mask[0], mask[1]), 0)
+                    loss = torch.cat((loss, loss), 0)
                     print('MINI BATCH', data.shape)
 
             data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
@@ -209,7 +210,8 @@ def main(config):
             images = {
                 'img': udata.cpu().numpy(),
                 'gt': target.cpu().numpy(),
-                'pred': output_binary.reshape(-1, 1, 256, 256)
+                'pred': output_binary.reshape(-1, 1, 256, 256),
+                'loss': loss.cpu().numpy() if loss else np.zeros((gt.shape))
             }
             print('prediction_time', time.time() - init_time)
             if timelapse == 'quarter' and input_type == 'two':
