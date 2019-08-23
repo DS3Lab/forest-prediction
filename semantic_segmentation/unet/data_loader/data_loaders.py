@@ -10,6 +10,8 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from base import BaseDataLoader
 
+HANSEN_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/hansen_loss_db'
+
 # TODO: put in utils
 def loadFiles(mask_dir, img_dir, years, qualities,
     timelapse='quarter',limit=float('inf'), testing=False,
@@ -61,6 +63,10 @@ def loadFiles(mask_dir, img_dir, years, qualities,
 def loadSingleFiles(mask_dir, img_dir, years, qualities,
     timelapse='quarter',limit=float('inf'), testing=False,
     img_mode='same'):
+    """
+    img_mode: same - gets only one year
+              cont - year - 1 and curr year
+    """
     print('LOAD FILES', timelapse)
     imgs = {}
     for quality in qualities:
@@ -127,15 +133,13 @@ def get_annual_imgs_from_mask(mask_file, img_dir, single=False, img_mode='same')
             data[key] = {
                 'img': (planet_template.format(year=year-1, z=z, x=x, y=y),
                         planet_template.format(year=year, z=z, x=x, y=y)),
-                'mask': (mask0, mask_file)
+                'mask': (mask0, mask_file),
+                'loss': os.path.join(HANSEN_PATH_DB,
+                'ly{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y))
             }
     return data
 
 def get_single_quarter_imgs_from_mask(mask_file, img_dir, img_mode):
-    """
-    img_mode: {same, contiguous}. If same, it just returns 4 quarter images
-        If contiguous, it also returns the hansen label
-    """
     year, z, x, y = get_tile_info(mask_file.split('/')[-1])
     planet_name = 'pl' + '{year}' + '_{q}_{z}_{x}_{y}.png'
     planet_template = os.path.join(img_dir, planet_name)
@@ -149,7 +153,9 @@ def get_single_quarter_imgs_from_mask(mask_file, img_dir, img_mode):
                 planet_template.format(year=year-1, q='q2', z=z, x=x, y=y),
                 planet_template.format(year=year-1, q='q3', z=z, x=x, y=y),
                 planet_template.format(year=year-1, q='q4', z=z, x=x, y=y)),
-        'mask': mask_file
+        'mask': mask_file,
+        'loss': os.path.join(HANSEN_PATH_DB,
+        'ly{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y))
     }
 
     return data
@@ -671,23 +677,32 @@ class PlanetSingleDataset(Dataset):
                 img_arr1 = open_image(path_dict['img'][1]).astype(np.float64)
                 mask_arr0 = open_image(path_dict['mask'][0])
                 mask_arr1 = open_image(path_dict['mask'][1])
+                loss = open_image(path_dict['loss'])
                 mask_arr0 = torch.from_numpy(mask_arr0).unsqueeze(0)
                 mask_arr1 = torch.from_numpy(mask_arr1).unsqueeze(0)
+
                 # mask_arr = transforms.ToTensor()(mask_arr)
                 img_arr0 = self.transforms(img_arr0)
                 img_arr1 = self.transforms(img_arr1)
+
+                loss = torch.from_numpy(loss).unsqueeze(0)
                 return {
                     'imgs': (img_arr0.float(), img_arr1.float()),
-                    'mask': (mask_arr0.float(), mask_arr1.float())
+                    'mask': (mask_arr0.float(), mask_arr1.float()),
+                    'loss': loss.float()
                 }
         else:
             img_arr0 = self.transforms(open_image(path_dict['img'][0]))
             img_arr1 = self.transforms(open_image(path_dict['img'][1]))
             img_arr2 = self.transforms(open_image(path_dict['img'][2]))
             img_arr3 = self.transforms(open_image(path_dict['img'][3]))
+            loss = open_image(path_dict['loss'])
             mask_arr = open_image(path_dict['mask'])
             mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+            loss = torch.from_numpy(loss).unsqueeze(0)
             return {
-                'imgs': (img_arr0, img_arr1, img_arr2, img_arr3),
-                'mask': mask_arr
+                'imgs': (img_arr0.float(), img_arr1.float(),
+                    img_arr2.float(), img_arr3.float()),
+                'mask': mask_arr.float(),
+                'loss': loss.float()
             }
