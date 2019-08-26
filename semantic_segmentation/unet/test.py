@@ -145,6 +145,7 @@ def main(config):
         for i, batch in enumerate(tqdm(data_loader)):
         # for i, (data, target) in enumerate(tqdm(data_loader)):
             init_time = time.time()
+            loss = None
             if timelapse == 'quarter' and input_type == 'two':
                 imgs = batch['imgs']
                 # mask = batch['mask'].unsqueeze(0) # 1, 1, 256, 256
@@ -213,7 +214,7 @@ def main(config):
                 'img': udata.cpu().numpy(),
                 'gt': target.cpu().numpy(),
                 'pred': output_binary.reshape(-1, 1, 256, 256),
-                'loss': loss.cpu().numpy() if loss else np.zeros((gt.shape))
+                'loss': loss.cpu().numpy() if loss is not None else np.zeros((gt.shape))
             }
             print('prediction_time', time.time() - init_time)
             if timelapse == 'quarter' and input_type == 'two':

@@ -87,7 +87,7 @@ def save_images_single(batch_size, images, out_dir, idx_start, limit):
             ax = plt.subplot(gs[4, tile%batch_size])
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
-            print('plot 3')
+            print('plot 4')
             plt.imshow(loss_gt[0], cmap=plt.cm.binary)
         out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
         print('Saved!', out_imgs_dir)
