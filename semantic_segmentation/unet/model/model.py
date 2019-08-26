@@ -344,10 +344,10 @@ class UNet16(nn.Module):
 
 class DRNSeg(nn.Module):
     def __init__(self, model_name, classes, pretrained_model=None,
-                 pretrained=True, use_torch_up=False):
+                 pretrained=True, use_torch_up=True):
         super(DRNSeg, self).__init__()
         model = drn.__dict__.get(model_name)(
-            pretrained=pretrained, num_classes=1000)
+            pretrained=pretrained, num_classes=1)
         pmodel = nn.DataParallel(model)
         if pretrained_model is not None:
             pmodel.load_state_dict(pretrained_model)
