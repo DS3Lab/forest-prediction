@@ -355,7 +355,7 @@ class DRNSeg(nn.Module):
 
         self.seg = nn.Conv2d(model.out_dim, classes,
                              kernel_size=1, bias=True)
-        self.softmax = nn.LogSoftmax()
+        # self.softmax = nn.LogSoftmax()
         m = self.seg
         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
         m.weight.data.normal_(0, math.sqrt(2. / n))
@@ -381,6 +381,11 @@ class DRNSeg(nn.Module):
         # y -> upsampling, x -> normal logits
         # don't return softmax in order to use BCE
         return y
+    def __params__(self):
+        for param in self.base.parameters():
+            yield param
+        for param in self.seg.parameters():
+            yield param
 
     def optim_parameters(self, memo=None):
         for param in self.base.parameters():
