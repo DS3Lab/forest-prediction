@@ -84,6 +84,7 @@ def main(config):
     # setup data_loader instances
     timelapse = config['data_loader_val']['args']['timelapse']
     input_type = config['data_loader_val']['args']['input_type']
+    # img mode is used to do batch = 1 so it can minus the fc, and get the hansen loss
     img_mode = config['data_loader_val']['args']['img_mode']
     if timelapse == 'quarter' or img_mode == 'cont':
         batch_size = 1
