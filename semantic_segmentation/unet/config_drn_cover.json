@@ -4,8 +4,8 @@
     "arch": {
         "type": "DRNSeg",
         "args": {
-            "model_name": "drn-d-38",
-            "classes": "1",
+            "model_name": "drn_d_38",
+            "classes": 1,
             "pretrained": false
         }
     },

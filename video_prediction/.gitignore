@@ -3,3 +3,4 @@
 data/
 logs/*model*
 *.pyc
+*__pycache__/
