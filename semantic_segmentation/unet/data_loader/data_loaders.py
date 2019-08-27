@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 import torch
 import torchvision
-import rasterio
+# import rasterio
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
@@ -463,13 +463,13 @@ def load_tif_files(data_dir, max_dataset_size):
     return imgs
 
 def open_tif(tif_path):
-    with rasterio.open(tif_path) as data:
-        tif = data.read()
-    img_arr0 = tif[3:6] # now first three bands is time t and next three is time t-1
-    img_arr1 = tif[:3]
-    mask = tif[6]
-    return img_arr0.astype(np.float32).transpose([1,2,0]), img_arr1.astype(np.float32).transpose([1,2,0]), mask.astype(np.uint8)
-
+    # with rasterio.open(tif_path) as data:
+    #     tif = data.read()
+    # img_arr0 = tif[3:6] # now first three bands is time t and next three is time t-1
+    # img_arr1 = tif[:3]
+    # mask = tif[6]
+    # return img_arr0.astype(np.float32).transpose([1,2,0]), img_arr1.astype(np.float32).transpose([1,2,0]), mask.astype(np.uint8)
+    pass
 class PlanetTifDataset(Dataset):
     """
     # TODO: delete
