@@ -90,16 +90,16 @@ class BaseTrainer:
                                         "Model performance monitoring is disabled.".format(self.mnt_metric))
                     self.mnt_mode = 'off'
                     improved = False
-                    not_improved_count = 0
+                    self.not_improved_count = 0
 
                 if improved:
                     self.mnt_best = log[self.mnt_metric]
-                    not_improved_count = 0
+                    self.not_improved_count = 0
                     best = True
                 else:
-                    not_improved_count += 1
+                    self.not_improved_count += 1
 
-                if not_improved_count > self.early_stop:
+                if self.not_improved_count > self.early_stop:
                     self.logger.info("Validation performance didn\'t improve for {} epochs. "
                                      "Training stops.".format(self.early_stop))
                     break
@@ -202,3 +202,5 @@ class BaseTrainer:
             self.optimizer.load_state_dict(checkpoint['optimizer'])
 
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
+
+        self.not_improved_count = 0
