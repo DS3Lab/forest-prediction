@@ -347,8 +347,8 @@ class DRNSeg(nn.Module):
     def __init__(self, model_name, classes, pretrained_model=None,
                  pretrained=True, use_torch_up=True):
         super(DRNSeg, self).__init__()
-        print(drn)
-        model = drn.__dict__.get(model_name)(pretrained=pretrained, num_classes=1)
+        model = drn.__dict__.get(model_name)(
+            pretrained=pretrained, num_classes=1)
         pmodel = nn.DataParallel(model)
         if pretrained_model is not None:
             pmodel.load_state_dict(pretrained_model)
@@ -382,13 +382,13 @@ class DRNSeg(nn.Module):
         # y -> upsampling, x -> normal logits
         # don't return softmax in order to use BCE
         return y
-    """
+
     def __params__(self):
         for param in self.base.parameters():
             yield param
         for param in self.seg.parameters():
             yield param
-    """
+
     def optim_parameters(self, memo=None):
         for param in self.base.parameters():
             yield param
