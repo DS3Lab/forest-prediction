@@ -109,7 +109,7 @@ def create_forest_tile(forest_cover, hansen_loss, hansen_gain, out_dir, year, z,
     np.save(os.path.join(out_dir, img_name), img_arr)
     logger.debug('SUCCESS: {}'.format(img_name))
 
-    def create_forest_cover_tiles(forest_files, loss_files, gain_files, out_dir):
+def create_forest_cover_tiles(forest_files, loss_files, gain_files, out_dir):
     loss_template = 'ly{year}_{z}_{x}_{y}.png'
     gain_template = 'fg2012_{z}_{x}_{y}.png'
     for file in forest_files:
