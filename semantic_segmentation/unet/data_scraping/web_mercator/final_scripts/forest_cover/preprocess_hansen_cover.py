@@ -117,13 +117,13 @@ def create_forest_tile(forest_cover, hansen_loss, hansen_gain, out_dir, year, z,
         forest_cover = open_image(file)
         forest_cover = process_forest_tile(forest_cover) # >= 0.3 is forest, < 0.3 is not
         year, z, x, y = get_tile_info(file)
-        forest_gain = search_hansen_file
         hansen16 = search_hansen_file(loss_template.format(year='2016', z=z, x=x, y=y), loss_files)
         hansen17 = search_hansen_file(loss_template.format(year='2017', z=z, x=x, y=y), loss_files)
         hansen18 = search_hansen_file(loss_template.format(year='2018', z=z, x=x, y=y), loss_files)
-        gain00 = search_hansen_file(gain_template.format(z=z, x=x, y=y))
+        gain00 = search_hansen_file(gain_template.format(z=z, x=x, y=y), gain_files)
 
         hansen_gain = open_image(gain00)
+
         if hansen16:
             hansen_loss16 = open_image(hansen16)
             create_forest_tile(forest_cover, hansen_loss16, hansen_gain, out_dir, '2016', z, x, y)
@@ -148,13 +148,10 @@ def main():
     forest_loss_files = getListOfFiles(hansen_dir)
     forest_loss_files_other = getListOfFiles(hansen_other)
     forest_loss_files.extend(forest_loss_files_other)
-
-    # forest cover
-    forest_files = getListOfFiles(forest_dir)
-
     # forest gain
     forest_gain_files = getListOfFiles(forest_gain_2012_dir)
-
+    # forest cover 2000
+    forest_files = getListOfFiles(forest_cover2000_dir)
     create_forest_cover_tiles(forest_files, forest_loss_files,
         forest_gain_files, out_forest_dir)
 
