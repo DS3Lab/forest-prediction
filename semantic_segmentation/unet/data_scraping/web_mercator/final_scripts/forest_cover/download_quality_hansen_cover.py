@@ -1,4 +1,4 @@
-"""Module to download "high quality" planet tiles (min 5% forest loss)
+"""Module to download high quality forest cover tiles
 """
 
 import requests
@@ -16,6 +16,8 @@ import numpy as np
 from itertools import product
 
 FOREST_URL = "https://storage.googleapis.com/earthenginepartners-hansen/tiles/gfc_v1.4/tree_gray/{z}/{x}/{y}.png"
+FOREST_GAIN_URL = "https://storage.googleapis.com/earthenginepartners-hansen/tiles/gfc_v1.4/gain_alpha/{z}/{x}/{y}.png"
+
 logger = logging.getLogger('forest')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
@@ -40,7 +42,7 @@ def download_item(url, folder, item_type='hansen'):
     Download quad tif
     """
     local_filename = '_'.join(url.split('/')[5:])
-    prefix = 'gf2000_'
+    prefix = 'fg2012_'
     local_filename = prefix + '_'.join(local_filename.split('_')[-3:])
 
     if os.path.isfile(os.path.join(folder, local_filename)):
@@ -63,7 +65,7 @@ def download_item(url, folder, item_type='hansen'):
         return None
     logger.debug('DOWNLOADED: ' + url)
 
-def get_forest_urls(hansen_files):
+def get_forest_urls(hansen_files, URL):
     forest_urls = []
     for file in hansen_files:
         file_name = file.split('/')[-1]
@@ -72,7 +74,7 @@ def get_forest_urls(hansen_files):
         zoom = name_split[1]
         x = name_split[2]
         y = name_split[3][:-4]
-        url = FOREST_URL.format(z=zoom,x=x,y=y)
+        url = URL.format(z=zoom,x=x,y=y)
         forest_urls.append(url)
     return forest_urls
 
@@ -105,20 +107,20 @@ def getKeyFromFiles(files):
 def main():
 
     out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality'
-    out_forest_dir = os.path.join(out_dir, 'forest')
+    out_forest_dir = os.path.join(out_dir, 'forest_gain')
     hansen_dir = os.path.join(out_dir, 'hansen')
     create_dir(out_forest_dir)
 
     # Get hansen files
     hansen_files = getListOfFiles(hansen_dir)
-    forest_urls = get_forest_urls(hansen_files)
-    print(len(forest_urls))
-    print(len(hansen_files))
-    getKeyFromFiles(hansen_files)
-'''
+    forest_urls = get_forest_urls(hansen_files, FOREST_GAIN_URL)
+    # print(len(forest_urls))
+    # print(len(hansen_files))
+    # getKeyFromFiles(hansen_files)
+
     for chunk in chunks(forest_urls, 16):
         with multiprocessing.Pool(processes=16) as pool:
             results = pool.starmap(download_item, create_tuple(chunk, out_forest_dir, 'forest'))
-'''
+
 if __name__ == '__main__':
     main()
