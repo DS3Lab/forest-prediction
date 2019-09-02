@@ -16,7 +16,7 @@ import numpy as np
 from itertools import product
 
 MOSAICS_URL = "https://tiles.planet.com/basemaps/v1/planet-tiles/global_quarterly_{year}{q}_mosaic/gmap/{z}/{x}/{y}.png?api_key=25647f4fc88243e2a6e91150aaa117e3"
-
+MOSAIC_MONTH_URL = 'https://tiles.planet.com/basemaps/v1/planet-tiles/global_monthly_{year}_{month}_mosaic/gmap/{z}/{x}/{y}.png?api_key=25647f4fc88243e2a6e91150aaa117e3',
 logger = logging.getLogger('download-planet')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
@@ -76,7 +76,8 @@ def download_item(url, folder, item_type='planet'):
 
     logger.debug('DOWNLOADED: ' + url)
 
-def get_planet_urls(hansen_files):
+def get_planet_urls(hansen_files, timelapse='quarter'):
+    assert timelapse in ['quarter', 'month']
     planet_urls = []
     for file in hansen_files:
         file_name = file.split('/')[-1]
@@ -85,30 +86,73 @@ def get_planet_urls(hansen_files):
         zoom = name_split[1]
         x = name_split[2]
         y = name_split[3][:-4]
-        quads = [
-            MOSAICS_URL.format(year=year, q='q1', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=year, q='q2', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=year, q='q3', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=year, q='q4', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=int(year)-1, q='q1', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=int(year)-1, q='q2', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=int(year)-1, q='q3', z=zoom, x=x, y=y),
-            MOSAICS_URL.format(year=int(year)-1, q='q4', z=zoom, x=x, y=y)
-        ]
-        planet_urls.extend(quads)
+        if timelapse == 'quarter':
+            mosaics = [
+                MOSAICS_URL.format(year=year, q='q1', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=year, q='q2', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=year, q='q3', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=year, q='q4', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=int(year)-1, q='q1', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=int(year)-1, q='q2', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=int(year)-1, q='q3', z=zoom, x=x, y=y),
+                MOSAICS_URL.format(year=int(year)-1, q='q4', z=zoom, x=x, y=y)
+            ]
+        else: # month
+            mosaics = [
+                MOSAIC_MONTH_URL.format(year=year, month='01', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='02', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='03', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='04', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='05', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='06', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='07', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='08', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='09', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='10', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='11', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year, month='12', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='01', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='02', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='03', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='04', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='05', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='06', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='07', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='08', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='09', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='10', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='11', z=zoom, x=x, y=y),
+                MOSAIC_MONTH_URL.format(year=year-1, month='12', z=zoom, x=x, y=y)
+            ]
+        planet_urls.extend(mosaics)
     return planet_urls
 
-def main():
+def getListOfFiles(dirName):
+    # create a list of file and sub directories
+    # names in the given directory
+    listOfFile = os.listdir(dirName)
+    allFiles = list()
+    # Iterate over all the entries
+    for entry in listOfFile:
+        # Create full path
+        fullPath = os.path.join(dirName, entry)
+        # If entry is a directory then get the list of files in this directory
+        if os.path.isdir(fullPath):
+            allFiles = allFiles + getListOfFiles(fullPath)
+        else:
+            allFiles.append(fullPath)
 
+    return allFiles
+
+def main():
     out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality'
-    out_planet_dir = os.path.join(out_dir, 'planet')
-    hansen_dir = os.path.join(out_dir, 'hansen')
-    create_dir(out_dir)
+    out_planet_dir = os.path.join(out_dir, 'planet_monthly')
+    hansen_dir = os.path.join(out_dir, 'forest_loss_yearly')
     create_dir(out_planet_dir)
 
     # Get hansen files
-    hansen_files = glob.glob(hansen_dir + '/*.png')
-    planet_urls = get_planet_urls(hansen_files)
+    hansen_files = getListOfFiles(hansen_dir)
+    planet_urls = get_planet_urls(hansen_files, 'month')
 
 
     for chunk in chunks(planet_urls, 16):
