@@ -65,7 +65,7 @@ def reduce_planet_files(planet_files):
     for file in planet_files:
         items = file.split('/')[-1].split('_')
 
-        key = '_'.join(items[0][2:], items[2], items[3], items[4][:-4])
+        key = '_'.join((items[0][2:], items[2], items[3], items[4][:-4]))
         if key not in imgs:
             imgs[key] = {
                 'year': items[0][2:],
@@ -73,7 +73,6 @@ def reduce_planet_files(planet_files):
                 'x': items[3],
                 'y': items[4][:-4]
             }
-            imgs.append(key)
     return imgs
 
 def main():
@@ -85,29 +84,29 @@ def main():
     logger.addHandler(fh)
 
     input_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet'
+    src_quarter_path = os.path.join(input_dir, 'quarter')
     img_dir = os.path.join(input_dir, 'quarter_croppedv3')
-    out_planet_dir = os.path.join(img_dir, 'annual_cropped')
+    out_planet_dir = os.path.join(input_dir, 'annual_cropped')
     create_dir(out_planet_dir)
 
     hansen_files = get_hansen_quality_files()
-    planet_files = get_planet_files(hansen_files[0], src_quarter_path)
+    planet_files = get_planet_files(hansen_files, src_quarter_path)
     planet_files = reduce_planet_files(planet_files)
-
-    crops_keys = ['01', '02', '03', '04']
-    crop_tiles = list(itertools.product(crops_keys, crop_keys))
-    name_template = 'pl{year}_{q}_{z}_{x}_{y}_{n0}_{n1}.png'
+    crop_keys = ['01', '02', '03', '04']
+    crop_tiles = list(itertools.product(crop_keys, crop_keys))
+    name_template = os.path.join(img_dir ,'pl{year}_{q}_{z}_{x}_{y}_{n0}_{n1}.png')
 
     for key in planet_files.keys():
         img_info = planet_files[key]
         year, z, x, y = img_info['year'], img_info['z'], img_info['x'], img_info['y']
         for tile in crop_tiles:
             quads = [
-                name_template.format(year=year, q='q1', z=z, x=x, y=y, n0=tile[0], n1=tile[1])
-                name_template.format(year=year, q='q2', z=z, x=x, y=y, n0=tile[0], n1=tile[1])
-                name_template.format(year=year, q='q3', z=z, x=x, y=y, n0=tile[0], n1=tile[1])
+                name_template.format(year=year, q='q1', z=z, x=x, y=y, n0=tile[0], n1=tile[1]),
+                name_template.format(year=year, q='q2', z=z, x=x, y=y, n0=tile[0], n1=tile[1]),
+                name_template.format(year=year, q='q3', z=z, x=x, y=y, n0=tile[0], n1=tile[1]),
                 name_template.format(year=year, q='q4', z=z, x=x, y=y, n0=tile[0], n1=tile[1])
             ]
-            name = 'pl' + year + '_' + z + '_' + x + '_' + y + '_'+ n0 + '_' + n1'.npy'
+            name = 'pl' + year + '_' + z + '_' + x + '_' + y + '_'+ tile[0] + '_' + tile[1] + '.npy'
             name = os.path.join(out_planet_dir, name)
             if not os.path.isfile(name):
                 try:
@@ -115,7 +114,6 @@ def main():
                     np.save(name, mosaic)
                     logger.debug('SAVED: ' + name)
                 except:
-                    logger.debug('FAILED: ' + name)    ]
-
+                    logger.debug('FAILED: ' + name)
 if __name__ == '__main__':
     main()
