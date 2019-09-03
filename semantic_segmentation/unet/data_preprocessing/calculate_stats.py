@@ -64,7 +64,7 @@ class MyDataset(Dataset):
         #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter'
         # else:
         #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/annual'
-
+        self.data_dir = data_dir
         self.dataset = glob.glob(os.path.join(self.data_dir, 'pl2016*'))
         self.dataset.extend(glob.glob(os.path.join(self.data_dir, 'pl2017*')))
 
