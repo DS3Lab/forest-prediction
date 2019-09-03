@@ -27,7 +27,7 @@ def make_planet_dataset(dir, target_dir, max_dataset_size=float("inf")):
     return image_pairs[:min(max_dataset_size, len(images))]
 
 def get_target(filename, target_dir):
-    items = key.split('/')[-1].split('_')
+    items = filename.split('/')[-1].split('_')
     target_name = '_'.join((items[0], items[2], items[3],
         items[4], items[5], items[6][:-4])) + '.npy'
     target_name = os.path.join(target_dir, target_name)
