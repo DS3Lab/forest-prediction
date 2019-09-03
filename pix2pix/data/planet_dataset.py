@@ -2,7 +2,7 @@ import os.path
 import numpy as np
 import torch
 from data.base_dataset import BaseDataset, get_transform
-from data.numpy_folder import make_planet_dataset, open_numpy
+from data.numpy_folder import make_planet_dataset, open_image
 from PIL import Image
 import random
 
@@ -52,11 +52,11 @@ class PlanetDataset(BaseDataset):
             B_paths (str)    -- image paths
         """
         A_path, B_path = self.paths[index % self.size]  # make sure index is within then range
-        A_img = Image.open(A_path).convert('RGB') # png
+        # A_img = Image.open(A_path).convert('RGB') # png
         # B_img = Image.open(B_path).convert('RGB') # B is already a np array
         # apply image transformation
-        A_img = Image.open(A_path)
-        B_img = open_numpy(B_path)
+        A_img = open_image(A_path)
+        B_img = open_image(B_path)
         # A = torch.from_numpy(A_img).float()
         # B = torch.from_numpy(B_img).float()
         A = self.transform_A(A_img)

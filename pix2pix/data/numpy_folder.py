@@ -4,6 +4,7 @@ Does the same as image_folder but for npy files
 import numpy as np
 import os
 import glob
+import cv2
 
 def make_dataset(dir, keyname, years, max_dataset_size=float("inf")):
     images = []
@@ -32,10 +33,14 @@ def get_target(filename, target_dir):
     target_name = os.path.join(target_dir, target_name)
     return target_name
 
-def open_numpy(img_path):
-    img_arr = np.load(img_path)
-    # return HWC format
-    if img_arr.shape[0] == 3:
-        return img_arr.transpose([1,2,0])
-    else:
-        return img_arr
+def open_image(img_path):
+    if img_path[:-4] == '.npy':
+        img_arr = np.load(img_path)
+        # return HWC format
+        if img_arr.shape[0] == 3:
+            return img_arr.transpose([1,2,0])
+        else:
+            return img_arr
+    else: # png
+        img_arr = cv2.imread(img_path)
+        return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
