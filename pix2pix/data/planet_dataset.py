@@ -62,7 +62,7 @@ class PlanetDataset(BaseDataset):
         # B = torch.from_numpy(B_img).float()
         A = self.transform_A(A_img).float()
         B = self.transform_B(B_img).float()
-        print(A.size(), B.size(), 'GET ITEM SIZE')
+        # print(A.size(), B.size(), 'GET ITEM SIZE')
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
 
     def __len__(self):

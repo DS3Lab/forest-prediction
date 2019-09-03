@@ -165,13 +165,7 @@ class Visualizer():
             for label, image in visuals.items():
                 image_numpy = util.tensor2im(image)
                 img_path = os.path.join(self.img_dir, 'epoch%.3d_%s.png' % (epoch, label))
-                if label == 'real_A':
-                    img_path0 =  os.path.join(self.img_dir, 'epoch%.3d_%s_0.png' % (epoch, label))
-                    img_path1 =  os.path.join(self.img_dir, 'epoch%.3d_%s_1.png' % (epoch, label))
-                    util.save_image(image_numpy[:,:,:3], img_path0)
-                    util.save_image(image_numpy[:,:,3:], img_path1)
-                else:
-                    util.save_image(image_numpy, img_path)
+                util.save_image(image_numpy, img_path)
             # update website
             webpage = html.HTML(self.web_dir, 'Experiment name = %s' % self.name, refresh=1)
             for n in range(epoch, 0, -1):
