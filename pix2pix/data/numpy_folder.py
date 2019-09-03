@@ -41,6 +41,5 @@ def open_image(img_path):
         img_arr = img_arr.transpose([1,2,0]) # 64, 64, 3
         return img_arr / 255.
     else: # png
-        print('OPEN IMAGE IN NUMPY_THING', img_path)
         img_arr = cv2.imread(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
