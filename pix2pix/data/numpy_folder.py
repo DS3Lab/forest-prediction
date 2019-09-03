@@ -18,7 +18,7 @@ def make_dataset(dir, keyname, years, max_dataset_size=float("inf")):
     print('MAKE DATASET', images, os.path.join(dir, keyname + '*'))
     return images[:min(max_dataset_size, len(images))]
 
-def make_planet_dataset(dir, max_dataset_size=float("inf")):
+def make_planet_dataset(dir, target_dir, max_dataset_size=float("inf")):
     assert os.path.isdir(dir), '%s is not a valid directory' % dir
     images = glob.glob(dir)
     image_pairs = []
@@ -40,4 +40,3 @@ def open_numpy(img_path):
         return img_arr.transpose([1,2,0])
     else:
         return img_arr
-        
