@@ -29,7 +29,7 @@ class PlanetDataset(BaseDataset):
         self.input_dir = os.path.join(opt.dataroot, 'quarter_cropped', opt.phase)
         self.target_dir = os.path.join(opt.dataroot, 'annual_cropped', opt.phase)
         self.paths = make_planet_dataset(self.input_dir, self.target_dir)
-        self.size = len(paths)
+        self.size = len(self.paths)
         # TODO: check if it is necessary to specify the number of channels of input and output image
         # input_nc = self.opt.output_nc if btoA else self.opt.input_nc       # get the number of channels of input image
         # output_nc = self.opt.input_nc if btoA else self.opt.output_nc      # get the number of channels of output image
