@@ -532,6 +532,7 @@ class UnetSkipConnectionBlock(nn.Module):
         if self.outermost:
             return self.model(x)
         else:   # add skip connections
+            print(x.size(), 'X SIZEEEEEE')
             return torch.cat([x, self.model(x)], 1)
 
 
