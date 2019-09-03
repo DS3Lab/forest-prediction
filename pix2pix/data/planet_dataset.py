@@ -57,6 +57,7 @@ class PlanetDataset(BaseDataset):
         # apply image transformation
         A_img = open_image(A_path)
         B_img = open_image(B_path)
+        # B_img = torch.from_numpy(open_image(B_path)).double()
         # A = torch.from_numpy(A_img).float()
         # B = torch.from_numpy(B_img).float()
         A = self.transform_A(A_img)

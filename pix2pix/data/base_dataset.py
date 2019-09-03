@@ -8,7 +8,7 @@ import torch.utils.data as data
 from PIL import Image
 import torchvision.transforms as transforms
 from abc import ABC, abstractmethod
-
+from data.utils import Normalize
 
 class BaseDataset(data.Dataset, ABC):
     """This class is an abstract base class (ABC) for datasets.
@@ -107,16 +107,16 @@ def get_transform(opt, params=None, timelapse='annual', grayscale=False, method=
     #     elif params['flip']:
     #         transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
 
-    if convert:
-        transform_list += [transforms.ToTensor()]
+    # if convert:
+    transform_list += [transforms.ToTensor()]
         # if grayscale:
         #     transform_list += [transforms.Normalize((0.5,), (0.5,))]
         # else:
         #     transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-        if timelapse == 'annual':
-            transform_list += [transforms.Normalize((0.2166, 0.2524, 0.1481), (0.1155, 0.0814, 0.0709))]
-        else: # quarter
-            transform_list += [transforms.Normalize((0.2250, 0.2586, 0.1589), (0.1444, 0.1159, 0.1120))]
+    if timelapse == 'annual':
+        transform_list += [Normalize((0.2166, 0.2524, 0.1481), (0.1155, 0.0814, 0.0709))]
+    else: # quarter
+        transform_list += [Normalize((0.2250, 0.2586, 0.1589), (0.1444, 0.1159, 0.1120))]
     return transforms.Compose(transform_list)
 
 

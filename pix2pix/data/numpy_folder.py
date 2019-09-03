@@ -34,13 +34,13 @@ def get_target(filename, target_dir):
     return target_name
 
 def open_image(img_path):
-    if img_path[:-4] == '.npy':
+    # For numpy assume that it has CHW format, and are not between 0 and 1
+    if img_path[-4:] == '.npy':
         img_arr = np.load(img_path)
         # return HWC format
-        if img_arr.shape[0] == 3:
-            return img_arr.transpose([1,2,0])
-        else:
-            return img_arr
+        img_arr = img_arr.transpose([1,2,0]) # 64, 64, 3
+        return img_arr / 255.
     else: # png
+        print('OPEN IMAGE IN NUMPY_THING', img_path)
         img_arr = cv2.imread(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
