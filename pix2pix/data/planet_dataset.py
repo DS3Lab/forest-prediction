@@ -2,7 +2,7 @@ import os.path
 import numpy as np
 import torch
 from data.base_dataset import BaseDataset, get_transform
-from data.numpy_folder import make_dataset
+from data.numpy_folder import make_planet_dataset, open_numpy
 from PIL import Image
 import random
 
@@ -20,7 +20,6 @@ class PlanetDataset(BaseDataset):
 
     def __init__(self, opt):
         """Initialize this dataset class.
-
         Parameters:
             opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
@@ -35,8 +34,8 @@ class PlanetDataset(BaseDataset):
         # TODO: Check if any transformation is needed
         # self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
         # self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
-        self.transform_A = get_transform(self.opt)
-        self.transform_B = get_transform(self.opt)
+        self.transform_A = get_transform(self.opt, timelapse='quarter')
+        self.transform_B = get_transform(self.opt, timelapse='annual')
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
@@ -54,8 +53,8 @@ class PlanetDataset(BaseDataset):
         A_img = Image.open(A_path).convert('RGB') # png
         # B_img = Image.open(B_path).convert('RGB') # B is already a np array
         # apply image transformation
-        A_img = np.load(A_path)
-        B_img = np.load(B_path)
+        A_img = Image.open(A_path)
+        B_img = open_numpy(B_path)
         # A = torch.from_numpy(A_img).float()
         # B = torch.from_numpy(B_img).float()
         A = self.transform_A(A_img)
