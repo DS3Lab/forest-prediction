@@ -20,7 +20,6 @@ def open_image(img_path):
         # (3,256,256)->(256,256,3). With transforms.ToTensor()
         # it will be converted to NCHW format.
         return np.load(img_path).transpose([1,2,0]) / 255.
-
     else:
         img_arr = cv2.imread(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
@@ -46,7 +45,7 @@ def online_mean_and_std(loader):
         if i % 5000 == 0:
             print(i)
         i = i + 1
-        
+
     return fst_moment, torch.sqrt(snd_moment - fst_moment ** 2)
 
 
@@ -54,18 +53,17 @@ class MyDataset(Dataset):
     """
     Custom dataset to calculate the mean of annual & quarter mosaics
     """
-    def __init__(self, timelapse):
+    def __init__(self, data_dir):
         """Initizalize dataset.
             Params:
                 data_dir: absolute path, string
                 years: list of years
                 filetype: png or npy. If png it is raw data, if npy it has been preprocessed
         """
-        assert timelapse in ['quarter', 'annual']
-        if timelapse == 'quarter':
-            self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter'
-        else:
-            self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/annual'
+        # if timelapse == 'quarter':
+        #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter'
+        # else:
+        #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/annual'
 
         self.dataset = glob.glob(os.path.join(self.data_dir, 'pl2016*'))
         self.dataset.extend(glob.glob(os.path.join(self.data_dir, 'pl2017*')))
@@ -91,25 +89,21 @@ class MyDataset(Dataset):
         return img
 
 def main():
-    dataset = MyDataset('annual')
+    dataset = MyDataset('/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/train')
     loader = DataLoader(
         dataset,
         batch_size=1,
         num_workers=1,
         shuffle=False
     )
-    for data in loader:
-        print(data.shape)
-        print(len(loader))
-        break
-    '''
+
     mean, std = online_mean_and_std(loader)
     stats = {
         'mean': mean,
         'std': std
     }
-    with open('quarter_stats.pkl', 'wb') as pkl_file:
+    with open('cropped_quarter_stats.pkl', 'wb') as pkl_file:
         pkl.dump(stats, pkl_file)
-    '''
+
 if __name__ == '__main__':
     main()
