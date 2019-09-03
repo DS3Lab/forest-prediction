@@ -78,28 +78,28 @@ def get_params(opt, size):
     return {'crop_pos': (x, y), 'flip': flip}
 
 
-def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, convert=True):
+def get_transform(opt, params=None, timelapse, grayscale=False, method=Image.BICUBIC, convert=True):
     transform_list = []
-    if grayscale:
-        transform_list.append(transforms.Grayscale(1))
-    if 'resize' in opt.preprocess:
-        print('BASE_DATASET.PY GET_TRANSFORM RESIZING')
-        osize = [opt.load_size, opt.load_size]
-        transform_list.append(transforms.Resize(osize, method))
-    elif 'scale_width' in opt.preprocess:
-        print('BASE_DATASET.PY GET_TRANSFORM SCALE_WIDTH')
-        transform_list.append(transforms.Lambda(lambda img: __scale_width(img, opt.load_size, method)))
-
-    if 'crop' in opt.preprocess:
-        print('BASE_DATASET.PY GET_TRANSFORM CROP')
-        if params is None:
-            transform_list.append(transforms.RandomCrop(opt.crop_size))
-        else:
-            transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], opt.crop_size)))
+    # if grayscale:
+    #     transform_list.append(transforms.Grayscale(1))
+    # if 'resize' in opt.preprocess:
+    #     print('BASE_DATASET.PY GET_TRANSFORM RESIZING')
+    #     osize = [opt.load_size, opt.load_size]
+    #     transform_list.append(transforms.Resize(osize, method))
+    # elif 'scale_width' in opt.preprocess:
+    #     print('BASE_DATASET.PY GET_TRANSFORM SCALE_WIDTH')
+    #     transform_list.append(transforms.Lambda(lambda img: __scale_width(img, opt.load_size, method)))
+    #
+    # if 'crop' in opt.preprocess:
+    #     print('BASE_DATASET.PY GET_TRANSFORM CROP')
+    #     if params is None:
+    #         transform_list.append(transforms.RandomCrop(opt.crop_size))
+    #     else:
+    #         transform_list.append(transforms.Lambda(lambda img: __crop(img, params['crop_pos'], opt.crop_size)))
     # TODO: Check why is doing int(round((height / 4) * 4)). I think it is just checking. Let's not use it for now
     # if opt.preprocess == 'none':
     #     transform_list.append(transforms.Lambda(lambda img: __make_power_2(img, base=4, method=method)))
-    
+
     # Activate no flip?
     # if not opt.no_flip:
     #     if params is None:
@@ -108,12 +108,15 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
     #         transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
 
     if convert:
-        print('BASE_DATASET.PY GET_TRANSFORM CONVERT')
         transform_list += [transforms.ToTensor()]
-        if grayscale:
-            transform_list += [transforms.Normalize((0.5,), (0.5,))]
-        else:
-            transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+        # if grayscale:
+        #     transform_list += [transforms.Normalize((0.5,), (0.5,))]
+        # else:
+        #     transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+        if timelapse == 'annual':
+            transform_list += [transforms.Normalize((0.2166, 0.2524, 0.1481), (0.1155, 0.0814, 0.0709))]
+        else: # quarter
+            transform_list += [transforms.Normalize((0.2250, 0.2586, 0.1589), (0.1444, 0.1159, 0.1120))]
     return transforms.Compose(transform_list)
 
 
