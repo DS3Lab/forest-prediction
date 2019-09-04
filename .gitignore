@@ -3,3 +3,7 @@ outputs/
 */__pycache__/
 *cpython*
 test/
+*.log
+*.pyc
+__pycache__
+_pycache_
