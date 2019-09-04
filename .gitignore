@@ -1,5 +1,4 @@
 outputs/
-!**/__pycache__/
 */__pycache__/
 *cpython*
 test/
