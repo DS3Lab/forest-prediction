@@ -101,6 +101,23 @@ class Visualizer():
         print('Command: %s' % cmd)
         Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
+    def normalize_inverse(image_numpy, label):
+        if label[-1] == 'A': # quarter images
+            mean = np.array([0.2250, 0.2586, 0.1589])
+            std = np.array([0.1444, 0.1159, 0.1120])
+        else: # B = annual images
+            mean = np.array([0.2166, 0.2524, 0.1481])
+            std = np.array([0.1155, 0.0814, 0.0709])
+        assert len(image_numpy) == 3
+        if image_numpy.shape[0] != 3: # 64x64x3
+            image_numpy = image_numpy.transpose([2,0,1])
+        img = image_numpy.copy()
+        uimg = np.empty(image_numpy.shape)
+        uimg[0, :, :]= img[0, :, :] * std[0] + mean[0]
+        uimg[1, :, :]= img[1, :, :] * std[1] + mean[1]
+        uimg[2, :, :]= img[2, :, :] * std[2] + mean[2]
+        return uimg
+
     def display_current_results(self, visuals, epoch, save_result):
         """Display current results on visdom; save current results to an HTML file.
 
