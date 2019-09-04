@@ -2,7 +2,7 @@ import os.path
 import numpy as np
 import torch
 from data.base_dataset import BaseDataset, get_transform
-from data.numpy_folder import make_planet_dataset, open_image
+from data.numpy_folder import make_dataset, open_image
 from PIL import Image
 import random
 

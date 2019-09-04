@@ -6,7 +6,7 @@ import os
 import glob
 import cv2
 
-def make_dataset(dir, keyname, years, max_dataset_size=float("inf")):
+def make_dataset(dir, max_dataset_size=float("inf")):
     assert os.path.isdir(dir), '%s is not a valid directory' % dir
     images = glob.glob(os.path.join(dir, '*'))
     return images[:min(max_dataset_size, len(images))]
