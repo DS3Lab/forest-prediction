@@ -1,8 +1,9 @@
 outputs/
-*/__pycache__/
+**/__pycache__/
 *cpython*
 test/
 *.log
 *.pyc
 __pycache__
 _pycache_
+
