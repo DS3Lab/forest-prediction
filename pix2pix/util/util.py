@@ -15,7 +15,7 @@ def normalize_inverse(tensor, mean, std):
         uimg[2, :, :] = img[2, :, :] * std[2] * mean[2]
         return uimg
 
-def tensor2im(input_image, mean, std, imtype=np.uint8):
+def tensor2im(input_image, imtype=np.uint8):
     """"Converts a Tensor array into a numpy image array.
 
     Parameters:
