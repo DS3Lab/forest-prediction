@@ -112,11 +112,11 @@ def get_transform(opt, params=None, timelapse='annual', grayscale=False, method=
         # if grayscale:
         #     transform_list += [transforms.Normalize((0.5,), (0.5,))]
         # else:
-        #     transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-    if timelapse == 'annual':
-        transform_list += [Normalize((0.2166, 0.2524, 0.1481), (0.1155, 0.0814, 0.0709))]
-    else: # quarter
-        transform_list += [Normalize((0.2250, 0.2586, 0.1589), (0.1444, 0.1159, 0.1120))]
+    transform_list += [transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    # if timelapse == 'annual':
+    #     transform_list += [Normalize((0.2166, 0.2524, 0.1481), (0.1155, 0.0814, 0.0709))]
+    # else: # quarter
+    #     transform_list += [Normalize((0.2250, 0.2586, 0.1589), (0.1444, 0.1159, 0.1120))]
     return transforms.Compose(transform_list)
 
 
