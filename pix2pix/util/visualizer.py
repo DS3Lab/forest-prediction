@@ -33,7 +33,8 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     ims, txts, links = [], [], []
 
     for label, im_data in visuals.items():
-        im = util.tensor2im(im_data)
+        mean, std = get_stats_from_label(label)
+        im = util.tensor2im(im_data, mean, std)
         image_name = '%s_%s.png' % (name, label)
         save_path = os.path.join(image_dir, image_name)
         h, w, _ = im.shape
@@ -48,6 +49,32 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
         links.append(image_name)
     webpage.add_images(ims, txts, links, width=width)
 
+def normalize_inverse(image_numpy, label):
+    if label[-1] == 'A': # quarter images
+        mean = np.array([0.2250, 0.2586, 0.1589])
+        std = np.array([0.1444, 0.1159, 0.1120])
+    else: # B = annual images
+        mean = np.array([0.2166, 0.2524, 0.1481])
+        std = np.array([0.1155, 0.0814, 0.0709])
+    assert len(image_numpy.shape) == 3
+    if image_numpy.shape[0] != 3: # 64x64x3
+        image_numpy = image_numpy.transpose([2,0,1])
+    img = image_numpy.copy()
+    uimg = np.empty(image_numpy.shape)
+    uimg[0, :, :]= img[0, :, :] * std[0] + mean[0]
+    uimg[1, :, :]= img[1, :, :] * std[1] + mean[1]
+    uimg[2, :, :]= img[2, :, :] * std[2] + mean[2]
+    return uimg.transpose([1,2,0])
+
+def get_stats_from_label(label):
+    if label[-1] == 'A': # quarter images
+        mean = np.array([0.2250, 0.2586, 0.1589])
+        std = np.array([0.1444, 0.1159, 0.1120])
+    else: # B = annual images
+        mean = np.array([0.2166, 0.2524, 0.1481])
+        std = np.array([0.1155, 0.0814, 0.0709])
+
+    return mean, std
 
 class Visualizer():
     """This class includes several functions that can display/save images and print/save logging information.
@@ -101,23 +128,6 @@ class Visualizer():
         print('Command: %s' % cmd)
         Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
-    def normalize_inverse(image_numpy, label):
-        if label[-1] == 'A': # quarter images
-            mean = np.array([0.2250, 0.2586, 0.1589])
-            std = np.array([0.1444, 0.1159, 0.1120])
-        else: # B = annual images
-            mean = np.array([0.2166, 0.2524, 0.1481])
-            std = np.array([0.1155, 0.0814, 0.0709])
-        assert len(image_numpy) == 3
-        if image_numpy.shape[0] != 3: # 64x64x3
-            image_numpy = image_numpy.transpose([2,0,1])
-        img = image_numpy.copy()
-        uimg = np.empty(image_numpy.shape)
-        uimg[0, :, :]= img[0, :, :] * std[0] + mean[0]
-        uimg[1, :, :]= img[1, :, :] * std[1] + mean[1]
-        uimg[2, :, :]= img[2, :, :] * std[2] + mean[2]
-        return uimg
-
     def display_current_results(self, visuals, epoch, save_result):
         """Display current results on visdom; save current results to an HTML file.
 
@@ -142,7 +152,9 @@ class Visualizer():
                 images = []
                 idx = 0
                 for label, image in visuals.items():
-                    image_numpy = util.tensor2im(image)
+                    mean, std = get_stats_from_label(label)
+                    image_numpy = util.tensor2im(image, mean, std)
+                    # image_numpy = util.tensor2im(image)
                     label_html_row += '<td>%s</td>' % label
                     images.append(image_numpy.transpose([2, 0, 1]))
                     idx += 1
@@ -169,7 +181,9 @@ class Visualizer():
                 idx = 1
                 try:
                     for label, image in visuals.items():
-                        image_numpy = util.tensor2im(image)
+                        mean, std = get_stats_from_label(label)
+                        image_numpy = util.tensor2im(image, mean, std)
+                        # image_numpy = util.tensor2im(image)
                         self.vis.image(image_numpy.transpose([2, 0, 1]), opts=dict(title=label),
                                        win=self.display_id + idx)
                         idx += 1
@@ -180,10 +194,10 @@ class Visualizer():
             self.saved = True
             # save images to the disk
             for label, image in visuals.items():
-                image_numpy = util.tensor2im(image)
+                mean, std = get_stats_from_label(label)
+                image_numpy = util.tensor2im(image, mean, std)
                 img_path = os.path.join(self.img_dir, 'epoch%.3d_%s.png' % (epoch, label))
-                image_numpy = normalize_inverse(label)
-                util.save_image(image_numpy, img_path)
+                util.save_image(image_numpy.astype('uint8'), img_path)
             # update website
             webpage = html.HTML(self.web_dir, 'Experiment name = %s' % self.name, refresh=1)
             for n in range(epoch, 0, -1):
@@ -191,30 +205,14 @@ class Visualizer():
                 ims, txts, links = [], [], []
 
                 for label, image_numpy in visuals.items():
-                    image_numpy = util.tensor2im(image)
+                    mean, std = get_stats_from_label(label)
+                    image_numpy = util.tensor2im(image, mean, std)
                     img_path = 'epoch%.3d_%s.png' % (n, label)
                     ims.append(img_path)
                     txts.append(label)
                     links.append(img_path)
                 webpage.add_images(ims, txts, links, width=self.win_size)
             webpage.save()
-
-    def normalize_inverse(image_numpy, label):
-        if label[-1] == 'A': # quarter images
-            mean = np.array([0.2250, 0.2586, 0.1589])
-            std = np.array([0.1444, 0.1159, 0.1120])
-        else: # B = annual images
-            mean = np.array([0.2166, 0.2524, 0.1481])
-            std = np.array([0.1155, 0.0814, 0.0709])
-        assert len(image_numpy) == 3
-        if image_numpy.shape[0] != 3: # 64x64x3
-            image_numpy = image_numpy.transpose([2,0,1])
-        img = image_numpy.copy()
-        uimg = np.empty(image_numpy.shape)
-        uimg[0, :, :]= img[0, :, :] * std[0] + mean[0]
-        uimg[1, :, :]= img[1, :, :] * std[1] + mean[1]
-        uimg[2, :, :]= img[2, :, :] * std[2] + mean[2]
-        return uimg
 
     def plot_current_losses(self, epoch, counter_ratio, losses):
         """display the current losses on visdom display: dictionary of error labels and values
