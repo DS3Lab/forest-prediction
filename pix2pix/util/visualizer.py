@@ -165,6 +165,7 @@ class Visualizer():
             for label, image in visuals.items():
                 image_numpy = util.tensor2im(image)
                 img_path = os.path.join(self.img_dir, 'epoch%.3d_%s.png' % (epoch, label))
+                image_numpy = normalize_inverse(label)
                 util.save_image(image_numpy, img_path)
             # update website
             webpage = html.HTML(self.web_dir, 'Experiment name = %s' % self.name, refresh=1)
@@ -180,6 +181,23 @@ class Visualizer():
                     links.append(img_path)
                 webpage.add_images(ims, txts, links, width=self.win_size)
             webpage.save()
+
+    def normalize_inverse(image_numpy, label):
+        if label[-1] == 'A': # quarter images
+            mean = np.array([0.2250, 0.2586, 0.1589])
+            std = np.array([0.1444, 0.1159, 0.1120])
+        else: # B = annual images
+            mean = np.array([0.2166, 0.2524, 0.1481])
+            std = np.array([0.1155, 0.0814, 0.0709])
+        assert len(image_numpy) == 3
+        if image_numpy.shape[0] != 3: # 64x64x3
+            image_numpy = image_numpy.transpose([2,0,1])
+        img = image_numpy.copy()
+        uimg = np.empty(image_numpy.shape)
+        uimg[0, :, :]= img[0, :, :] * std[0] + mean[0]
+        uimg[1, :, :]= img[1, :, :] * std[1] + mean[1]
+        uimg[2, :, :]= img[2, :, :] * std[2] + mean[2]
+        return uimg
 
     def plot_current_losses(self, epoch, counter_ratio, losses):
         """display the current losses on visdom display: dictionary of error labels and values
