@@ -2,6 +2,7 @@ import numpy as np
 import pickle as pkl
 import cv2
 import matplotlib.pyplot as plt
+import glob
 
 img_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/train'
 img_paths = glob.glob(os.path.join(img_dir, '*'))
