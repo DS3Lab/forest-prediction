@@ -26,16 +26,20 @@ class PlanetDataset(BaseDataset):
         BaseDataset.__init__(self, opt)
 
         # self.dir = os.path.join(opt.dataroot, opt.phase)
-        self.input_dir = os.path.join(opt.dataroot, 'quarter_cropped', opt.phase)
-        self.target_dir = os.path.join(opt.dataroot, 'annual_cropped', opt.phase)
-        self.paths = make_planet_dataset(self.input_dir, self.target_dir)
+        if opt.phase != 'gen':
+            input_dir = os.path.join(opt.dataroot, 'quarter_cropped', opt.phase)
+            target_dir = os.path.join(opt.dataroot, 'annual_cropped', opt.phase)
+            self.paths = make_planet_dataset(input_dir, target_dir)
+        else: # Gen data for video prediction
+            self.paths = []
+            phases = ['train', 'val', 'test']
+            for phase in phases:
+                input_dir = os.path.join(opt.dataroot, 'quarter_cropped', phase)
+                target_dir = os.path.join(opt.dataroot, 'annual_cropped', phase)
+                self.paths.extend(make_planet_dataset(input_dir, target_dir))
+
         self.size = len(self.paths)
-        # TODO: check if it is necessary to specify the number of channels of input and output image
-        # input_nc = self.opt.output_nc if btoA else self.opt.input_nc       # get the number of channels of input image
-        # output_nc = self.opt.input_nc if btoA else self.opt.output_nc      # get the number of channels of output image
-        # TODO: Check if any transformation is needed
-        # self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
-        # self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
+
         self.transform_A = get_transform(self.opt, timelapse='quarter')
         self.transform_B = get_transform(self.opt, timelapse='annual')
 
