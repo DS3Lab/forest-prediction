@@ -7,6 +7,7 @@ from .kth_dataset import KTHVideoDataset
 from .ucf101_dataset import UCF101VideoDataset
 from .cartgripper_dataset import CartgripperVideoDataset
 from .planet_dataset import PlanetVideoDataset
+from .cropped_dataset import CroppedVideoDataset
 
 def get_dataset_class(dataset):
     dataset_mappings = {
@@ -18,7 +19,7 @@ def get_dataset_class(dataset):
         'ucf101': 'UCF101VideoDataset',
         'cartgripper': 'CartgripperVideoDataset',
         'planet': 'PlanetVideoDataset',
-        'planet_cropped': 'PlanetCroppedVideoDataset'
+        'cropped': 'CroppedVideoDataset'
     }
     dataset_class = dataset_mappings.get(dataset, dataset)
     dataset_class = globals().get(dataset_class)
