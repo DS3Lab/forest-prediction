@@ -16,11 +16,11 @@ def move_split_files(split_dir, gan_dir, out_dir):
     splitfiles = glob.glob(os.path.join(split_dir, '*.png'))
     gan_template = os.path.join(gan_dir, '{filename}_fake_B.png') # outputs of the pix2pix or cyclegan
     for splitfile in splitfiles:
-        filename = split_file.split('/')[-1][:-4]
-        ganfile = gan_template.format({filename=filename})
-        print(filename, ganfile)
-        break
-        os.rename(splitfile, ganfile)
+        filename = splitfile.split('/')[-1][:-4]
+        ganfile = gan_template.format(filename=filename)
+        outfile = os.path.join(out_dir, ganfile.split('/')[-1])
+        if os.path.exists(ganfile):
+            os.rename(ganfile, outfile)
 
 for split in splits:
     split_dir = os.path.join(src_dir, split)
