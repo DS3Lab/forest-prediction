@@ -76,7 +76,7 @@ def get_tile_info(tile):
     return year, q, z, x, y, px, py
 
 def def_dic(img_dir, year, z, x, y, px, py):
-    ntemp = os.path.join(img_dir, 'pl{year}_{q}_{z}_{x}_{y}_{px}_{py}.png')
+    ntemp = os.path.join(img_dir, 'pl{year}_{q}_{z}_{x}_{y}_{px}_{py}_fake_B.png')
     dic = {
             'q1': ntemp.format(year=year, q='q1', z=z, x=x, y=y, px=px, py=py),
             'q2': ntemp.format(year=year, q='q2', z=z, x=x, y=y, px=px, py=py),
@@ -178,7 +178,6 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
     sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
     for video_iter, key in enumerate(img_quads.keys()):
         frame_fnames = get_quad_list(img_quads[key])
-        print("Processing mage collection:", frame_fnames)
         # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
         frames = skimage.io.imread_collection(frame_fnames)
         frames = [frame[:,:,:3] for frame in frames] # take only RGB
@@ -222,9 +221,9 @@ def partition_data(quads):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_dir", type=str, help="directory containing the quarter mosaics from planet")
-    parser.add_argument("output_dir", type=str)
-    parser.add_argument("image_size", type=int)
+    parser.add_argument("--input_dir", type=str, help="directory containing the quarter mosaics from planet")
+    parser.add_argument("--output_dir", type=str)
+    parser.add_argument("--image_size", type=int)
     args = parser.parse_args()
 
     partition_names = ['train', 'val', 'test']
