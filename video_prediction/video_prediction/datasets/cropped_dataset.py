@@ -122,29 +122,6 @@ def get_imgs(img_dir, limit=float("inf"), gan_generated=True):
             break
     return data
 
-"""
-def get_imgs(img_dir, limit=5000):
-
-    return: {
-        12_10_10: img1, img2, img3
-    }
-
-    data = {}
-    img_paths = glob.glob(os.path.join(img_dir, '*'))
-    for path in img_paths:
-        year, q, z, x, y = get_tile_info(path)
-        key = '_'.join((z, x, y))
-        add_in_dict(data, key, '_'.join((year,q)), path)
-    keys = list(data.keys())
-    new_data = {}
-    assert limit < len(keys)
-    for i in range(limit):
-        key = keys[i]
-        new_data[key] = data[key]
-    print('IMAGES RETURN', len(new_data))
-    return new_data
-"""
-
 def save_tf_record(output_fname, sequences):
     print('saving sequences to %s' % output_fname)
     with tf.python_io.TFRecordWriter(output_fname) as writer:
@@ -184,7 +161,9 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
     sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
     for video_iter, key in enumerate(img_quads.keys()):
         frame_fnames = get_quad_list(img_quads[key])
-        # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
+        frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
+        print(frame_fnames)
+        break
         frames = skimage.io.imread_collection(frame_fnames)
         frames = [frame[:,:,:3] for frame in frames] # take only RGB
         if not sequences:
@@ -216,14 +195,16 @@ def part_dict(dic, num):
         itr = itr + 1
     return dic1, dic2
 
-def partition_data(quads):
-    total_quads = len(quads)
-    num_train = int(0.8 * total_quads)
-    num_val = int(0.1 * total_quads)
-    print('===', num_train, num_val)
-    train_quads, test_quads = part_dict(quads, num_train)
-    train_quads, val_quads = part_dict(train_quads, num_train - num_val)
-    return [train_quads, val_quads, test_quads]
+# def partition_data(quads):
+#     total_quads = len(quads)
+#     num_train = int(0.8 * total_quads)
+#     num_val = int(0.1 * total_quads)
+#     print('===', num_train, num_val)
+#     train_quads, test_quads = part_dict(quads, num_train)
+#     train_quads, val_quads = part_dict(train_quads, num_train - num_val)
+#     return [train_quads, val_quads, test_quads]
+
+# def partition_data(quads)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -233,9 +214,13 @@ def main():
     args = parser.parse_args()
 
     partition_names = ['train', 'val', 'test']
-    quads = get_imgs(args.input_dir)
+    quad_list = [get_imgs(os.path.join(args.input_dir, 'train')),
+        get_imgs(os.path.join(args.input_dir, 'val')),
+        get_imgs(os.path.join(args.input_dir, 'test')),
+    ]
+    # quads = get_imgs(args.input_dir) # Return
 #     train_quads, val_quads, test_quads
-    quad_list = partition_data(quads)
+    # quad_list = partition_data(quads)
     print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
     for partition_name, partition_quad in zip(partition_names, quad_list):
     # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
