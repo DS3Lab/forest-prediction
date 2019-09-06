@@ -3,6 +3,7 @@ import pickle as pkl
 import cv2
 import matplotlib.pyplot as plt
 import glob
+import os
 
 img_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/train'
 img_paths = glob.glob(os.path.join(img_dir, '*'))
@@ -46,7 +47,7 @@ svd = {
     'V': V
 }
 with open('svd.pkl', 'wb') as f:
-    pkl.dunmp(svd, f, protocol=pkl.HIGHEST_PROTOCOL)
+    pkl.dump(svd, f, protocol=pkl.HIGHEST_PROTOCOL)
 
 print('Calculating white matrix...')
 epsilon = 0.1
