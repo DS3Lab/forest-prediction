@@ -17,7 +17,8 @@ def get_dataset_class(dataset):
         'kth': 'KTHVideoDataset',
         'ucf101': 'UCF101VideoDataset',
         'cartgripper': 'CartgripperVideoDataset',
-        'planet': 'PlanetVideoDataset'
+        'planet': 'PlanetVideoDataset',
+        'planet_cropped': 'PlanetCroppedVideoDataset'
     }
     dataset_class = dataset_mappings.get(dataset, dataset)
     dataset_class = globals().get(dataset_class)
