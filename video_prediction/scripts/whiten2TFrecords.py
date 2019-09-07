@@ -10,7 +10,7 @@ import numpy as np
 import skimage.io
 import cv2
 import tensorflow as tf
-
+import imageio
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
@@ -18,6 +18,12 @@ def _bytes_feature(value):
 def _bytes_list_feature(values):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
 
+def _float_feature(value):
+  """Returns a float_list from a float / double."""
+  return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+
+def _float_list_feature(values):
+    return tf.train.Feature(float_list=tf.train.FloatList(value=values))
 
 def _int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -87,12 +93,13 @@ def save_tf_record(output_fname, sequences):
             num_frames = len(sequence) # 6, 2 years
             height, width, channels = sequence[0].shape
             encoded_sequence = [image.tostring() for image in sequence]
+            print('num_frames', num_frames, height, width, channels, len(encoded_sequence), sequence[0].dtype)
             features = tf.train.Features(feature={
                 'sequence_length': _int64_feature(num_frames),
                 'height': _int64_feature(height),
                 'width': _int64_feature(width),
                 'channels': _int64_feature(channels),
-                'images/encoded': _bytes_list_feature(encoded_sequence),
+                'images/encoded': _float_list_feature(sequence),
             })
             example = tf.train.Example(features=features)
             writer.write(example.SerializeToString())
@@ -114,13 +121,14 @@ def open_and_whiten(img_paths, train_mean, white_matrix):
     X = np.array(X)
     N, H, W, C = X.shape
     X = X.reshape(X.shape[0], -1)
-    print('Data reshape,', X.shape)
+    # print('Data reshape,', X.shape)
 
-    print('Normalizing data...')
+    # print('Normalizing data...')
     X_norm = X / 255
     X_norm = X_norm - train_mean
     X_white = np.dot(X_norm, white_matrix.T)
-    X_white = X_white.reshape(X_whiten.shape[0], H, W, C)
+    X_white = X_white.reshape(X_white.shape[0], H, W, C)
+    # print('Data shape', X_white[0].shape)
     return [X_white[i, :, : ,:] for i in range(N)]
 
 
@@ -145,6 +153,9 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, white_par
         # frames = [frame[:,:,:3] for frame in frames] # take only RGB
         # frames_raw = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in frame_fnames]
         frames = open_and_whiten(frame_fnames, train_mean, white_matrix)
+        frames = [imageio.core.util.Array(frame) for frame in frames]
+        # for f in frames:
+        #     print(f.shape)
         # save = {
         #     'raw': frames_raw,
         #     'white': frames
@@ -164,6 +175,9 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, white_par
             output_fname = os.path.join(output_dir, output_fname)
             save_tf_record(output_fname, sequences)
             sequences[:] = []
+        
+        if video_iter == 500:
+            break
     sequence_lengths_file.close()
 
 def part_dict(dic, num):

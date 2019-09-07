@@ -123,6 +123,7 @@ def save_tf_record(output_fname, sequences):
             num_frames = len(sequence) # 6, 2 years
             height, width, channels = sequence[0].shape
             encoded_sequence = [image.tostring() for image in sequence]
+            print('num_frames', num_frames, height, width, channels, len(encoded_sequence), sequence[0].dtype)
             features = tf.train.Features(feature={
                 'sequence_length': _int64_feature(num_frames),
                 'height': _int64_feature(height),
@@ -158,6 +159,8 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
         # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
         frames = skimage.io.imread_collection(frame_fnames)
         frames = [frame[:,:,:3] for frame in frames] # take only RGB
+        for f in frames:
+            print(type(f), f.shape, f.meta)
         if not sequences:
             last_start_sequence_iter = sequence_iter
             print("reading sequences starting at sequence %d" % sequence_iter)
@@ -170,6 +173,8 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
             output_fname = os.path.join(output_dir, output_fname)
             save_tf_record(output_fname, sequences)
             sequences[:] = []
+        if video_iter > 200:
+            break
     sequence_lengths_file.close()
 
 def part_dict(dic, num):
