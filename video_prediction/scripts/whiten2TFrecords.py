@@ -124,13 +124,15 @@ def open_and_whiten(img_paths, train_mean, white_matrix):
     return [X_white[i, :, : ,:] for i in range(N)]
 
 
-def read_frames_and_save_tf_records(output_dir, img_quads, image_size, ,sequences_per_file=128):
+def read_frames_and_save_tf_records(output_dir, img_quads, image_size, white_params, sequences_per_file=128):
     """
     img_quads: {
         key1: {year_q1: img1, year_q2: img2, year_q3: img3}
         key2: {year_q1: img1, year_q2: img2, year_q3: img3}
     }
     """
+    train_mean = white_params['mean']
+    white_matrix = white_params['white_matrix']
     partition_name = os.path.split(output_dir)[1]
 
     sequences = []
@@ -206,12 +208,20 @@ def main():
 #     train_quads, val_quads, test_quads
     # quad_list = partition_data(quads)
     print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
+    with open('white_matrix.pkl', 'rb') as pkl_file:
+        white_matrix = pkl.load(pkl_file)
+    with open('train_mean_std.pkl', 'rb') as pkl_file:
+        mean_std = pkl.load(pkl_file)
+    white_params = {
+        'mean': mean_std['mean'],
+        'white_matrix': white_matrix
+    }
     for partition_name, partition_quad in zip(partition_names, quad_list):
     # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
         partition_dir = os.path.join(args.output_dir, partition_name)
         if not os.path.exists(partition_dir):
             os.makedirs(partition_dir)
-        read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size)
+        read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size, white_params)
 
 
 if __name__ == '__main__':
