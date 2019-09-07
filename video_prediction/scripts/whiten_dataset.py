@@ -8,9 +8,7 @@ import os
 def cal_white_matrix():
     img_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/train'
     img_paths = glob.glob(os.path.join(img_dir, '*'))
-
     X_train = []
-
     i = 0
     for path in img_paths:
         if i%1000==0:
@@ -65,24 +63,6 @@ def get_white_matrix():
         cal_white_matrix()
     with open(white_matrix_path, 'rb') as f:
         white_matrix = pkl.load(f)
-
-def get_data(img_dir):
-    pass
-
-def main():
-    partition_names = ['train', 'val', 'test']
-    quad_list = [get_imgs(os.path.join(args.input_dir, 'train')),
-        get_imgs(os.path.join(args.input_dir, 'val')),
-        get_imgs(os.path.join(args.input_dir, 'test')),
-    ]
-    X_train, X_val, X_test = get_data()
-    zca_white_mat = get_white_matrix()
-    X_train_whiten =np.dot(X_train, zca_white_mat.T)
-    X_val_whiten =np.dot(X_val, zca_white_mat.T)
-    X_test_whiten =np.dot(X_test, zca_white_mat.T)
-
-if __name__ == '__main__':
-    main()
 
 # trainX = np.dot(trainX,zcaWhiteMat.T)
 # print ('TrainX ZCA Done')
