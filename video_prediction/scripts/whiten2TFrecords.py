@@ -143,15 +143,15 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, white_par
         # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
         # frames = skimage.io.imread_collection(frame_fnames)
         # frames = [frame[:,:,:3] for frame in frames] # take only RGB
-        frames_raw = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in frame_fnames]
+        # frames_raw = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in frame_fnames]
         frames = open_and_whiten(frame_fnames, train_mean, white_matrix)
-        save = {
-            'raw': frames_raw,
-            'white': frames
-        }
-        with open('compare_frames.pkl', 'wb') as pkl_file:
-            pkl.dump(save, pkl_file)
-        break
+        # save = {
+        #     'raw': frames_raw,
+        #     'white': frames
+        # }
+        # with open('compare_frames.pkl', 'wb') as pkl_file:
+        #     pkl.dump(save, pkl_file)
+        # break
         if not sequences:
             last_start_sequence_iter = sequence_iter
             print("reading sequences starting at sequence %d" % sequence_iter)
