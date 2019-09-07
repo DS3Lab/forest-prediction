@@ -30,8 +30,14 @@ print('Double check min and max', X_train_norm.min(), X_train_norm.max())
 train_mean = np.mean(X_train_norm, axis=0)
 train_std = np.std(X_train_norm, axis=0)
 print('Mean, Std', train_mean, train_std)
-
+mean_std = {
+    'mean': train_mean,
+    'std': train_std
+}
 X_train_norm = X_train_norm - train_mean
+
+with open('train_mean_std.pkl', 'wb') as f:
+    pkl.dump(mean_std, f, protocol=pkl.HIGHEST_PROTOCOL)
 
 print('Calculating covariance matrix...')
 cov = np.dot(X_train_norm.T, X_train_norm) / X_train_norm.shape[0]

@@ -114,13 +114,13 @@ def open_and_whiten(img_paths, train_mean, white_matrix):
     X = np.array(X)
     N, H, W, C = X.shape
     X = X.reshape(X.shape[0], -1)
-    print('Data reshape,', X.shape)
+    # print('Data reshape,', X.shape)
 
-    print('Normalizing data...')
+    # print('Normalizing data...')
     X_norm = X / 255
     X_norm = X_norm - train_mean
     X_white = np.dot(X_norm, white_matrix.T)
-    X_white = X_white.reshape(X_whiten.shape[0], H, W, C)
+    X_white = X_white.reshape(X_white.shape[0], H, W, C)
     return [X_white[i, :, : ,:] for i in range(N)]
 
 
@@ -140,18 +140,17 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, white_par
     sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
     for video_iter, key in enumerate(img_quads.keys()):
         frame_fnames = get_quad_list(img_quads[key])
-        # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
         # frames = skimage.io.imread_collection(frame_fnames)
         # frames = [frame[:,:,:3] for frame in frames] # take only RGB
-        frames_raw = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in frame_fnames]
+        # frames_raw = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in frame_fnames]
         frames = open_and_whiten(frame_fnames, train_mean, white_matrix)
-        save = {
-            'raw': frames_raw,
-            'white': frames
-        }
-        with open('compare_frames.pkl', 'wb') as pkl_file:
-            pkl.dump(save, pkl_file)
-        break
+        # save = {
+        #     'raw': frames_raw,
+        #     'white': frames
+        #  }
+        # with open('compare_frames.pkl', 'wb') as pkl_file:
+        #     pkl.dump(save, pkl_file)
+        # break
         if not sequences:
             last_start_sequence_iter = sequence_iter
             print("reading sequences starting at sequence %d" % sequence_iter)
