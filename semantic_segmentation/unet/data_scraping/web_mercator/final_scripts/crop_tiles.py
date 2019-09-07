@@ -68,21 +68,46 @@ def create_dir(folder):
     if not os.path.exists(folder):
         os.makedirs(folder)
 
+def blockshaped(arr, nrows, ncols):
+    """
+    Return an array of shape (n, nrows, ncols) where
+    n * nrows * ncols = arr.size
+
+    If arr is a 2D array, the returned array should look like n subblocks with
+    each subblock preserving the "physical" layout of arr.
+    """
+    h, w = arr.shape
+    assert h % nrows == 0, "{} rows is not evenly divisble by {}".format(h, nrows)
+    assert w % ncols == 0, "{} cols is not evenly divisble by {}".format(w, ncols)
+    return (arr.reshape(h//nrows, nrows, -1, ncols)
+               .swapaxes(1,2)
+               .reshape(-1, nrows, ncols))
+
 def main():
     SRC_PATH = '/mnt/ds3lab-scratch/lming/data/min_quality/planet'
     src_quarter_path = os.path.join(SRC_PATH, 'quarter')
     out_path = os.path.join(SRC_PATH, 'quarter_croppedv3')
     create_dir(out_path)
     hansen_files = get_hansen_quality_files()
-    planet_files = get_planet_files(hansen_files, src_quarter_path)
-    print(len(planet_files), len(hansen_files))
-    for image in planet_files:
+    # planet_files = get_planet_files(hansen_files, src_quarter_path)
+    # print(len(planet_files), len(hansen_files))
+    for image in hansen_files:
         try:
             prefix = get_prefix(image)
-            tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
-            image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
+            print(prefix)
+            # tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
+            # image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
             logger.debug('SUCCESS: ' + image)
         except:
             logger.debug('FAILED: ' + image)
+
+    # for image in planet_files:
+    #     try:
+    #         prefix = get_prefix(image)
+    #         tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
+    #         image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
+    #         logger.debug('SUCCESS: ' + image)
+    #     except:
+    #         logger.debug('FAILED: ' + image)
 if __name__ == '__main__':
     main()
