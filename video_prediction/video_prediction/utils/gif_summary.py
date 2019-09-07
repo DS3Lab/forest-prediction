@@ -100,7 +100,11 @@ def gif_summary(name, tensor, max_outputs=3, fps=10, collections=None,
     A scalar `Tensor` of type `string`. The serialized `Summary` protocol
     buffer.
   """
-  tensor = tf.convert_to_tensor(tensor)
+  print('GIF SUMMARY', tensor.shape)
+  rescaled_tensor = np.empty(tensor.shape)
+  for t in tensor.shape[0]:
+      rescaled_tensor[i] = rescale_if_negative(tensor[i])
+  tensor = tf.convert_to_tensor(rescaled_tensor)
   if summary_op_util.skip_summary():
     return tf.constant("")
   with summary_op_util.summary_scope(
