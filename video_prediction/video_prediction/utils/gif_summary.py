@@ -58,7 +58,7 @@ def py_gif_summary(tag, images, max_outputs, fps):
     image_summ.colorspace = channels  # 1: grayscale, 3: RGB
     try:
       # image_summ.encoded_image_string = ffmpeg_gif.encode_gif(images[i], fps)
-      image_summ.encoded_image_string = ffmpeg_gif.encode_gif(rescale_if_negative(images[i]), fps)
+      image_summ.encoded_image_string = ffmpeg_gif.encode_gif(utils.rescale_if_negative(images[i]), fps)
     except (IOError, OSError) as e:
       tf.logging.warning(
           "Unable to encode images to a gif string because either ffmpeg is "
@@ -100,11 +100,11 @@ def gif_summary(name, tensor, max_outputs=3, fps=10, collections=None,
     A scalar `Tensor` of type `string`. The serialized `Summary` protocol
     buffer.
   """
-  print('GIF SUMMARY', tensor.shape)
-  rescaled_tensor = np.empty(tensor.shape)
-  for t in tensor.shape[0]:
-      rescaled_tensor[i] = rescale_if_negative(tensor[i])
-  tensor = tf.convert_to_tensor(rescaled_tensor)
+  # print('GIF SUMMARY', tensor.shape, type(tensor))
+  # rescaled_tensor = np.empty(tensor.shape)
+  # for i in range(tensor.shape[0]):
+  #     rescaled_tensor[i] = utils.rescale_if_negative(tensor[i])
+  tensor = tf.convert_to_tensor(tensor)
   if summary_op_util.skip_summary():
     return tf.constant("")
   with summary_op_util.summary_scope(
