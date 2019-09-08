@@ -26,7 +26,7 @@ class CroppedVideoDataset(VarLenFeatureVideoDataset):
     def get_default_hparams_dict(self):
         default_hparams = super(CroppedVideoDataset, self).get_default_hparams_dict()
         hparams = dict(
-            context_frames=1,
+            context_frames=2,
             sequence_length=4,
             # clip_length=1,
             # long_sequence_length=4,
