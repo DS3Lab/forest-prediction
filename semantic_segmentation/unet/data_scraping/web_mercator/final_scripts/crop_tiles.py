@@ -3,6 +3,7 @@ import os
 import glob
 import image_slicer
 import logging
+from multiprocessing import Process
 
 logger = logging.getLogger('crop')
 logger.setLevel(logging.DEBUG)
@@ -34,12 +35,12 @@ def get_hansen_quality_files(dirname='/mnt/ds3lab-scratch/lming/data/min_quality
     # Get images with hansen loss > 1%
     # Omit 0-1% because otherwise there are too many images, too much time to train (time restriction)
     # hansen_one = os.path.join(dirname, 'one_pct')
-    # hansen_two = os.path.join(dirname, 'two_pct')
+    hansen_two = os.path.join(dirname, 'two_pct')
     hansen_three = os.path.join(dirname, 'three_pct')
     hansen_four = os.path.join(dirname, 'four_pct')
     hansen_five = os.path.join(dirname, 'five_pct')
     # files_one = getListOfFiles(hansen_one)
-    # files_two = getListOfFiles(hansen_two)
+    files_two = getListOfFiles(hansen_two)
     files_three = getListOfFiles(hansen_three)
     files_four = getListOfFiles(hansen_four)
     files_five = getListOfFiles(hansen_five)
@@ -83,23 +84,113 @@ def blockshaped(arr, nrows, ncols):
                .swapaxes(1,2)
                .reshape(-1, nrows, ncols))
 
+def get_forest_cover_files(prefixes, forest_dir):
+    forest_template = 'gf2000_{z_x_y}.png'
+    forest_files = []
+    for prefix in prefixes:
+        forest_files.append(os.path.join(forest_dir, forest_template.format(z_x_y=prefix[7:])))
+    return forest_files
+
+def get_forest_gain_files(prefixes, forest_dir):
+    forest_template = 'fg2012_{z_x_y}.png'
+    forest_files = []
+    for prefix in prefixes:
+        forest_files.append(os.path.join(forest_dir, forest_template.format(z_x_y=prefix[7:])))
+    return forest_files
+
+def try_to_append(filename, dir_, list_):
+    pcts = ['five_pct', 'four_pct', 'three_pct', 'two_pct']
+    fileyear = filename[2:6]
+    if fileyear == '2017':
+        year = '2017'
+    else:
+        year = '2018'
+    for pct in pcts:
+        file_abs_path = os.path.join(dir_, 'hansen', pct, year, filename)
+        if os.path.exists(file_abs_path):
+            list_.append(file_abs_path)
+
+        file_abs_path2 = os.path.join(dir_, 'hansen_other', filename)
+
+        if os.path.exists(file_abs_path2):
+            list_.append(file_abs_path2)
+
+def get_forest_loss_files(prefixes, forest_loss_dir):
+    loss_template = '{}.png'
+    forest_files = []
+    for prefix in prefixes:
+        try_to_append(loss_template.format(prefix), forest_loss_dir, forest_files)
+    return forest_files
+
+def split_images(args):
+    for image in args['images']:
+        try:
+            prefix = get_prefix(image)
+            # print('GOING TO SLICE', prefix, args['out_dir'], image)
+            tiles = image_slicer.slice(image, 16, save=False)
+            image_slicer.save_tiles(tiles, directory=args['out_dir'], prefix=prefix)
+            logger.debug('SUCCESS:' + image)
+        except:
+            logger.debug('FAILED:' + image)
+
+def check_duplicate_keys(forest_cover_files):
+    keys = []
+    duplicated=0
+    for file in forest_cover_files:
+        f = file.split('/')[-1][7:19]
+        if f in keys:
+            print('DUPLICATED', f)
+            duplicated += 1
+        keys.append(f)
+    print('total duplicated', duplicated)
+
+
 def main():
-    SRC_PATH = '/mnt/ds3lab-scratch/lming/data/min_quality/planet'
-    src_quarter_path = os.path.join(SRC_PATH, 'quarter')
-    out_path = os.path.join(SRC_PATH, 'quarter_croppedv3')
-    create_dir(out_path)
+    SRC_PATH = '/mnt/ds3lab-scratch/lming/data/min_quality'
+    FC_PATH = os.path.join(SRC_PATH, 'forest_cover_raw')
+    FL_PATH = os.path.join(SRC_PATH, 'hansen')
+    out_fc_path = os.path.join(SRC_PATH, 'forest_cover_raw_cropped')
+    out_fl_path = os.path.join(SRC_PATH, 'forest_loss_raw_cropped')
+    out_fg_path = os.path.join(SRC_PATH, 'forest_gain_raw_cropped')
+    create_dir(out_fc_path)
+    create_dir(out_fl_path)
+    create_dir(out_fg_path)
     hansen_files = get_hansen_quality_files()
     # planet_files = get_planet_files(hansen_files, src_quarter_path)
     # print(len(planet_files), len(hansen_files))
-    for image in hansen_files:
-        try:
-            prefix = get_prefix(image)
-            print(prefix)
+    prefixes = [get_prefix(image) for image in hansen_files]
+    forest_loss_files = get_forest_loss_files(prefixes, SRC_PATH)
+    forest_cover_files = get_forest_cover_files(prefixes, FC_PATH)
+    forest_gain_files = get_forest_gain_files(prefixes, os.path.join(SRC_PATH, 'forest_gain'))
+    print('FOREST LOSS FILES')
+    print(forest_loss_files[:10])
+    print('FOREST COVER FILES')
+    print(forest_cover_files[:10])
+    print(len(forest_cover_files), len(forest_loss_files), len(hansen_files))
+    print(len(forest_gain_files))
+    # NOTE: THERE ARE LESS FILES IN FOREST GAIN BECAUSE THOSE TILES DIDNT EXIST
+    # check_duplicate_keys(forest_gain_files)
+    # split_images({'images': forest_gain_files, 'out_dir': out_fg_path})
+    #Pros = []
+    #p1 = Process(target=split_images, args=({'images': forest_loss_files, 'out_dir': out_fl_path},))
+    #p2 = Process(target=split_images, args=({'images': forest_cover_files, 'out_dir': out_fc_path},))
+    #Pros.append(p1)
+    #Pros.append(p2)
+    #p1.start()
+    #p2.start()
+
+    #for t in Pros:
+    #    t.join()
+
+    #for image in hansen_files:
+    #    try:
+    #        prefix = get_prefix(image)
+    #        print(prefix)
             # tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
             # image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
-            logger.debug('SUCCESS: ' + image)
-        except:
-            logger.debug('FAILED: ' + image)
+    #        logger.debug('SUCCESS: ' + image)
+    #    except:
+    #        logger.debug('FAILED: ' + image)
 
     # for image in planet_files:
     #     try:
@@ -109,5 +200,6 @@ def main():
     #         logger.debug('SUCCESS: ' + image)
     #     except:
     #         logger.debug('FAILED: ' + image)
+
 if __name__ == '__main__':
     main()
