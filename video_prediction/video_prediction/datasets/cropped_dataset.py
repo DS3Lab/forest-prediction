@@ -212,7 +212,7 @@ def main():
     args = parser.parse_args()
 
     # partition_names = ['train', 'val', 'test']
-    partition_names = 'test']
+    partition_names = ['test']
     quad_list = [#get_imgs(os.path.join(args.input_dir, 'train')),
         # get_imgs(os.path.join(args.input_dir, 'val')),
         get_imgs(os.path.join(args.input_dir, 'test'))
