@@ -190,8 +190,9 @@ def main():
        try:
            prefix = get_prefix(image)
            print(prefix)
-           # tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
-           # image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
+           if not os.path.exists(os.path.join(out_path, prefix + '_01_01.png'))
+               tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
+               image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
            logger.debug('SUCCESS: ' + image)
        except:
            logger.debug('FAILED: ' + image)
