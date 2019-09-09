@@ -293,3 +293,21 @@ def normalize(tensor, mean, std, inplace=False):
     std = torch.as_tensor(std, dtype=dtype, device=tensor.device)
     tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
     return tensor
+
+def main():
+    files = loadFiles('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/planet_cropped_gan/ours_deterministic_l1')
+    file0 = files[0]
+    year, z, x, y, cx, cy = get_tile_info(file0.split('/')[-1])
+    key = str(year) + '_' + z + '_' + x + '_' + y + '_' + cx + '_' + cy
+    gt_imgs, video_imgs = loss2file(key)
+    with open('test_images.pkl', 'wb') as pkl_file:
+        pkl.dump({
+            'gt_imgs': gt_imgs,
+            'video_imgs': video_imgs,
+            'forest_loss': file0,
+            'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+                year=year, z=z, x=x, y=y, cx=cx, cy=cy
+            ))
+        })
+if __name__ == '__main__':
+    main()
