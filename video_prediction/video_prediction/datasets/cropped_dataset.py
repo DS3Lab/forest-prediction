@@ -211,15 +211,16 @@ def main():
     parser.add_argument("--image_size", type=int)
     args = parser.parse_args()
 
-    partition_names = ['train', 'val', 'test']
-    quad_list = [get_imgs(os.path.join(args.input_dir, 'train')),
-        get_imgs(os.path.join(args.input_dir, 'val')),
-        get_imgs(os.path.join(args.input_dir, 'test')),
+    # partition_names = ['train', 'val', 'test']
+    partition_names = 'test']
+    quad_list = [#get_imgs(os.path.join(args.input_dir, 'train')),
+        # get_imgs(os.path.join(args.input_dir, 'val')),
+        get_imgs(os.path.join(args.input_dir, 'test'))
     ]
     # quads = get_imgs(args.input_dir) # Return
 #     train_quads, val_quads, test_quads
-    # quad_list = partition_data(quads)
-    print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
+    # print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
+    print(len(quad_list[0]))
     for partition_name, partition_quad in zip(partition_names, quad_list):
     # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
         partition_dir = os.path.join(args.output_dir, partition_name)
