@@ -262,7 +262,7 @@ class PlanetDataset(Dataset):
         # self.img_dir = os.path.join(data_dir, 'planet')
         self.timelapse = timelapse
         if self.timelapse == 'quarter':
-            self.img_dir = os.path.join(self.img_dir, 'quarter')
+            self.img_dir = os.path.join(self.img_dir, 'quarter_cropped')
             self.transforms = transforms.Compose([
                 # transforms.RandomHorizontalFlip(), # try later, only works on imgs
                 transforms.ToTensor(),
@@ -270,7 +270,7 @@ class PlanetDataset(Dataset):
                     (0.1685, 0.1414, 0.1353))
             ])
         else: # annual
-            self.img_dir = os.path.join(self.img_dir, 'annual')
+            self.img_dir = os.path.join(self.img_dir, 'annual_cropped')
             self.transforms = transforms.Compose([
                 transforms.ToTensor(),
                 Normalize((0.2311, 0.2838, 0.1752),
@@ -449,65 +449,6 @@ def normalize(tensor, mean, std, inplace=False):
     tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
     return tensor
 
-def load_tif_files(data_dir, max_dataset_size):
-    """
-    Search for the imgs
-    :param years: Years of tiles to be loaded
-    """
-    imgs = glob.glob(os.path.join(data_dir, '*'))
-    if max_dataset_size < len(imgs):
-        return imgs[:max_dataset_size]
-    return imgs
-
-def open_tif(tif_path):
-    # with rasterio.open(tif_path) as data:
-    #     tif = data.read()
-    # img_arr0 = tif[3:6] # now first three bands is time t and next three is time t-1
-    # img_arr1 = tif[:3]
-    # mask = tif[6]
-    # return img_arr0.astype(np.float32).transpose([1,2,0]), img_arr1.astype(np.float32).transpose([1,2,0]), mask.astype(np.uint8)
-    pass
-class PlanetTifDataset(Dataset):
-    """
-    # TODO: delete
-    Planet 3-month mosaic dataset
-    """
-    def __init__(self, data_dir,
-            max_dataset_size=float('inf')):
-        """Initizalize dataset.
-            Params:
-                data_dir: absolute path, string
-                years: list of years
-                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
-        """
-        self.data_dir = data_dir
-        self.transforms = transforms.Compose([
-            transforms.ToTensor(),
-            Normalize((0.2311, 0.2838, 0.1752),
-                (0.1265, 0.0955, 0.0891))
-        ])
-
-        if max_dataset_size == 'inf':
-            max_dataset_size = float('inf')
-        self.paths = load_tif_files(self.data_dir, max_dataset_size)
-        self.dataset_size = len(self.paths)
-
-    def __len__(self):
-        # print('Planet Dataset len called')
-        return self.dataset_size
-
-    def __getitem__(self, index):
-        r"""Returns data point and its binary mask"""
-        # Notes: tiles in annual mosaics need to be divided by 255.
-        #
-        index = index % self.dataset_size
-        path = self.paths[index]
-        img_arr0, img_arr1, mask_arr = open_tif(path)
-        mask_arr = transforms.ToTensor()(mask_arr)
-        img_arr0 = self.transforms(img_arr0)
-        img_arr1 = self.transforms(img_arr1)
-        img_arr =  torch.cat((img_arr0, img_arr1), 0)
-        return img_arr.float(), mask_arr.float()
 
 class PlanetSingleDataset(Dataset):
     """
@@ -536,8 +477,8 @@ class PlanetSingleDataset(Dataset):
         self.img_dir = input_dir
         self.mask_dir = label_dir
         self.timelapse = timelapse
-        if self.timelapse == 'quarter':
-            self.img_dir = os.path.join(self.img_dir, 'quarter')
+        if self.timelapse == 'quarter_cropped':
+            self.img_dir = os.path.join(self.img_dir, 'quarter_cropped')
             self.transforms = transforms.Compose([
                 # transforms.RandomHorizontalFlip(), # try later, only works on imgs
                 transforms.ToTensor(),
@@ -545,7 +486,7 @@ class PlanetSingleDataset(Dataset):
                     (0.1685, 0.1414, 0.1353))
             ])
         else: # annual
-            self.img_dir = os.path.join(self.img_dir, 'annual')
+            self.img_dir = os.path.join(self.img_dir, 'annual_cropped')
             self.transforms = transforms.Compose([
                 transforms.ToTensor(),
                 Normalize((0.2311, 0.2838, 0.1752),
@@ -575,7 +516,7 @@ class PlanetSingleDataset(Dataset):
         key = self.keys[index % self.dataset_size]
         path_dict = self.paths_dict[key]
 
-        if not self.testing or self.timelapse == 'annual':
+        if not self.testing or self.timelapse == 'annual_cropped':
             img_arr = open_image(path_dict['img']).astype(np.float64)
             mask_arr = open_image(path_dict['mask'])
             mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
@@ -623,7 +564,7 @@ class PlanetSingleDataset(Dataset):
         self.timelapse = timelapse
         self.img_mode = img_mode
         if self.timelapse == 'quarter':
-            self.img_dir = os.path.join(self.img_dir, 'quarter')
+            self.img_dir = os.path.join(self.img_dir, 'quarter_cropped')
             self.transforms = transforms.Compose([
                 # transforms.RandomHorizontalFlip(), # try later, only works on imgs
                 transforms.ToTensor(),
@@ -631,7 +572,7 @@ class PlanetSingleDataset(Dataset):
                     (0.1685, 0.1414, 0.1353))
             ])
         else: # annual
-            self.img_dir = os.path.join(self.img_dir, 'annual')
+            self.img_dir = os.path.join(self.img_dir, 'annual_cropped')
             self.transforms = transforms.Compose([
                 transforms.ToTensor(),
                 Normalize((0.2311, 0.2838, 0.1752),
@@ -661,7 +602,7 @@ class PlanetSingleDataset(Dataset):
         key = self.keys[index % self.dataset_size]
         path_dict = self.paths_dict[key]
 
-        if not self.testing or self.timelapse == 'annual':
+        if not self.testing or self.timelapse == 'annual_cropped':
             if self.img_mode == 'same':
                 img_arr = open_image(path_dict['img']).astype(np.float64)
                 mask_arr = open_image(path_dict['mask'])
