@@ -132,7 +132,7 @@ def get_annual_imgs_from_mask(mask_file, img_dir, single=False, img_mode='same')
                         planet_template.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy)),
                 'mask': (mask0, mask_file),
                 'loss': os.path.join(HANSEN_PATH_DB,
-                'ly{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy))
+                'ly{year}_{z}_{x}_{y}_{cx=cx}_{cy=cy}.npy'.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy))
             }
     return data
 

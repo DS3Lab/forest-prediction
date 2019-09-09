@@ -38,10 +38,66 @@ def make_grid_2(tensor, nrow=8, padding=2, normalize=False, range=None, scale_ea
     return make_grid(tensor, nrow, padding, normalize, range, scale_each, pad_value)
 
 def get_loss_pred(img0, img1):
+    # img0 = quarter0
+    # img1 = quarter1
+    # quarter0 - quarter1 = loss 0->1
     mask = np.where(img1 == 1)
     img = np.copy(img0)
     img[mask] = 0
     return img
+
+def save_video_images(batch_size, images, out_dir, idx_start, limit):
+
+    for i in range(0, images['video_imgs'].shape[0], batch_size):
+        num_y_tiles = 5 # video_img, forest cover, prediction cover, forest loss, prediction loss
+
+        f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
+        gs = gridspec.GridSpec(num_y_tiles, batch_size, wspace=0.0, hspace=0.0)
+        tiles = list(range(i, i + batch_size))
+
+        for tile in tiles:
+            # img1, img2, gt, pred
+            video_img = images['video_imgs'][tile]
+            forest_cover = images['forest_cover'][tile]
+            prediction_cover = images['prediction_cover'][tile]
+            forest_loss = images['forest_loss'][tile]
+            if tile > i:
+                prediction_loss = get_loss_pred(images['pred'][tile-1],
+                                     images['pred'][tile])
+            else:
+                prediction_loss = np.zeros((pred.shape))
+            # Set up plot
+            ax = plt.subplot(gs[0, tile%batch_size])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            print('plot 0')
+            plt.imshow(np.transpose(video_img, axes=[1,2,0]))
+            ax = plt.subplot(gs[1, tile%batch_size])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            print('plot 1')
+            plt.imshow(forest_cover[0], cmap=plt.cm.binary)
+            ax = plt.subplot(gs[2, tile%batch_size])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            print('plot 2')
+            plt.imshow(prediction_cover[0], cmap=plt.cm.binary)
+
+            ax = plt.subplot(gs[3, tile%batch_size])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            print('plot 3')
+            plt.imshow(forest_loss[0], cmap=plt.cm.binary)
+
+            ax = plt.subplot(gs[4, tile%batch_size])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            print('plot 4')
+            plt.imshow(prediction_loss[0], cmap=plt.cm.binary)
+        out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
+        print('Saved!', out_imgs_dir)
+        plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+        plt.close(f)
 
 def save_images_single(batch_size, images, out_dir, idx_start, limit):
 

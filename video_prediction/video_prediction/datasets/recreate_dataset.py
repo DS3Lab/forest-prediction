@@ -176,7 +176,7 @@ def main():
     args = parser.parse_args()
 
     partition_names = ['test']
-    imgs = get_imgs(os.path.join(args.input_dir, 'quarter_cropped','test'))
+    imgs = get_imgs(os.path.join(args.input_dir, 'test'))
     ordered_imgs = collections.OrderedDict(sorted(imgs.items()))
     quad_list0 = [
         ordered_imgs
