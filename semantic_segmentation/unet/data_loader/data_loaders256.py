@@ -94,8 +94,11 @@ def get_tile_info(tile):
     Retrieve the year, zoom, x, y from a tile. Example: ly2017_12_1223_2516.png
     """
     tile_items = tile.split('_')
-    year, zoom, x, y, cx, cy = items[0][2:], items[1], items[2], items[3], items[4], items[5][:-4]
-    return int(year), zoom, x, y, cx, cy
+    year = tile_items[0][2:]
+    z = tile_items[1]
+    x = tile_items[2]
+    y = tile_items[3][:-4]
+    return int(year), z, x, y
 
 # TODO: put get_imgs together.
 # TODO: put another field to choose between source image type, e.g landsat /planet
@@ -103,42 +106,42 @@ def get_annual_imgs_from_mask(mask_file, img_dir, single=False, img_mode='same')
     """
     Retrieve the annual input images from a mask.
     """
-    year, z, x, y, cx, cy = get_tile_info(mask_file.split('/')[-1])
-    key = str(year) + '_' + z + '_' + x + '_' + y + '_' + cx + '_' + cy
-    planet_name = 'pl' + '{year}' + '_{z}_{x}_{y}_{cx}_{cy}.npy'
+    year, z, x, y = get_tile_info(mask_file.split('/')[-1])
+    key = str(year) + '_' + z + '_' + x + '_' + y
+    planet_name = 'pl' + '{year}' + '_{z}_{x}_{y}.npy'
     planet_template = os.path.join(img_dir, planet_name)
 
     data = {}
     if not single:
         data[key] = {
-            'img': (planet_template.format(year=year-1, z=z, x=x, y=y, cx=cx, cy=cy),
-                    planet_template.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy)),
+            'img': (planet_template.format(year=year-1, z=z, x=x, y=y),
+                    planet_template.format(year=year, z=z, x=x, y=y)),
             'mask': mask_file
         }
     else:
         if img_mode == 'same':
             data[key] = {
-                'img': planet_template.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy),
+                'img': planet_template.format(year=year, z=z, x=x, y=y),
                 'mask': mask_file
             }
         else: # cont, return image year - 1, image year
-            mask_name = 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
-                year=year-1, z=z, x=x, y=y, cx=cx, cy=cy
+            mask_name = 'fc{year}_{z}_{x}_{y}.npy'.format(
+                year=year-1, z=z, x=x, y=y
             )
             mask_dir = '/'.join(mask_file.split('/')[:-2])
             mask0 = os.path.join(mask_dir, str(year-1), mask_name)
             data[key] = {
-                'img': (planet_template.format(year=year-1, z=z, x=x, y=y, cx=cx, cy=cy),
-                        planet_template.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy)),
+                'img': (planet_template.format(year=year-1, z=z, x=x, y=y),
+                        planet_template.format(year=year, z=z, x=x, y=y)),
                 'mask': (mask0, mask_file),
                 'loss': os.path.join(HANSEN_PATH_DB,
-                'ly{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy))
+                'ly{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y))
             }
     return data
 
 def get_single_quarter_imgs_from_mask(mask_file, img_dir, img_mode):
-    year, z, x, y, cx, cy = get_tile_info(mask_file.split('/')[-1])
-    planet_name = 'pl' + '{year}' + '_{q}_{z}_{x}_{y}_{cx}_{cy}.png'
+    year, z, x, y = get_tile_info(mask_file.split('/')[-1])
+    planet_name = 'pl' + '{year}' + '_{q}_{z}_{x}_{y}.png'
     planet_template = os.path.join(img_dir, planet_name)
 
     data = {}
@@ -146,13 +149,13 @@ def get_single_quarter_imgs_from_mask(mask_file, img_dir, img_mode):
     # Put the same the quads together so it can be retrieved and plotted
     # at the same time while testing
     data[key] = {
-        'img': (planet_template.format(year=year-1, q='q1', z=z, x=x, y=y, cx=cx, cy=cy),
-                planet_template.format(year=year-1, q='q2', z=z, x=x, y=y, cx=cx, cy=cy),
-                planet_template.format(year=year-1, q='q3', z=z, x=x, y=y, cx=cx, cy=cy),
-                planet_template.format(year=year-1, q='q4', z=z, x=x, y=y, cx=cx, cy=cy)),
+        'img': (planet_template.format(year=year-1, q='q1', z=z, x=x, y=y),
+                planet_template.format(year=year-1, q='q2', z=z, x=x, y=y),
+                planet_template.format(year=year-1, q='q3', z=z, x=x, y=y),
+                planet_template.format(year=year-1, q='q4', z=z, x=x, y=y)),
         'mask': mask_file,
         'loss': os.path.join(HANSEN_PATH_DB,
-        'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy))
+        'ly{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y))
     }
 
     return data
@@ -165,8 +168,8 @@ def get_quarter_imgs_from_mask(mask_file, img_dir, testing=False, quarter_type='
         'next_year': takes q1 from year t-1 and q2 from year t
     """
     assert quarter_type in ['same_year', 'next_year']
-    year, z, x, y, cx, cy = get_tile_info(mask_file.split('/')[-1])
-    planet_name = 'pl' + '{year}' + '_{q}_{z}_{x}_{y}_{cx}_{cy}.png'
+    year, z, x, y = get_tile_info(mask_file.split('/')[-1])
+    planet_name = 'pl' + '{year}' + '_{q}_{z}_{x}_{y}.png'
     planet_template = os.path.join(img_dir, planet_name)
 
     data = {}
@@ -175,10 +178,10 @@ def get_quarter_imgs_from_mask(mask_file, img_dir, testing=False, quarter_type='
         # Put the same the quads together so it can be retrieved and plotted
         # at the same time while testing
         data[key] = {
-            'img': (planet_template.format(year=year-1, q='q1', z=z, x=x, y=y, cx=cx, cy=cy),
-                    planet_template.format(year=year-1, q='q2', z=z, x=x, y=y, cx=cx, cy=cy),
-                    planet_template.format(year=year-1, q='q3', z=z, x=x, y=y, cx=cx, cy=cy),
-                    planet_template.format(year=year-1, q='q4', z=z, x=x, y=y, cx=cx, cy=cy)),
+            'img': (planet_template.format(year=year-1, q='q1', z=z, x=x, y=y),
+                    planet_template.format(year=year-1, q='q2', z=z, x=x, y=y),
+                    planet_template.format(year=year-1, q='q3', z=z, x=x, y=y),
+                    planet_template.format(year=year-1, q='q4', z=z, x=x, y=y)),
             'mask': mask_file
         }
     else:
@@ -186,12 +189,12 @@ def get_quarter_imgs_from_mask(mask_file, img_dir, testing=False, quarter_type='
         quarters = ['q1_q2', 'q2_q3', 'q3_q4']
         for quarter in quarters:
             if quarter_type == 'same_year':
-                img0 = planet_template.format(year=year-1, q=quarter[:2], z=z, x=x, y=y, cx=cx, cy=cy)
-                img1 = planet_template.format(year=year-1, q=quarter[-2:], z=z, x=x, y=y, cx=cx, cy=cy)
+                img0 = planet_template.format(year=year-1, q=quarter[:2], z=z, x=x, y=y)
+                img1 = planet_template.format(year=year-1, q=quarter[-2:], z=z, x=x, y=y)
                 img = (img0, img1)
             else: # next_year
-                img0 = planet_template.format(year=year-1, q=quarter[:2], z=z, x=x, y=y, cx=cx, cy=cy)
-                img1 = planet_template.format(year=year, q=quarter[-2:], z=z, x=x, y=y, cx=cx, cy=cy)
+                img0 = planet_template.format(year=year-1, q=quarter[:2], z=z, x=x, y=y)
+                img1 = planet_template.format(year=year, q=quarter[-2:], z=z, x=x, y=y)
                 img = (img0, img1)
 
             data[key.format(q=quarter)] = {
