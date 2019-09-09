@@ -164,14 +164,14 @@ def main():
     forest_loss_files = get_forest_loss_files(prefixes, SRC_PATH)
     forest_cover_files = get_forest_cover_files(prefixes, FC_PATH)
     forest_gain_files = get_forest_gain_files(prefixes, os.path.join(SRC_PATH, 'forest_gain'))
-    
+
     print('FOREST LOSS FILES')
     print(forest_loss_files[:10])
-    print('FOREST COVER FILES')
-    print(forest_cover_files[:10])
+    #print('FOREST COVER FILES')
+    #print(forest_cover_files[:10])
     print(len(forest_cover_files), len(forest_loss_files), len(hansen_files))
-    print(len(forest_gain_files))
-    print(prefixes[:10])
+    #print(len(forest_gain_files))
+    #print(prefixes[:10])
     # NOTE: THERE ARE LESS FILES IN FOREST GAIN BECAUSE THOSE TILES DIDNT EXIST
     # check_duplicate_keys(forest_gain_files)
     # split_images({'images': forest_gain_files, 'out_dir': out_fg_path})
