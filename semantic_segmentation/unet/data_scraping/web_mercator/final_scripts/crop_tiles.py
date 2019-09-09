@@ -186,15 +186,15 @@ def main():
     #for t in Pros:
     #    t.join()
 
-    #for image in hansen_files:
-    #    try:
-    #        prefix = get_prefix(image)
-    #        print(prefix)
-            # tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
-            # image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
-    #        logger.debug('SUCCESS: ' + image)
-    #    except:
-    #        logger.debug('FAILED: ' + image)
+    for image in hansen_files:
+       try:
+           prefix = get_prefix(image)
+           print(prefix)
+           # tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
+           # image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
+           logger.debug('SUCCESS: ' + image)
+       except:
+           logger.debug('FAILED: ' + image)
 
     # for image in planet_files:
     #     try:
