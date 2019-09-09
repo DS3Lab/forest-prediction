@@ -130,6 +130,7 @@ def save_tf_record(output_fname, sequences):
                 'width': _int64_feature(width),
                 'channels': _int64_feature(channels),
                 'images/encoded': _bytes_list_feature(encoded_sequence),
+                'image_raw': _bytes_feature(filenames[i])
             })
             example = tf.train.Example(features=features)
             writer.write(example.SerializeToString())
@@ -179,6 +180,34 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition
     with open(partition_name + 'img2seq.pkl', 'wb') as pkl_file:
         pkl.dump(img2seq, pkl_file)
 
+def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_file=4):
+    """
+    img_quads: {
+        key1: {year_q1: img1, year_q2: img2, year_q3: img3}
+        key2: {year_q1: img1, year_q2: img2, year_q3: img3}
+    }
+    """
+    partition_name = os.path.split(output_dir)[1]
+    img2seq = {}
+    sequences = []
+    sequence_iter = 0
+    sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
+    frame_fnames = get_quad_list(img_quads[key])
+    frames = skimage.io.imread_collection(frame_fnames)
+    frames = [frame[:,:,:3] for frame in frames] # take only RGB
+    if not sequences:
+        last_start_sequence_iter = sequence_iter
+        print("reading sequences starting at sequence %d" % sequence_iter)
+    sequences.append(frames)
+    sequence_iter += 1
+    sequence_lengths_file.write("%d\n" % len(frames)) # should be always 3
+    if len(sequences) == sequences_per_file:
+        output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(0, 3)
+        output_fname = os.path.join(output_dir, output_fname)
+        save_tf_record(output_fname, sequences)
+        sequences[:] = []
+    sequence_lengths_file.close()
+
 def part_dict(dic, num):
     total = len(dic)
     assert num < total
@@ -214,20 +243,27 @@ def main():
 
     # partition_names = ['train', 'val', 'test']
     partition_names = ['test']
-    quad_list = [#get_imgs(os.path.join(args.input_dir, 'train')),
-        # get_imgs(os.path.join(args.input_dir, 'val')),
-        get_imgs(os.path.join(args.input_dir, 'test'))
-    ]
+    # quad_list = [#get_imgs(os.path.join(args.input_dir, 'train')),
+    #     # get_imgs(os.path.join(args.input_dir, 'val')),
+    #     get_imgs(os.path.join(args.input_dir, 'test'))
+    # ]
+    imgs = get_imgs(os.path.join(args.input_dir, 'test'))
     # quads = get_imgs(args.input_dir) # Return
 #     train_quads, val_quads, test_quads
     # print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
-    print(len(quad_list[0]))
-    for partition_name, partition_quad in zip(partition_names, quad_list):
-    # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
-        partition_dir = os.path.join(args.output_dir, partition_name)
-        if not os.path.exists(partition_dir):
-            os.makedirs(partition_dir)
-        read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size, partition_name)
+    # print(len(quad_list[0]))
+    # for partition_name, partition_quad in zip(partition_names, quad_list):
+    # # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
+    #     partition_dir = os.path.join(args.output_dir, partition_name)
+    #     if not os.path.exists(partition_dir):
+    #         os.makedirs(partition_dir)
+    #     read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size, partition_name)
+    for key in imgs.keys():
+        output_dir = os.path.join(args.output_dir, 'test', key)
+        print(output_dir)
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
+        # read_frames_and_save_single_tf_records(output_dir, imgs[key])
 
 
 if __name__ == '__main__':
