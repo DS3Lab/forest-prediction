@@ -65,7 +65,7 @@ def getKeyFromFiles(files):
 
 def get_tile_info(file):
     items = file.split('/')[-1].split('_')
-    zoom, x, y, cx, cy = items[1], items[2], items[3], items[4], items[5][:-4]
+    year, zoom, x, y, cx, cy = items[0][2:], items[1], items[2], items[3], items[4], items[5][:-4]
     return year, zoom, x, y, cx, cy
 
 def process_forest_tile(img_arr):
@@ -117,7 +117,7 @@ def create_forest_cover_tiles(forest_files, loss_files, gain_files, out_dir):
         # hansen16 = search_hansen_file(loss_template.format(year='2016', z=z, x=x, y=y, cx=cx, cy=cy), loss_files)
         hansen17 = search_hansen_file(loss_template.format(year='2017', z=z, x=x, y=y, cx=cx, cy=cy), loss_files)
         hansen18 = search_hansen_file(loss_template.format(year='2018', z=z, x=x, y=y, cx=cx, cy=cy), loss_files)
-        gain00 = search_hansen_file(gain_template.format(z=z, x=x, y=y), gain_files)
+        gain00 = search_hansen_file(gain_template.format(z=z, x=x, y=y, cx=cx, cy=cy), gain_files)
 
         hansen_gain = open_image(gain00)
 
