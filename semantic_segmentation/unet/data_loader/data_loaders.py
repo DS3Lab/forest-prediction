@@ -76,9 +76,9 @@ def loadSingleFiles(mask_dir, img_dir, years, qualities,
             print('LOAD FILES MASK IMGS', len(mask_imgs), masks_path)
             for mask in mask_imgs:
                 if timelapse == 'quarter':
-                    mask_dict = get_single_quarter_imgs_from_mask(mask, img_dir, img_mode)
+                    mask_dict = get_single_quarter_imgs_from_mask(mask, os.path.join(img_dir, year), img_mode)
                 else:
-                    mask_dict = get_annual_imgs_from_mask(mask, img_dir, True, img_mode)
+                    mask_dict = get_annual_imgs_from_mask(mask, os.path.join(img_dir, year), True, img_mode)
                 # print('LOAD FILES', mask_dict)
                 imgs = {**imgs, **mask_dict}
             if len(imgs) > limit: # soft limitsdasdsad, returns when it is greater
