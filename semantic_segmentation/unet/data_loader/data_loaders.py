@@ -43,6 +43,34 @@ def loss2file(key, video_path):
     return gt_imgs, video_imgs
 
 def loadFiles(video_path, limit=float("inf")):
+    list_gan = list(TEST_IMGS)
+    imgs = {}
+    video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
+    for i in range(128): # for some reason only works on the first path
+        key = list_gan[i]
+        year, z, x, y, cx, cy = key.split('_')
+        imgs[key] = {
+            'gt_imgs': TEST_IMGS[key],
+            'video_imgs': {
+                '00': video_template.format(idx=i, latent='00', num_pred='00'),
+                '01': video_template.format(idx=i, latent='00', num_pred='01'),
+                '02': video_template.format(idx=i, latent='00', num_pred='02')
+            },
+            'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+                year=year, z=z, x=x, y=y, cx=cx, cy=cy
+            )),
+            'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+                year=year, z=z, x=x, y=y, cx=cx, cy=cy
+            ))
+        }
+        if len(imgs) > limit:
+            imgs = {k: imgs[k] for k in list(imgs)[:limit]}
+            print('LOAD FILES', len(imgs))
+            return imgs
+    print('LOAD FILES', len(imgs))
+    return imgs
+
+def loadFiles1(video_path, limit=float("inf")):
     imgs = {}
     mask_imgs = glob.glob(os.path.join(LOSS_PATH_DB, '*'))
     print('LOAD FILES MASK IMGS', len(mask_imgs))
