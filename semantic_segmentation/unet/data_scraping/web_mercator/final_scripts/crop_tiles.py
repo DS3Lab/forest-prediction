@@ -101,12 +101,12 @@ def get_forest_gain_files(prefixes, forest_dir):
 def try_to_append(filename, dir_, list_):
     pcts = ['five_pct', 'four_pct', 'three_pct', 'two_pct']
     fileyear = filename[2:6]
-    if fileyear == '2017':
-        year = '2017'
-    else:
-        year = '2018'
+    # if fileyear == '2017':
+    #     year = '2017'
+    # else:
+    #     year = '2018'
     for pct in pcts:
-        file_abs_path = os.path.join(dir_, 'hansen', pct, year, filename)
+        file_abs_path = os.path.join(dir_, 'hansen', pct, fileyear, filename)
         if os.path.exists(file_abs_path):
             list_.append(file_abs_path)
 
@@ -119,7 +119,9 @@ def get_forest_loss_files(prefixes, forest_loss_dir):
     loss_template = '{}.png'
     forest_files = []
     for prefix in prefixes:
+        prefix_last_year = 'ly' + str(int(prefix[2:6]) - 1) + prefix[6:]
         try_to_append(loss_template.format(prefix), forest_loss_dir, forest_files)
+        try_to_append(loss_template.format(prefix_last_year), forest_loss_dir, forest_files)
     return forest_files
 
 def split_images(args):
