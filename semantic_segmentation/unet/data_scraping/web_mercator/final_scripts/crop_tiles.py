@@ -185,18 +185,21 @@ def main():
 
     #for t in Pros:
     #    t.join()
-
+    '''
     for image in hansen_files:
        try:
            prefix = get_prefix(image)
-           print(prefix)
-           if not os.path.exists(os.path.join(out_path, prefix + '_01_01.png'))
-               tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
-               image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
+           print(prefix, os.path.join(out_path, prefix + '_01_01.png'))
+           if not os.path.exists(os.path.join(out_path, prefix + '_01_01.png')):
+               # tiles = image_slicer.slice(image, 16, save=False) # 16 for 64x64 tiles
+               # image_slicer.save_tiles(tiles, directory=out_path, prefix=prefix)
+               print('hello')
+           else:
+               print('asd')
            logger.debug('SUCCESS: ' + image)
        except:
            logger.debug('FAILED: ' + image)
-
+    '''
     # for image in planet_files:
     #     try:
     #         prefix = get_prefix(image)
