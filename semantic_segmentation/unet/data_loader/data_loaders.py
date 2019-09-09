@@ -42,19 +42,41 @@ def loss2file(key, video_path):
     }
     return gt_imgs, video_imgs
 
+def get_item(i, video_path):
+    list_gan = list(TEST_IMGS)
+    key = list_gan[i]
+    year, z, x, y, cx, cy = key.split('_')
+    folder = get_folder128(i)
+    video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
+    return {
+        'gt_imgs': TEST_IMGS[key],
+        'video_imgs': {
+                '00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
+                '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
+                '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')
+        },
+        'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+                year=year, z=z, x=x, y=y, cx=cx, cy=cy
+        )),
+        'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+                year=year, z=z, x=x, y=y, cx=cx, cy=cy
+        ))
+    }
+
 def loadFiles(video_path, limit=float("inf")):
     list_gan = list(TEST_IMGS)
     imgs = {}
-    video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
     for i in range(128): # for some reason only works on the first path
         key = list_gan[i]
         year, z, x, y, cx, cy = key.split('_')
+        folder = get_folder128(i)
+        video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
         imgs[key] = {
             'gt_imgs': TEST_IMGS[key],
             'video_imgs': {
-                '00': video_template.format(idx=i, latent='00', num_pred='00'),
-                '01': video_template.format(idx=i, latent='00', num_pred='01'),
-                '02': video_template.format(idx=i, latent='00', num_pred='02')
+                '00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
+                '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
+                '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')
             },
             'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
@@ -189,8 +211,10 @@ class PlanetSingleDataset(Dataset):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
         #
+        print('RETRIEVING', index)
         key = self.keys[index % self.dataset_size]
-        path_dict = self.paths_dict[key]
+        # path_dict = self.paths_dict[key]
+        path_dict = get_item(index, self.img_dir)
         # print('PATHHHH',path_dict['video_imgs']['00'])
         gt_img0 = self.transforms(open_image(path_dict['gt_imgs']['q1']))
         gt_img1 = self.transforms(open_image(path_dict['gt_imgs']['q2']))
@@ -229,7 +253,7 @@ class PlanetDataLoader(BaseDataLoader):
             qualities,
             timelapse,
             max_dataset_size=float('inf'),
-            shuffle=True,
+            shuffle=False,
             num_workers=1,
             testing=False,
             training=True,

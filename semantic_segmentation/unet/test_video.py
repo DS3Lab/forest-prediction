@@ -96,7 +96,7 @@ def main(config):
         timelapse=timelapse,
         max_dataset_size=900,
         shuffle=False,
-        num_workers=32,
+        num_workers=1,
         training=False,
         testing=True,
         quarter_type="same_year",
@@ -131,7 +131,7 @@ def main(config):
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
     pred_dir = os.path.join(pred_dir, 'video_predictions')
-    out_dir = os.path.join(pred_dir, 'gan')
+    out_dir = os.path.join(pred_dir, 'normal')
     if not os.path.isdir(pred_dir):
         os.makedirs(out_dir)
     if not os.path.isdir(out_dir):

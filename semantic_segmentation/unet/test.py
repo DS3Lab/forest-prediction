@@ -99,7 +99,7 @@ def main(config):
         timelapse=timelapse,
         max_dataset_size=900,
         shuffle=False,
-        num_workers=32,
+        num_workers=1,
         training=False,
         testing=True,
         quarter_type="same_year",
