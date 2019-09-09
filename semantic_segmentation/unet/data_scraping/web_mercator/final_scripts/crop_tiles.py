@@ -129,8 +129,12 @@ def split_images(args):
         try:
             prefix = get_prefix(image)
             # print('GOING TO SLICE', prefix, args['out_dir'], image)
-            tiles = image_slicer.slice(image, 16, save=False)
-            image_slicer.save_tiles(tiles, directory=args['out_dir'], prefix=prefix)
+            if not os.path.exists(os.path.join(out_path, prefix + '_01_01.png')):
+                print('hello')
+            else:
+                print('asd')
+            # tiles = image_slicer.slice(image, 16, save=False)
+            # image_slicer.save_tiles(tiles, directory=args['out_dir'], prefix=prefix)
             logger.debug('SUCCESS:' + image)
         except:
             logger.debug('FAILED:' + image)
@@ -174,7 +178,7 @@ def main():
     #print(prefixes[:10])
     # NOTE: THERE ARE LESS FILES IN FOREST GAIN BECAUSE THOSE TILES DIDNT EXIST
     # check_duplicate_keys(forest_gain_files)
-    # split_images({'images': forest_gain_files, 'out_dir': out_fg_path})
+    split_images({'images': forest_loss_files, 'out_dir': out_fl_path})
     #Pros = []
     #p1 = Process(target=split_images, args=({'images': forest_loss_files, 'out_dir': out_fl_path},))
     #p2 = Process(target=split_images, args=({'images': forest_cover_files, 'out_dir': out_fc_path},))
