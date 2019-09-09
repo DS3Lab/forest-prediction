@@ -20,7 +20,7 @@ def _threshold_outputs(outputs, output_threshold=0.3):
     return outputs
 
 def _fast_hist(outputs, targets, num_classes=2):
-    print(outputs.shape, targets.shape)
+    # print(outputs.shape, targets.shape)
     mask = (targets >= 0) & (targets < num_classes)
     hist = np.bincount(
         num_classes * targets[mask].astype(int) +
@@ -104,7 +104,7 @@ def main(config):
         input_type=input_type,
         img_mode=img_mode
     )
-
+    limit = 100
     # build model architecture
     model = config.initialize('arch', module_arch)
     logger.info(model)
@@ -131,7 +131,7 @@ def main(config):
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
     pred_dir = os.path.join(pred_dir, 'video_predictions')
-    out_dir = os.path.join(pred_dir, timelapse)
+    out_dir = os.path.join(pred_dir, 'gan')
     if not os.path.isdir(pred_dir):
         os.makedirs(out_dir)
     if not os.path.isdir(out_dir):
@@ -141,6 +141,8 @@ def main(config):
     hist = np.zeros((2,2))
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
+            if i == 100:
+                break
         # for i, (data, target) in enumerate(tqdm(data_loader)):
             init_time = time.time()
             loss = None
@@ -152,13 +154,13 @@ def main(config):
             gt_img0, gt_img1, gt_img2, gt_img3 = gt_imgs['q1'], gt_imgs['q2'], gt_imgs['q3'], gt_imgs['q4']
             vd_img0, vd_img1, vd_img2 = video_imgs['00'], video_imgs['01'], video_imgs['02']
 
-            ugt_img0, ugt_img1, ugt_img2, ugt_img3 = normalize_inverse(gt_img0, (0.2311, 0.2838, 0.1752)), \
-                normalize_inverse(gt_img1, (0.2311, 0.2838, 0.1752)),
-                normalize_inverse(gt_img2, (0.2311, 0.2838, 0.1752)),
-                normalize_inverse(gt_img3, (0.2311, 0.2838, 0.1752))
-            uvd_img0, uvd_img1, uvd_img2 = normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752)), \
-                normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752)), \
-                normalize_inverse(vd_img2, (0.2311, 0.2838, 0.1752))
+            ugt_img0, ugt_img1, ugt_img2, ugt_img3 = normalize_inverse(gt_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(gt_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(gt_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(gt_img3, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+            uvd_img0, uvd_img1, uvd_img2 = normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(vd_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
 
             datagt = torch.cat((gt_img0, gt_img1, gt_img2, gt_img3), 0)
             dataugt = torch.cat((ugt_img0, ugt_img1, ugt_img2, ugt_img3), 0)
@@ -168,15 +170,16 @@ def main(config):
             target_loss = torch.cat((forest_loss, forest_loss, forest_loss), 0)
             target_cover = torch.cat((forest_cover, forest_cover, forest_cover), 0)
 
-            data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
+            datavd, target_cover = datavd.to(device, dtype=torch.float), target_cover.to(device, dtype=torch.float)
             output = model(datavd)
 
             output_probs = F.sigmoid(output)
-            binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
+            binary_target = _threshold_outputs(target_cover.data.cpu().numpy().flatten())
             output_binary = _threshold_outputs(
                 output_probs.data.cpu().numpy().flatten())
             # print(output_binary.shape, 'SHAPEEE')
             mlz = _fast_hist(output_binary, binary_target)
+            print('FAST HIST', mlz)
             hist += _fast_hist(output_binary, binary_target)
             images = {
                 'video_imgs': datauvd.cpu().numpy(),
@@ -186,11 +189,11 @@ def main(config):
             }
 
             print('prediction_time', time.time() - init_time)
-            print('Save images shape input', video_imgs.shape)
+            print('Save images shape input', video_imgs['00'].shape)
             save_video_images(3, images, out_dir, i*batch_size, input_type)
             # computing loss, metrics on test set
-            loss = loss_fn(output, target)
-            batch_size = data.shape[0]
+            loss = loss_fn(output, target_cover)
+            batch_size = datavd.shape[0]
             total_loss += loss.item() * batch_size
             # for i, metric in enumerate(metric_fns):
             #     total_metrics[i] += metric(output, target.float()) * batch_size

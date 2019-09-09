@@ -62,10 +62,10 @@ def save_video_images(batch_size, images, out_dir, idx_start, limit):
             prediction_cover = images['prediction_cover'][tile]
             forest_loss = images['forest_loss'][tile]
             if tile > i:
-                prediction_loss = get_loss_pred(images['pred'][tile-1],
-                                     images['pred'][tile])
+                prediction_loss = get_loss_pred(images['prediction_cover'][tile-1],
+                                     images['prediction_cover'][tile])
             else:
-                prediction_loss = np.zeros((pred.shape))
+                prediction_loss = np.zeros((prediction_cover.shape))
             # Set up plot
             ax = plt.subplot(gs[0, tile%batch_size])
             ax.get_xaxis().set_visible(False)

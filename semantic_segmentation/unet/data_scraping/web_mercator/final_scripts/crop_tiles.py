@@ -3,6 +3,7 @@ import os
 import glob
 import image_slicer
 import logging
+import pickle as pkl
 from multiprocessing import Process
 
 logger = logging.getLogger('crop')
@@ -125,19 +126,21 @@ def get_forest_loss_files(prefixes, forest_loss_dir):
     return forest_files
 
 def split_images(args):
+    print('NUM TO SLICE',len(args['images']))
+    sliced = 0
     for image in args['images']:
         try:
             prefix = get_prefix(image)
             # print('GOING TO SLICE', prefix, args['out_dir'], image)
-            if not os.path.exists(os.path.join(out_path, prefix + '_01_01.png')):
-                print('hello')
-            else:
-                print('asd')
-            # tiles = image_slicer.slice(image, 16, save=False)
-            # image_slicer.save_tiles(tiles, directory=args['out_dir'], prefix=prefix)
-            logger.debug('SUCCESS:' + image)
+            if not os.path.exists(os.path.join(args['out_dir'], prefix + '_01_01.png')):
+                tiles = image_slicer.slice(image, 16, save=False)
+                image_slicer.save_tiles(tiles, directory=args['out_dir'], prefix=prefix)
+                logger.debug('SUCCESS:' + image)
+                sliced+=1
         except:
+            print('FAILED', image)
             logger.debug('FAILED:' + image)
+    print('SLICED',sliced)
 
 def check_duplicate_keys(forest_cover_files):
     keys = []
@@ -150,6 +153,20 @@ def check_duplicate_keys(forest_cover_files):
         keys.append(f)
     print('total duplicated', duplicated)
 
+def get_reslice_files(reslice_files, other_dir):
+    files = []
+    nofound = 0
+    for file in reslice_files:
+        original_file = file[:-10]
+        slice_file = os.path.join(other_dir, original_file + '.png') 
+        if not os.path.exists(slice_file):
+            print('WARNING', slice_file)
+            nofound += 1
+        else:
+            if slice_file not in files:
+                files.append(slice_file)
+    print(len(files), nofound)
+    return files
 
 def main():
     SRC_PATH = '/mnt/ds3lab-scratch/lming/data/min_quality'
@@ -165,20 +182,26 @@ def main():
     # planet_files = get_planet_files(hansen_files, src_quarter_path)
     # print(len(planet_files), len(hansen_files))
     prefixes = [get_prefix(image) for image in hansen_files]
-    forest_loss_files = get_forest_loss_files(prefixes, SRC_PATH)
-    forest_cover_files = get_forest_cover_files(prefixes, FC_PATH)
-    forest_gain_files = get_forest_gain_files(prefixes, os.path.join(SRC_PATH, 'forest_gain'))
-
-    print('FOREST LOSS FILES')
-    print(forest_loss_files[:10])
+    # forest_loss_files = get_forest_loss_files(prefixes, SRC_PATH)
+    # forest_cover_files = get_forest_cover_files(prefixes, FC_PATH)
+    # forest_gain_files = get_forest_gain_files(prefixes, os.path.join(SRC_PATH, 'forest_gain'))
+    # print(forest_loss_files)
+    # print('FOREST LOSS FILES')
+    # print(forest_loss_files[:10])
     #print('FOREST COVER FILES')
     #print(forest_cover_files[:10])
-    print(len(forest_cover_files), len(forest_loss_files), len(hansen_files))
+    # print(len(forest_cover_files), len(forest_loss_files), len(hansen_files))
     #print(len(forest_gain_files))
     #print(prefixes[:10])
+
+    # NOTE: forest_loss_files = abs path of the files that are going to be sliced
+    with open('forest_loss/reslice.pkl', 'rb') as pkl_file:
+        reslice_files = pkl.load(pkl_file)
+    slice_files = get_reslice_files(reslice_files, '/mnt/ds3lab-scratch/lming/data/min_quality/hansen_other')
+    split_images({'images': slice_files, 'out_dir': out_fl_path})
     # NOTE: THERE ARE LESS FILES IN FOREST GAIN BECAUSE THOSE TILES DIDNT EXIST
     # check_duplicate_keys(forest_gain_files)
-    split_images({'images': forest_loss_files, 'out_dir': out_fl_path})
+    # split_images({'images': forest_loss_files, 'out_dir': out_fl_path})
     #Pros = []
     #p1 = Process(target=split_images, args=({'images': forest_loss_files, 'out_dir': out_fl_path},))
     #p2 = Process(target=split_images, args=({'images': forest_cover_files, 'out_dir': out_fc_path},))

@@ -88,7 +88,7 @@ def need_file(files, year, zoom, x, y):
 
 def get_file(files, year, zoom, x, y, cx, cy):
     template = 'ly{year}_{zoom}_{x}_{y}_{cx}_{cy}.png'
-    fs = template.format(year=year, zoom=zoom, x=x, y=y, cx, cy)
+    fs = template.format(year=year, zoom=zoom, x=x, y=y, cx=cx, cy=cy)
     for file in files:
         f = file.split('/')[-1]
         if f == fs:
@@ -156,35 +156,45 @@ def save_loss_tile(path1, path2, out_file):
     img_arr1 = cv2.cvtColor(img_arr1, cv2.COLOR_BGR2GRAY)
     img_arr2 = cv2.cvtColor(img_arr2, cv2.COLOR_BGR2GRAY)
     img = img_arr1 - img_arr2
+    print(np.unique(img))
     np.save(out_file, img.astype(np.uint8))
 
 def create_loss_tiles(hansen_files, hansen_dir, out_dir):
     template = 'ly{year}_{zoom}_{x}_{y}_{cx}_{cy}.png'
     out_file_temp = 'ly{year}_{zoom}_{x}_{y}_{cx}_{cy}.npy'
+    exists = 0
+    noexists = 0
+    noexistsfiles = []
     for file in hansen_files:
-        year, zoom, x, y, cx_, cy = get_tile_info(file)
+        year, zoom, x, y, cx, cy = get_tile_info(file)
         if year in ['2017', '2018']:
-            py_file = get_file(hansen_files, int(year)-1, zoom, x, y, cx, cy)
-                if not py_file:
-                    print(py_file, 'DOES NOT EXIST')
-                    logger.debug('WARNING: {} doesnt exist'.format(py_file))
-                    continue
+            # py_file = get_file(hansen_files, int(year)-1, zoom, x, y, cx, cy)
+            py_file = template.format(year=int(year)-1, zoom=zoom, x=x, y=y, cx=cx, cy=cy)
+            abs_py_file = os.path.join(hansen_dir, py_file)
+            if not os.path.exists(abs_py_file):
+                # print('WARNING', abs_py_file, 'DOES NOT EXIST')
+                logger.debug('WARNING: {} doesnt exist'.format(py_file))
+                continue
+            out_file = out_file_temp.format(year=year, zoom=zoom, x=x, y=y, cx=cx, cy=cy)
+            # print('PARAMS', file, abs_py_file, os.path.join(out_dir, out_file))
+            save_loss_tile(file, abs_py_file, os.path.join(out_dir, out_file))
             # out_file = out_file_temp.format(year=year, zoom=zoom, x=x, y=y)
             # save_loss_tile(file, py_file, os.path.join(out_dir, out_file))
             # logger.debug('file1 {}\nfile2{}\noutput{}'.format(file, py_file, out_file))
 
 def main():
     ########### DOWNLOAD TILES ###############
-    # out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality'
+    out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality'
     # out_hansen_dir = os.path.join(out_dir, 'hansen_other')
-    # out_hansen_loss_dir = os.path.join(out_dir, 'hansen_loss')
+    out_hansen_loss_dir = os.path.join(out_dir, 'forest_loss_yearly_cropped')
     # hansen_dir = os.path.join(out_dir, 'hansen')
     # create_dir(out_hansen_dir)
-    # create_dir(out_hansen_loss_dir)
+    create_dir(out_hansen_loss_dir)
 
     hansen_cropped_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_loss_raw_cropped'
+    hansen_files = glob.glob(os.path.join(hansen_cropped_dir, '*.png'))
     # Get hansen files
-    hansen_files = getListOfFiles(hansen_dir)
+    # hansen_files = getListOfFiles(hansen_cropped_dir)
     # other_urls = get_other_urls(hansen_files)
     # print(len(other_urls))
     # import pickle as pkl
@@ -196,7 +206,7 @@ def main():
     #         results = pool.starmap(download_item, create_tuple(chunk, out_hansen_dir, 'hansen'))
 
     ########### SAVE LOSS TILES ###############
-    create_loss_tiles(hansen_files, , hansen_dir, out_hansen_loss_dir)
+    create_loss_tiles(hansen_files,hansen_cropped_dir, out_hansen_loss_dir)
 
 if __name__ == '__main__':
     main()
