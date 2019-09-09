@@ -152,6 +152,7 @@ def main():
     model.restore(sess, args.checkpoint)
 
     sample_ind = 0
+    dir_every_n = 128
     while True:
         if args.num_samples and sample_ind >= args.num_samples:
             break
@@ -160,9 +161,11 @@ def main():
         except tf.errors.OutOfRangeError:
             break
         print("evaluation samples from %d to %d" % (sample_ind, sample_ind + args.batch_size))
-
+        if sample_ind % dir_every_n == 0:
+            output_dir = os.path.join(args.output_gif_dir, '{}_{}'.format(sample_ind, sample_ind + dir_every_n))
         feed_dict = {input_ph: input_results[name] for name, input_ph in input_phs.items()}
-        for stochastic_sample_ind in range(args.num_stochastic_samples):
+        # for stochastic_sample_ind in range(args.num_stochastic_samples):
+        for stochastic_sample_ind in range(1):
             gen_images = sess.run(model.outputs['gen_images'], feed_dict=feed_dict)
             # only keep the future frames
             gen_images = gen_images[:, -future_length:]
@@ -174,7 +177,9 @@ def main():
                 context_and_gen_images = list(context_images_[:context_frames]) + list(gen_images_)
                 if args.gif_length:
                     context_and_gen_images = context_and_gen_images[:args.gif_length]
-                save_gif(os.path.join(args.output_gif_dir, gen_images_fname),
+                # output_dir = os.path.join(args.output_gif_dir, '{}_{}'.format(sample_ind, sample_ind + args.batch_size), gen_images_fname)
+                print('SAVE GIF', output_dir, gen_images_fname)
+                save_gif(os.path.join(output_dir, gen_images_fname),
                          context_and_gen_images, fps=args.fps)
 
                 gen_image_fname_pattern = 'gen_image_%%05d_%%02d_%%0%dd.png' % max(2, len(str(len(gen_images_) - 1)))
@@ -184,7 +189,9 @@ def main():
                       gen_image = np.tile(gen_image, (1, 1, 3))
                     else:
                       gen_image = cv2.cvtColor(gen_image, cv2.COLOR_RGB2BGR)
-                    cv2.imwrite(os.path.join(args.output_png_dir, gen_image_fname), gen_image)
+                    # output_dir = os.path.join(args.output_png_dir, '{}_{}'.format(sample_ind, sample_ind + args.batch_size), gen_image_fname)
+                    print('SAVE PNG', output_dir, gen_image_fname)
+                    cv2.imwrite(os.path.join(output_dir, gen_image_fname), gen_image)
 
         sample_ind += args.batch_size
 
