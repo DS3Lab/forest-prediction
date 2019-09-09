@@ -150,7 +150,7 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition
     }
     """
     partition_name = os.path.split(output_dir)[1]
-    seq2img = {}
+    img2seq = {}
     sequences = []
     sequence_iter = 0
     sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
@@ -169,7 +169,7 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition
         if (len(sequences) == sequences_per_file or
                 (video_iter == (len(img_quads) - 1))):
             output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(last_start_sequence_iter, sequence_iter - 1)
-            seq2img[key] = output_fname
+            img2seq[key] = output_fname
             output_fname = os.path.join(output_dir, output_fname)
             print('SEQ2IMG', key, output_fname)
             save_tf_record(output_fname, sequences)
@@ -177,6 +177,8 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition
         if video_iter > 200:
             break
     sequence_lengths_file.close()
+    with open(partition_name + 'img2seq.pkl', 'wb') as pkl_file:
+        pkl.dump(img2seq, pkl_file)
 
 def part_dict(dic, num):
     total = len(dic)
