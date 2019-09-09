@@ -9,6 +9,7 @@ import numpy as np
 import skimage.io
 import tensorflow as tf
 import collections
+import pickle as pkl
 from video_prediction.datasets.base_dataset import VarLenFeatureVideoDataset
 from video_prediction.datasets.utils import get_list_of_files
 
@@ -138,8 +139,6 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
             output_fname = os.path.join(output_dir, output_fname)
             save_tf_record(output_fname, sequences)
             sequences[:] = []
-        if video_iter > 200:
-            break
     sequence_lengths_file.close()
 
 def part_dict(dic, num):
@@ -178,13 +177,16 @@ def main():
     partition_names = ['test']
     imgs = get_imgs(os.path.join(args.input_dir, 'test'))
     ordered_imgs = collections.OrderedDict(sorted(imgs.items()))
-    quad_list0 = [
+    quad_list = [
         ordered_imgs
     ]
+    with open('test_imgs.pkl', 'wb') as pkl_file:
+        pkl.dump(ordered_imgs, pkl_file)
     print(ordered_imgs)
     # quads = get_imgs(args.input_dir) # Return
 #     train_quads, val_quads, test_quads
     # quad_list = partition_data(quads)
+    '''
     print(len(quad_list[0]))
     for partition_name, partition_quad in zip(partition_names, quad_list):
     # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
@@ -192,7 +194,7 @@ def main():
         if not os.path.exists(partition_dir):
             os.makedirs(partition_dir)
         read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size)
-
+    '''
 
 if __name__ == '__main__':
     main()
