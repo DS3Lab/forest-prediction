@@ -142,7 +142,7 @@ def get_quad_list(quad):
         quad['q4'],
     ]
 
-def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences_per_file=128):
+def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition_name, sequences_per_file=4):
     """
     img_quads: {
         key1: {year_q1: img1, year_q2: img2, year_q3: img3}
@@ -150,13 +150,12 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
     }
     """
     partition_name = os.path.split(output_dir)[1]
-
+    seq2img = {}
     sequences = []
     sequence_iter = 0
     sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
     for video_iter, key in enumerate(img_quads.keys()):
         frame_fnames = get_quad_list(img_quads[key])
-        # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
         frames = skimage.io.imread_collection(frame_fnames)
         frames = [frame[:,:,:3] for frame in frames] # take only RGB
         for f in frames:
@@ -170,7 +169,9 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
         if (len(sequences) == sequences_per_file or
                 (video_iter == (len(img_quads) - 1))):
             output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(last_start_sequence_iter, sequence_iter - 1)
+            seq2img[key] = output_fname
             output_fname = os.path.join(output_dir, output_fname)
+            print('SEQ2IMG', key, output_fname)
             save_tf_record(output_fname, sequences)
             sequences[:] = []
         if video_iter > 200:
@@ -224,7 +225,7 @@ def main():
         partition_dir = os.path.join(args.output_dir, partition_name)
         if not os.path.exists(partition_dir):
             os.makedirs(partition_dir)
-        read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size)
+        read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size, partition_name)
 
 
 if __name__ == '__main__':
