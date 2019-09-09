@@ -93,7 +93,7 @@ def get_tile_info(tile):
     """
     Retrieve the year, zoom, x, y from a tile. Example: ly2017_12_1223_2516.png
     """
-    tile_items = tile.split('_')
+    items = tile.split('_')
     year, zoom, x, y, cx, cy = items[0][2:], items[1], items[2], items[3], items[4], items[5][:-4]
     return int(year), zoom, x, y, cx, cy
 
