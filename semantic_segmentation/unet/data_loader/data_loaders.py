@@ -295,11 +295,12 @@ def normalize(tensor, mean, std, inplace=False):
     return tensor
 
 def main():
-    files = loadFiles('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/planet_cropped_gan/ours_deterministic_l1')
+
+    files = glob.glob(os.path.join(LOSS_PATH_DB, '*'))
     file0 = files[0]
     year, z, x, y, cx, cy = get_tile_info(file0.split('/')[-1])
     key = str(year) + '_' + z + '_' + x + '_' + y + '_' + cx + '_' + cy
-    gt_imgs, video_imgs = loss2file(key)
+    gt_imgs, video_imgs = loss2file(key, '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/planet_cropped_gan/ours_deterministic_l1')
     with open('test_images.pkl', 'wb') as pkl_file:
         pkl.dump({
             'gt_imgs': gt_imgs,
@@ -308,6 +309,6 @@ def main():
             'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
             ))
-        })
+        }, pkl_file)
 if __name__ == '__main__':
     main()
