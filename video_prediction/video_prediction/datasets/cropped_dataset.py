@@ -123,7 +123,7 @@ def save_tf_record(output_fname, sequences):
             num_frames = len(sequence) # 6, 2 years
             height, width, channels = sequence[0].shape
             encoded_sequence = [image.tostring() for image in sequence]
-            print('num_frames', num_frames, height, width, channels, len(encoded_sequence), sequence[0].dtype)
+            # print('num_frames', num_frames, height, width, channels, len(encoded_sequence), sequence[0].dtype)
             features = tf.train.Features(feature={
                 'sequence_length': _int64_feature(num_frames),
                 'height': _int64_feature(height),
