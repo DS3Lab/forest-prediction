@@ -177,6 +177,7 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition
         if video_iter > 200:
             break
     sequence_lengths_file.close()
+    out_file = os.path.join(output_fname, partition_name + 'img2seq.pkl' )
     with open(partition_name + 'img2seq.pkl', 'wb') as pkl_file:
         pkl.dump(img2seq, pkl_file)
 
