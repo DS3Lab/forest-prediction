@@ -108,12 +108,12 @@ def try_to_append(filename, dir_, list_):
     for pct in pcts:
         file_abs_path = os.path.join(dir_, 'hansen', pct, fileyear, filename)
         if os.path.exists(file_abs_path):
-            list_.append(file_abs_path)
-
+            if file_abs_path not in list_:
+                list_.append(file_abs_path)
         file_abs_path2 = os.path.join(dir_, 'hansen_other', filename)
-
         if os.path.exists(file_abs_path2):
-            list_.append(file_abs_path2)
+            if file_abs_path2 not in list_:
+                list_.append(file_abs_path2)
 
 def get_forest_loss_files(prefixes, forest_loss_dir):
     loss_template = '{}.png'
