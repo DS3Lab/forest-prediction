@@ -46,9 +46,9 @@ def get_item(i, video_path):
                     'q3': gt_template.format(year=year, q='q3', z=z, x=x, y=y, cx=cx, cy=cy),
                     'q4': gt_template.format(year=year, q='q4', z=z, x=x, y=y, cx=cx, cy=cy)
         },
-        'video_imgs': {'00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
-                      '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
-                      '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')},
+        'video_imgs': {'00': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='00'),
+                      '01': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='01'),
+                      '02': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='02')},
         'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
         )),
