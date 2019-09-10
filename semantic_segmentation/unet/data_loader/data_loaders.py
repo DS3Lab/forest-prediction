@@ -25,7 +25,7 @@ COVER_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_cropped
 def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
-TEST_IMGS = get_immediate_subdirectories('/mnt/ds3lab-scratch/lming/data/min_quality/planet/tfrecordsinfour/gan').sort()
+TEST_IMGS = sorted(get_immediate_subdirectories('/mnt/ds3lab-scratch/lming/data/min_quality/planet/tfrecordsinfour/gan'))
 
 def get_item(i, video_path):
     '''
