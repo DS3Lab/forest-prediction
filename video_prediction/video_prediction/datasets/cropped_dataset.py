@@ -192,7 +192,7 @@ def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_
     sequences = []
     sequence_iter = 0
     sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
-    frame_fnames = get_quad_list(img_quads[key])
+    frame_fnames = get_quad_list(img_quads)
     frames = skimage.io.imread_collection(frame_fnames)
     frames = [frame[:,:,:3] for frame in frames] # take only RGB
     if not sequences:
