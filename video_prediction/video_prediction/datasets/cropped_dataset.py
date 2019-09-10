@@ -180,7 +180,7 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, partition
     with open(partition_name + 'img2seq.pkl', 'wb') as pkl_file:
         pkl.dump(img2seq, pkl_file)
 
-def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_file=4):
+def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_file=1):
     """
     img_quads: {
         key1: {year_q1: img1, year_q2: img2, year_q3: img3}
@@ -202,11 +202,11 @@ def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_
     sequence_iter += 1
     sequence_lengths_file.write("%d\n" % len(frames)) # should be always 3
     print(len(sequences))
-    # if len(sequences) == sequences_per_file:
-    #     output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(0, 3)
-    #     output_fname = os.path.join(output_dir, output_fname)
-    #     save_tf_record(output_fname, sequences)
-    #     sequences[:] = []
+    if len(sequences) == sequences_per_file:
+        output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(0, 3)
+        output_fname = os.path.join(output_dir, output_fname)
+        save_tf_record(output_fname, sequences)
+        sequences[:] = []
     sequence_lengths_file.close()
 
 def part_dict(dic, num):
