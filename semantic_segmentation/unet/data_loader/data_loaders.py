@@ -250,7 +250,6 @@ class PlanetSingleDataset(Dataset):
         # Notes: tiles in annual mosaics need to be divided by 255.
         #
         print('RETRIEVING', index)
-        key = self.keys[index % self.dataset_size]
         # path_dict = self.paths_dict[key]
         path_dict = get_item(index, self.img_dir)
         # print('PATHHHH',path_dict['video_imgs']['00'])
