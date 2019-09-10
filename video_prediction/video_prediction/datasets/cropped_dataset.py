@@ -129,8 +129,7 @@ def save_tf_record(output_fname, sequences):
                 'height': _int64_feature(height),
                 'width': _int64_feature(width),
                 'channels': _int64_feature(channels),
-                'images/encoded': _bytes_list_feature(encoded_sequence),
-                'image_raw': _bytes_feature(filenames[i])
+                'images/encoded': _bytes_list_feature(encoded_sequence)
             })
             example = tf.train.Example(features=features)
             writer.write(example.SerializeToString())
