@@ -385,7 +385,7 @@ def normalize(tensor, mean, std, inplace=False):
     return tensor
 
 def main():
-    item = get_item(10, '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/gan/ours_deterministic_l1')
+    item = get_item(2900, '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/gan/ours_deterministic_l1')
     # files = glob.glob(os.path.join(LOSS_PATH_DB, '*'))
     # file0 = files[0]
     # year, z, x, y, cx, cy = get_tile_info(file0.split('/')[-1])
