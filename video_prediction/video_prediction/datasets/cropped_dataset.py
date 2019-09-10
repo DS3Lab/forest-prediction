@@ -206,6 +206,7 @@ def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_
         output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(0, 3)
         output_fname = os.path.join(output_dir, output_fname)
         save_tf_record(output_fname, sequences)
+        print(output_fname, 'saved!')
         sequences[:] = []
     sequence_lengths_file.close()
 
