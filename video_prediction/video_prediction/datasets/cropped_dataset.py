@@ -260,7 +260,7 @@ def main():
     #         os.makedirs(partition_dir)
     #     read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size, partition_name)
     for key in imgs.keys():
-        output_dir = os.path.join(args.output_dir, 'test', key)
+        output_dir = os.path.join(args.output_dir, , key, 'test')
         print(output_dir)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
