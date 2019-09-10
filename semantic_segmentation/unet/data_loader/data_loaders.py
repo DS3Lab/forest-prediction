@@ -17,44 +17,38 @@ from base import BaseDataLoader
 LOSS_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_loss_yearly_cropped/test'
 COVER_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_cropped_processed/no_pct/test'
 
-with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/test_imgs_gan.pkl', 'rb') as pkl_file:
-    TEST_IMGS = pkl.load(pkl_file)
+# with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/test_imgs_gan.pkl', 'rb') as pkl_file:
+#     TEST_IMGS = pkl.load(pkl_file)
+
 # NOTE: INPUT_PATH_DB => input in the data loader thing
 
-def get_folder128(idx):
-    init = (idx // 128) * 128
-    end = init + 128
-    return str(int(init)) + '_' + str(int(end))
+def get_immediate_subdirectories(a_dir):
+    return [name for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
-def loss2file(key, video_path):
-    gt_imgs = TEST_IMGS[key]
-    # gen_image_00030_00_00.png, idx always 5zeros, latent always 00 (unless you set more preds), 00, 01 is number of preds
-
-    idx_int = list(TEST_IMGS).index(key)
-    idx = str(idx_int).zfill(5)
-    folder = get_folder128(idx_int)
-
-    video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
-    video_imgs = {
-        '00': video_template.format(idx=idx, latent='00', num_pred='00'),
-        '01': video_template.format(idx=idx, latent='00', num_pred='01'),
-        '02': video_template.format(idx=idx, latent='00', num_pred='02')
-    }
-    return gt_imgs, video_imgs
+TEST_IMGS = get_immediate_subdirectories('/mnt/ds3lab-scratch/lming/data/min_quality/planet/tfrecordsinfour/gan').sort()
 
 def get_item(i, video_path):
-    list_gan = list(TEST_IMGS)
-    key = list_gan[i]
+    '''
+    video_path = /mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/gan/ours_deterministic_l1
+    it has subfolders like TEST_IMGS, with the video images
+    '''
+    if video_path.split('/')[-2] == 'gan':
+        gt_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped_gan/test'
+    else:
+        gt_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/test'
+    gt_template = os.path.join(gt_dir, 'pl{year}_{q}_{z}_{x}_{y}_{cx}_{cy}.png')
+    key = TEST_IMGS[i]
     year, z, x, y, cx, cy = key.split('_')
-    folder = get_folder128(i)
-    video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
+    video_template = os.path.join(video_path, key, 'gen_image_{idx}_{latent}_{num_pred}.png')
     return {
-        'gt_imgs': TEST_IMGS[key],
-        'video_imgs': {
-                '00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
-                '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
-                '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')
+        'gt_imgs': {'q1': gt_template.format(year=year, q='q1', z=z, x=x, y=y, cx=cx, cy=cy),
+                    'q2': gt_template.format(year=year, q='q2', z=z, x=x, y=y, cx=cx, cy=cy),
+                    'q3': gt_template.format(year=year, q='q3', z=z, x=x, y=y, cx=cx, cy=cy),
+                    'q4': gt_template.format(year=year, q='q4', z=z, x=x, y=y, cx=cx, cy=cy)
         },
+        'video_imgs': {'00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
+                      '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
+                      '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')},
         'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
         )),
@@ -63,57 +57,101 @@ def get_item(i, video_path):
         ))
     }
 
-def loadFiles(video_path, limit=float("inf")):
-    list_gan = list(TEST_IMGS)
-    imgs = {}
-    for i in range(128): # for some reason only works on the first path
-        key = list_gan[i]
-        year, z, x, y, cx, cy = key.split('_')
-        folder = get_folder128(i)
-        video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
-        imgs[key] = {
-            'gt_imgs': TEST_IMGS[key],
-            'video_imgs': {
-                '00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
-                '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
-                '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')
-            },
-            'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
-                year=year, z=z, x=x, y=y, cx=cx, cy=cy
-            )),
-            'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
-                year=year, z=z, x=x, y=y, cx=cx, cy=cy
-            ))
-        }
-        if len(imgs) > limit:
-            imgs = {k: imgs[k] for k in list(imgs)[:limit]}
-            print('LOAD FILES', len(imgs))
-            return imgs
-    print('LOAD FILES', len(imgs))
-    return imgs
+# def get_item(i, video_path):
+#     list_gan = list(TEST_IMGS)
+#     key = list_gan[i]
+#     year, z, x, y, cx, cy = key.split('_')
+#     folder = get_folder128(i)
+#     video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
+#     return {
+#         'gt_imgs': TEST_IMGS[key],
+#         'video_imgs': {
+#                 '00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
+#                 '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
+#                 '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')
+#         },
+#         'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+#                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
+#         )),
+#         'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+#                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
+#         ))
+#     }
 
-def loadFiles1(video_path, limit=float("inf")):
-    imgs = {}
-    mask_imgs = glob.glob(os.path.join(LOSS_PATH_DB, '*'))
-    print('LOAD FILES MASK IMGS', len(mask_imgs))
-    for mask in mask_imgs:
-        year, z, x, y, cx, cy = get_tile_info(mask.split('/')[-1])
-        key = str(year) + '_' + z + '_' + x + '_' + y + '_' + cx + '_' + cy
-        gt_imgs, video_imgs = loss2file(key, video_path)
-        imgs[key] = {
-            'gt_imgs': gt_imgs,
-            'video_imgs': video_imgs,
-            'forest_loss': mask,
-            'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
-                year=year, z=z, x=x, y=y, cx=cx, cy=cy
-            ))
-        }
-        if len(imgs) > limit:
-            imgs = {k: imgs[k] for k in list(imgs)[:limit]}
-            print('LOAD FILES', len(imgs))
-            return imgs
-    print('LOAD FILES', len(imgs))
-    return imgs
+# def get_folder128(idx):
+#     init = (idx // 128) * 128
+#     end = init + 128
+#     return str(int(init)) + '_' + str(int(end))
+#
+# def loss2file(key, video_path):
+#     gt_imgs = TEST_IMGS[key]
+#     # gen_image_00030_00_00.png, idx always 5zeros, latent always 00 (unless you set more preds), 00, 01 is number of preds
+#
+#     idx_int = list(TEST_IMGS).index(key)
+#     idx = str(idx_int).zfill(5)
+#     folder = get_folder128(idx_int)
+#
+#     video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
+#     video_imgs = {
+#         '00': video_template.format(idx=idx, latent='00', num_pred='00'),
+#         '01': video_template.format(idx=idx, latent='00', num_pred='01'),
+#         '02': video_template.format(idx=idx, latent='00', num_pred='02')
+#     }
+#     return gt_imgs, video_imgs
+#
+
+#
+# def loadFiles(video_path, limit=float("inf")):
+#     list_gan = list(TEST_IMGS)
+#     imgs = {}
+#     for i in range(128): # for some reason only works on the first path
+#         key = list_gan[i]
+#         year, z, x, y, cx, cy = key.split('_')
+#         folder = get_folder128(i)
+#         video_template = os.path.join(video_path, folder, 'gen_image_{idx}_{latent}_{num_pred}.png')
+#         imgs[key] = {
+#             'gt_imgs': TEST_IMGS[key],
+#             'video_imgs': {
+#                 '00': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='00'),
+#                 '01': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='01'),
+#                 '02': video_template.format(idx=str(i).zfill(5), latent='00', num_pred='02')
+#             },
+#             'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+#                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
+#             )),
+#             'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+#                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
+#             ))
+#         }
+#         if len(imgs) > limit:
+#             imgs = {k: imgs[k] for k in list(imgs)[:limit]}
+#             print('LOAD FILES', len(imgs))
+#             return imgs
+#     print('LOAD FILES', len(imgs))
+#     return imgs
+#
+# def loadFiles1(video_path, limit=float("inf")):
+#     imgs = {}
+#     mask_imgs = glob.glob(os.path.join(LOSS_PATH_DB, '*'))
+#     print('LOAD FILES MASK IMGS', len(mask_imgs))
+#     for mask in mask_imgs:
+#         year, z, x, y, cx, cy = get_tile_info(mask.split('/')[-1])
+#         key = str(year) + '_' + z + '_' + x + '_' + y + '_' + cx + '_' + cy
+#         gt_imgs, video_imgs = loss2file(key, video_path)
+#         imgs[key] = {
+#             'gt_imgs': gt_imgs,
+#             'video_imgs': video_imgs,
+#             'forest_loss': mask,
+#             'forest_cover': os.path.join(COVER_PATH_DB, 'fc{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
+#                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
+#             ))
+#         }
+#         if len(imgs) > limit:
+#             imgs = {k: imgs[k] for k in list(imgs)[:limit]}
+#             print('LOAD FILES', len(imgs))
+#             return imgs
+#     print('LOAD FILES', len(imgs))
+#     return imgs
 
 # TODO: put in utils
 def get_tile_info(file):
@@ -198,10 +236,10 @@ class PlanetSingleDataset(Dataset):
 
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
-        self.paths_dict = loadFiles(self.img_dir)
-        self.keys = list(self.paths_dict.keys())
-        self.dataset_size = len(self.paths_dict)
-
+        # self.paths_dict = loadFiles(self.img_dir)
+        # self.keys = list(self.paths_dict.keys())
+        # self.dataset_size = len(self.paths_dict)
+        self.dataset_size = len(TEST_IMGS)
 
     def __len__(self):
         # print('Planet Dataset len called')
