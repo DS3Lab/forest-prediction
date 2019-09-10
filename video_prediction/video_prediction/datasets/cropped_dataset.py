@@ -261,9 +261,9 @@ def main():
     for key in imgs.keys():
         output_dir = os.path.join(args.output_dir, 'test', key)
         print(output_dir)
-        # if not os.path.exists(output_dir):
-        #     os.makedirs(output_dir)
-        # read_frames_and_save_single_tf_records(output_dir, imgs[key])
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        read_frames_and_save_single_tf_records(output_dir, imgs[key])
 
 
 if __name__ == '__main__':
