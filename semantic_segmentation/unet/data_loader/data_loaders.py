@@ -642,7 +642,7 @@ class PlanetSingleDataset(Dataset): # This one it also retrieves the loss, fix l
             Normalize((0.2311, 0.2838, 0.1752),
                 (0.1265, 0.0955, 0.0891))
         ])
-
+        print('USING: Normalize((0.2311, 0.2838, 0.1752 (0.1265, 0.0955, 0.0891))')
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
         print('LOAD FILES INIT qualities', qualities)
