@@ -184,15 +184,34 @@ def main(config):
             #     total_metrics[i] += metric(output, target.float()) * batch_size
     acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
         evaluate(hist=hist)
+
+    accq1, acc_clsq1, mean_iuq1, fwavaccq1, precisionq1, recallq1, f1_scoreq1 = \
+        evaluate(hist=histq1)
+
+    accq2, acc_clsq2, mean_iuq2, fwavaccq2, precisionq2, recallq2, f1_scoreq2 = \
+        evaluate(hist=histq2)
+
     n_samples = len(data_loader.sampler)
     log = {'loss': total_loss / n_samples,
         'acc': acc, 'mean_iu': mean_iu, 'fwavacc': fwavacc,
         'precision': precision, 'recall': recall, 'f1_score': f1_score
     }
+
+    logq1 = {'lossq1': total_loss / n_samples,
+        'acc': accq1, 'mean_iu': mean_iuq1, 'fwavacc': fwavaccq1,
+        'precision': precisionq1, 'recall': recallq1, 'f1_score': f1_scoreq1
+    }
+
+    logq2 = {'lossq2': total_loss / n_samples,
+        'acc': accq2, 'mean_iu': mean_iuq2, 'fwavacc': fwavaccq2,
+        'precision': precisionq2, 'recall': recallq2, 'f1_score': f1_scoreq2
+    }
     # log.update({
     #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
     # })
     logger.info(log)
+    logger.info(logq1)
+    logger.info(logq2)
 
 def normalize_inverse(batch, mean, std, input_type='one'):
 
