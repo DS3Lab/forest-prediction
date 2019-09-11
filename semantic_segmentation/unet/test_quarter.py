@@ -171,10 +171,10 @@ def main(config):
             mask = batch['mask'] # 1, 1, 256, 256
 
             img0, img1, img2, img3 = imgs[0], imgs[1], imgs[2], imgs[3]
-            uimg0, uimg1, uimg2, uimg3 = normalize_inverse(img0, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353), input_type), \
-                    normalize_inverse(img1, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353), input_type), \
-                    normalize_inverse(img2, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353), input_type), \
-                    normalize_inverse(img3, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353), input_type)
+            uimg0, uimg1, uimg2, uimg3 = normalize_inverse(img0, (0.2311, 0.2838, 0.1752, (0.1265, 0.0955, 0.0891)), input_type), \
+                    normalize_inverse(img1, (0.2311, 0.2838, 0.1752, (0.1265, 0.0955, 0.0891)), input_type), \
+                    normalize_inverse(img2, (0.2311, 0.2838, 0.1752, (0.1265, 0.0955, 0.0891)), input_type), \
+                    normalize_inverse(img3, (0.2397, 0.2852, 0.1837), (0.1685, 0.1414, 0.1353)), input_type)
             data = torch.cat((img0, img1, img2, img3), 0)
             udata = torch.cat((uimg0, uimg1, uimg2, uimg3), 0)
             target = torch.cat((mask, mask, mask, mask), 0)
