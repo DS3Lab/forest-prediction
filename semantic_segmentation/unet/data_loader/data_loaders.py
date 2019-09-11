@@ -514,92 +514,92 @@ class PlanetTifDataset(Dataset):
         img_arr =  torch.cat((img_arr0, img_arr1), 0)
         return img_arr.float(), mask_arr.float()
 
-class PlanetSingleDataset(Dataset):
-    """
-    Planet 3-month mosaic dataset
-    """
-    def __init__(self, input_dir, label_dir,
-            years,
-            qualities,
-            timelapse,
-            max_dataset_size=float('inf'),
-            training=True,
-            testing=False,
-            quarter_type='same_year'):
-        """Initizalize dataset.
-            Params:
-                data_dir: absolute path, string
-                years: list of years
-                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
-        """
-        if training:
-            assert testing == False
-        elif testing:
-            assert training == False
+# class PlanetSingleDataset(Dataset):
+#     """
+#     Planet 3-month mosaic dataset
+#     """
+#     def __init__(self, input_dir, label_dir,
+#             years,
+#             qualities,
+#             timelapse,
+#             max_dataset_size=float('inf'),
+#             training=True,
+#             testing=False,
+#             quarter_type='same_year'):
+#         """Initizalize dataset.
+#             Params:
+#                 data_dir: absolute path, string
+#                 years: list of years
+#                 filetype: png or npy. If png it is raw data, if npy it has been preprocessed
+#         """
+#         if training:
+#             assert testing == False
+#         elif testing:
+#             assert training == False
+#
+#         self.testing = testing
+#         self.img_dir = input_dir
+#         self.mask_dir = label_dir
+#         self.timelapse = timelapse
+#         if self.timelapse == 'quarter':
+#             self.img_dir = os.path.join(self.img_dir, 'quarter')
+#             # self.transforms = transforms.Compose([
+#             #     # transforms.RandomHorizontalFlip(), # try later, only works on imgs
+#             #     transforms.ToTensor(),
+#             #     Normalize((0.2397, 0.2852, 0.1837),
+#             #         (0.1685, 0.1414, 0.1353))
+#             # ])
+#         else: # annual
+#             self.img_dir = os.path.join(self.img_dir, 'annual')
+#         self.transforms = transforms.Compose([
+#             transforms.ToTensor(),
+#             Normalize((0.2311, 0.2838, 0.1752),
+#                 (0.1265, 0.0955, 0.0891))
+#         ])
+#
+#         if max_dataset_size == 'inf':
+#             max_dataset_size = float('inf')
+#         print('LOAD FILES INIT qualities', qualities)
+#         print('LOAD FILES INIT timelapse', timelapse)
+#         self.paths_dict = loadSingleFiles(self.mask_dir, self.img_dir,
+#             years, qualities, timelapse, max_dataset_size, testing,
+#             quarter_type)
+#
+#         self.keys = list(self.paths_dict.keys())
+#         self.dataset_size = len(self.paths_dict)
+#
+#
+#     def __len__(self):
+#         # print('Planet Dataset len called')
+#         return self.dataset_size
+#
+#     def __getitem__(self, index):
+#         r"""Returns data point and its binary mask"""
+#         # Notes: tiles in annual mosaics need to be divided by 255.
+#         #
+#         key = self.keys[index % self.dataset_size]
+#         path_dict = self.paths_dict[key]
+#
+#         if not self.testing or self.timelapse == 'annual':
+#             img_arr = open_image(path_dict['img']).astype(np.float64)
+#             mask_arr = open_image(path_dict['mask'])
+#             mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+#             # mask_arr = transforms.ToTensor()(mask_arr)
+#             img_arr = self.transforms(img_arr)
+#             return img_arr.float(), mask_arr.float()
+#         else:
+#             img_arr0 = self.transforms(open_image(path_dict['img'][0]))
+#             img_arr1 = self.transforms(open_image(path_dict['img'][1]))
+#             img_arr2 = self.transforms(open_image(path_dict['img'][2]))
+#             img_arr3 = self.transforms(open_image(path_dict['img'][3]))
+#             mask_arr = open_image(path_dict['mask'])
+#             mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+#             return {
+#                 'imgs': (img_arr0, img_arr1, img_arr2, img_arr3),
+#                 'mask': mask_arr
+#             }
 
-        self.testing = testing
-        self.img_dir = input_dir
-        self.mask_dir = label_dir
-        self.timelapse = timelapse
-        if self.timelapse == 'quarter':
-            self.img_dir = os.path.join(self.img_dir, 'quarter')
-            self.transforms = transforms.Compose([
-                # transforms.RandomHorizontalFlip(), # try later, only works on imgs
-                transforms.ToTensor(),
-                Normalize((0.2397, 0.2852, 0.1837),
-                    (0.1685, 0.1414, 0.1353))
-            ])
-        else: # annual
-            self.img_dir = os.path.join(self.img_dir, 'annual')
-            self.transforms = transforms.Compose([
-                transforms.ToTensor(),
-                Normalize((0.2311, 0.2838, 0.1752),
-                    (0.1265, 0.0955, 0.0891))
-            ])
-
-        if max_dataset_size == 'inf':
-            max_dataset_size = float('inf')
-        print('LOAD FILES INIT qualities', qualities)
-        print('LOAD FILES INIT timelapse', timelapse)
-        self.paths_dict = loadSingleFiles(self.mask_dir, self.img_dir,
-            years, qualities, timelapse, max_dataset_size, testing,
-            quarter_type)
-
-        self.keys = list(self.paths_dict.keys())
-        self.dataset_size = len(self.paths_dict)
-
-
-    def __len__(self):
-        # print('Planet Dataset len called')
-        return self.dataset_size
-
-    def __getitem__(self, index):
-        r"""Returns data point and its binary mask"""
-        # Notes: tiles in annual mosaics need to be divided by 255.
-        #
-        key = self.keys[index % self.dataset_size]
-        path_dict = self.paths_dict[key]
-
-        if not self.testing or self.timelapse == 'annual':
-            img_arr = open_image(path_dict['img']).astype(np.float64)
-            mask_arr = open_image(path_dict['mask'])
-            mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
-            # mask_arr = transforms.ToTensor()(mask_arr)
-            img_arr = self.transforms(img_arr)
-            return img_arr.float(), mask_arr.float()
-        else:
-            img_arr0 = self.transforms(open_image(path_dict['img'][0]))
-            img_arr1 = self.transforms(open_image(path_dict['img'][1]))
-            img_arr2 = self.transforms(open_image(path_dict['img'][2]))
-            img_arr3 = self.transforms(open_image(path_dict['img'][3]))
-            mask_arr = open_image(path_dict['mask'])
-            mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
-            return {
-                'imgs': (img_arr0, img_arr1, img_arr2, img_arr3),
-                'mask': mask_arr
-            }
-
-class PlanetSingleDataset(Dataset):
+class PlanetSingleDataset(Dataset): # This one it also retrieves the loss, fix later
     """
     Planet 3-month mosaic dataset
     """
@@ -629,19 +629,19 @@ class PlanetSingleDataset(Dataset):
         self.img_mode = img_mode
         if self.timelapse == 'quarter':
             self.img_dir = os.path.join(self.img_dir, 'quarter')
-            self.transforms = transforms.Compose([
-                # transforms.RandomHorizontalFlip(), # try later, only works on imgs
-                transforms.ToTensor(),
-                Normalize((0.2397, 0.2852, 0.1837),
-                    (0.1685, 0.1414, 0.1353))
-            ])
+            # self.transforms = transforms.Compose([
+            #     # transforms.RandomHorizontalFlip(), # try later, only works on imgs
+            #     transforms.ToTensor(),
+            #     Normalize((0.2397, 0.2852, 0.1837),
+            #         (0.1685, 0.1414, 0.1353))
+            # ])
         else: # annual
             self.img_dir = os.path.join(self.img_dir, 'annual')
-            self.transforms = transforms.Compose([
-                transforms.ToTensor(),
-                Normalize((0.2311, 0.2838, 0.1752),
-                    (0.1265, 0.0955, 0.0891))
-            ])
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            Normalize((0.2311, 0.2838, 0.1752),
+                (0.1265, 0.0955, 0.0891))
+        ])
 
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
