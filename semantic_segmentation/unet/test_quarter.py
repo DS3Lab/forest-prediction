@@ -73,7 +73,7 @@ def update_acc(new_acc, acc_dict):
     else:
         acc_dict['acc90_100'] += 1
 
-def update_individual_hists(data, target, hist):
+def update_individual_hists(data, target, hist, device, model):
     data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
     output = model(data)
     output_probs = F.sigmoid(output)
