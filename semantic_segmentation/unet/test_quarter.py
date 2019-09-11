@@ -181,10 +181,10 @@ def main(config):
             # loss = batch['loss']
             # loss = torch.cat((loss, loss, loss, loss), 0)
 
-            update_individual_hists(img0, mask, histq1)
-            update_individual_hists(img1, mask, histq2)
-            update_individual_hists(img2, mask, histq3)
-            update_individual_hists(img3, mask, histq4)
+            update_individual_hists(img0, mask, histq1, device, model)
+            update_individual_hists(img1, mask, histq2, device, model)
+            update_individual_hists(img2, mask, histq3, device, model)
+            update_individual_hists(img3, mask, histq4, device, model)
 
             data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
             output = model(data)
