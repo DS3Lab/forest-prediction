@@ -108,7 +108,7 @@ def get_planet_urls(hansen_files):
 def main():
 
     hansen_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_processed/no_pct/nips'
-    out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips'
+    out_planet_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips'
     create_dir(out_planet_dir)
     hansen_files = glob.glob(os.path.join(hansen_dir, '*'))
     # Get hansen files
