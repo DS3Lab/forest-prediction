@@ -46,6 +46,33 @@ def get_loss_pred(img0, img1):
     img[mask] = 0
     return img
 
+def save_images3m(batch_size, images, out_dir, idx_start):
+    num_y_tiles = 3
+    f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
+    gs = gridspec.GridSpec(3, 1, wspace=0.0, hspace=0.0)
+    mask_recreation_gt = images['mask_recreation_gt']
+    mask_recreation_pred = images['mask_recreation_pred']
+    mask = images['mask_recreation_g']
+
+    ax = plt.subplot(gs[0, 0])
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    print('plot 0')
+    plt.imshow(mask_recreation_gt, cmap=plt.cm.binary)
+
+    ax = plt.subplot(gs[1, 0])
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    print('plot 1')
+    plt.imshow(mask_recreation_pred, cmap=plt.cm.binary)
+
+    ax = plt.subplot(gs[2, 0])
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    print('plot 2')
+    plt.imshow(mask, cmap=plt.cm.binary)
+
+
 def save_video_images(batch_size, images, out_dir, idx_start, limit):
 
     for i in range(0, images['video_imgs'].shape[0], batch_size):
