@@ -39,6 +39,7 @@ def get_item(i, video_path):
     gt_template = os.path.join(gt_dir, 'pl{year}_{q}_{z}_{x}_{y}_{cx}_{cy}.png')
     key = TEST_IMGS[i]
     year, z, x, y, cx, cy = key.split('_')
+    print('VIDEO PATH???', video_path)
     video_template = os.path.join(video_path, key, 'gen_image_{idx}_{latent}_{num_pred}.png')
     return {
         'gt_imgs': {'q1': gt_template.format(year=year, q='q1', z=z, x=x, y=y, cx=cx, cy=cy),
@@ -47,8 +48,8 @@ def get_item(i, video_path):
                     'q4': gt_template.format(year=year, q='q4', z=z, x=x, y=y, cx=cx, cy=cy)
         },
         'video_imgs': {'00': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='00'),
-                      '01': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='01'),
-                      '02': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='02')},
+                      '01': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='01')},
+                      # '02': video_template.format(idx=str(0).zfill(5), latent='00', num_pred='02')},
         'forest_loss': os.path.join(LOSS_PATH_DB, 'ly{year}_{z}_{x}_{y}_{cx}_{cy}.npy'.format(
                 year=year, z=z, x=x, y=y, cx=cx, cy=cy
         )),
@@ -254,6 +255,7 @@ class PlanetSingleDataset(Dataset):
         path_dict = get_item(index, self.img_dir)
         video_img0_check = path_dict['video_imgs']['00']
         if not os.path.exists(video_img0_check):
+            print('VIDEO CHECK NOT FOUND', video_img0_check)
             return {'None': torch.tensor([])}
         # print('PATHHHH',path_dict['video_imgs']['00'])
         gt_img0 = self.transforms(open_image(path_dict['gt_imgs']['q1']))
@@ -262,7 +264,7 @@ class PlanetSingleDataset(Dataset):
         gt_img3 = self.transforms(open_image(path_dict['gt_imgs']['q4']))
         video_img0 = self.transforms(open_image(path_dict['video_imgs']['00']))
         video_img1 = self.transforms(open_image(path_dict['video_imgs']['01']))
-        video_img2 = self.transforms(open_image(path_dict['video_imgs']['02']))
+        # video_img2 = self.transforms(open_image(path_dict['video_imgs']['02']))
         forest_loss = open_image(path_dict['forest_loss'])
         forest_loss = torch.from_numpy(forest_loss).unsqueeze(0)
         forest_cover = open_image(path_dict['forest_cover'])
@@ -277,8 +279,8 @@ class PlanetSingleDataset(Dataset):
             },
             'video_imgs':{
                 '00': video_img0,
-                '01': video_img1,
-                '02': video_img2
+                '01': video_img1
+                # '02': video_img2
             },
             'forest_loss': forest_loss,
             'forest_cover': forest_cover

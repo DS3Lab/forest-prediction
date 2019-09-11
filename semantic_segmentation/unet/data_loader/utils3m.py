@@ -13,6 +13,10 @@ def zoom2zoom(z0, x0, y0, z1):
     Right now: z0=12, z1=16
     Return: new upper left x,y of z1, and number of subsequent tiles in one direction
     """
+    z0 = int(z0)
+    x0 = int(x0)
+    y0 = int(y0)
+    z1 = int(z1)
     assert z0 < z1
     zoom_dif = z1 -z0
     x1 = 2**zoom_dif*x0 # corresponding x from the same upper left in zoom z1 coordinate
@@ -21,7 +25,11 @@ def zoom2zoom(z0, x0, y0, z1):
     return x1, y1, num_tiles
 
 def zoom2tiles(z0, x0, y0, z1):
-    new_x, new_y, num_tiles = zoom2zoom(z0, x0, y0, z1)
+    z0 = int(z0)
+    x0 = int(x0)
+    y0 = int(y0)
+    z1 = int(z1)
+    new_x, new_y, num_tiles = zoom2zoom(int(z0), int(x0), int(y0), int(z1))
     tiles = []
     for i in range(num_tiles):
         for j in range(num_tiles):
@@ -34,7 +42,7 @@ def upsample_tile(z0, z1, img_arr):
     zoom_dif = z1 - z0
     size_x, size_y = img_arr.shape
     new_size_x, new_size_y = 2**zoom_dif*size_x, 2**zoom_dif*size_y
-    res = cv2.resize(fc, dsize=(new_size_x, new_size_y), interpolation=cv2.INTER_NEAREST)
+    res = cv2.resize(img_arr, dsize=(new_size_x, new_size_y), interpolation=cv2.INTER_NEAREST)
     return res
 
 def tile2coord(beg_x, beg_y, tile_x, tile_y, img_size=(256,256)):

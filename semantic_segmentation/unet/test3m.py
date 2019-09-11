@@ -65,6 +65,9 @@ def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances
     batch_size = 1
+    timelapse = 'annual'
+    input_type = 'same'
+    img_mode = 'single'
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
         input_dir=config['data_loader_val']['args']['input_dir'],
         label_dir=config['data_loader_val']['args']['label_dir'],
@@ -106,7 +109,7 @@ def main(config):
     total_loss = 0.0
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
-    pred_dir = os.path.join(pred_dir, 'normal')
+    pred_dir = os.path.join(pred_dir, '3m')
     out_dir = os.path.join(pred_dir, timelapse)
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
@@ -119,7 +122,7 @@ def main(config):
     histq3 = np.zeros((2,2))
     histq4 = np.zeros((2,2))
 
-    mean, std = (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+    mean, std = (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
         # for i, (data, target) in enumerate(tqdm(data_loader)):
@@ -129,7 +132,7 @@ def main(config):
             big_mask = batch['big_mask']
             tile_coord = batch['key'].cpu().numpy()
             tile_x, tile_y = tile_coord[0], tile_coord[1]
-            beg_x, beg_y, num_tiles = utils3m.zoom2zoom(12, tile_x, tile_y 16)
+            beg_x, beg_y, num_tiles = utils3m.zoom2zoom(12, tile_x, tile_y, 16)
 
             keys = batch.keys()
             recreate_mask = {}
@@ -233,7 +236,7 @@ def main(config):
 def normalize_inverse(batch, mean, std):
     with torch.no_grad():
         img = batch.clone()
-        ubatch = torch.Tensor(batch.shape
+        ubatch = torch.Tensor(batch.shape)
         ubatch[:, 0, :, :] = img[:, 0, :, :] * std[0] + mean[0]
         ubatch[:, 1, :, :] = img[:, 1, :, :] * std[1] + mean[1]
         ubatch[:, 2, :, :] = img[:, 2, :, :] * std[2] + mean[2]
