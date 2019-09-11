@@ -17,10 +17,10 @@ from itertools import product
 
 MOSAIC_URL = "https://tiles.planet.com/basemaps/v1/planet-tiles/global_quarterly_{year}{q}_mosaic/gmap/{z}/{x}/{y}.png?api_key=25647f4fc88243e2a6e91150aaa117e3"
 MOSAIC_MONTH_URL = 'https://tiles.planet.com/basemaps/v1/planet-tiles/global_monthly_{year}_{month}_mosaic/gmap/{z}/{x}/{y}.png?api_key=25647f4fc88243e2a6e91150aaa117e3',
-logger = logging.getLogger('download-planet')
+logger = logging.getLogger('download-planet17')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('download-planet.log')
+fh = logging.FileHandler('download-planet17.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
@@ -97,27 +97,27 @@ def get_planet_urls(hansen_files):
         for tile in tiles:
             tile_x, tile_y = tile
             mosaics = [
-                MOSAIC_URL.format(year=year, q='q1', z=16, x=tile_x, y=tile_y),
-                MOSAIC_URL.format(year=year, q='q2', z=16, x=tile_x, y=tile_y),
-                MOSAIC_URL.format(year=year, q='q3', z=16, x=tile_x, y=tile_y),
-                MOSAIC_URL.format(year=year, q='q4', z=16, x=tile_x, y=tile_y)
+                MOSAIC_URL.format(year=int(year)-1, q='q1', z=16, x=tile_x, y=tile_y),
+                MOSAIC_URL.format(year=int(year)-1, q='q2', z=16, x=tile_x, y=tile_y),
+                MOSAIC_URL.format(year=int(year)-1, q='q3', z=16, x=tile_x, y=tile_y),
+                MOSAIC_URL.format(year=int(year)-1, q='q4', z=16, x=tile_x, y=tile_y)
             ]
-        planet_urls.extend(mosaics)
+            planet_urls.extend(mosaics)
     return planet_urls
 
 def main():
 
     hansen_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_processed/no_pct/nips'
-    out_planet_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips'
+    out_planet_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips17'
     create_dir(out_planet_dir)
     hansen_files = glob.glob(os.path.join(hansen_dir, '*'))
     # Get hansen files
     planet_urls = get_planet_urls(hansen_files)
-    assert len(planet_urls) == len(hansen_files) * 256
-
+    print(len(planet_urls), len(hansen_files))
+    
     for chunk in chunks(planet_urls, 16):
         with multiprocessing.Pool(processes=16) as pool:
             results = pool.starmap(download_item, create_tuple(chunk, out_planet_dir, 'planet'))
-
+    
 if __name__ == '__main__':
     main()
