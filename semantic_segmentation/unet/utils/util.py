@@ -50,7 +50,7 @@ def save_video_images(batch_size, images, out_dir, idx_start, limit):
 
     for i in range(0, images['video_imgs'].shape[0], batch_size):
         num_y_tiles = 5 # video_img, forest cover, prediction cover, forest loss, prediction loss
-
+        print(images.shape, 'SAVE VIDEO IMAGES CHECK')
         f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
         gs = gridspec.GridSpec(num_y_tiles, batch_size, wspace=0.0, hspace=0.0)
         tiles = list(range(i, i + batch_size))

@@ -78,6 +78,14 @@ def init_data_loader(source, config):
                         max_dataset_size='inf',
                         shuffle=False)
 
+def update_individual_hists(data, target, hist, device, model):
+    data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
+    output = model(data)
+    output_probs = F.sigmoid(output)
+    binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
+    output_binary = _threshold_outputs(
+        output_probs.data.cpu().numpy().flatten())
+    hist += _fast_hist(output_binary, binary_target)
 
 def main(config):
     logger = config.get_logger('test')
@@ -139,6 +147,8 @@ def main(config):
     # out_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # out_dir = os.path.join(out_dir, 'predictions')
     hist = np.zeros((2,2))
+    histq1 = np.zeros((2,2))
+    histq2 = np.zeros((2,2))
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
         # for i, (data, target) in enumerate(tqdm(data_loader)):
@@ -152,15 +162,17 @@ def main(config):
             forest_loss = batch['forest_loss']
             forest_cover = batch['forest_cover']
             gt_img0, gt_img1, gt_img2, gt_img3 = gt_imgs['q1'], gt_imgs['q2'], gt_imgs['q3'], gt_imgs['q4']
-            vd_img0, vd_img1, vd_img2 = video_imgs['00'], video_imgs['01'], video_imgs['02']
+            vd_img0, vd_img1 = video_imgs['00'], video_imgs['01']
 
             ugt_img0, ugt_img1, ugt_img2, ugt_img3 = normalize_inverse(gt_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img3, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
-            uvd_img0, uvd_img1, uvd_img2 = normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
-                normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
-                normalize_inverse(vd_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+            uvd_img0, uvd_img1 = normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+
+            update_individual_hists(vd_img0, forest_cover, histq1, device, model)
+            update_individual_hists(vd_img1, forest_cover, histq2, device, model)
 
             datagt = torch.cat((gt_img0, gt_img1, gt_img2, gt_img3), 0)
             dataugt = torch.cat((ugt_img0, ugt_img1, ugt_img2, ugt_img3), 0)
@@ -190,7 +202,7 @@ def main(config):
 
             print('prediction_time', time.time() - init_time)
             print('Save images shape input', video_imgs['00'].shape)
-            save_video_images(3, images, out_dir, i*batch_size, input_type)
+            save_video_images(2, images, out_dir, i*batch_size, input_type)
             # computing loss, metrics on test set
             loss = loss_fn(output, target_cover)
             batch_size = datavd.shape[0]
