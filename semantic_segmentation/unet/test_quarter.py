@@ -161,7 +161,7 @@ def main(config):
     histq2 = np.zeros((2,2))
     histq3 = np.zeros((2,2))
     histq4 = np.zeros((2,2))
-
+    hist = np.zeros((2,2))
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
         # for i, (data, target) in enumerate(tqdm(data_loader)):
