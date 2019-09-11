@@ -73,6 +73,15 @@ def update_acc(new_acc, acc_dict):
     else:
         acc_dict['acc90_100'] += 1
 
+def update_individual_hists(data, target, hist):
+    data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
+    output = model(data)
+    output_probs = F.sigmoid(output)
+    binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
+    output_binary = _threshold_outputs(
+        output_probs.data.cpu().numpy().flatten())
+    hist += _fast_hist(output_binary, binary_target)
+
 def main(config):
     acc_dict = {
 	'acc0_10': 0,
@@ -85,7 +94,7 @@ def main(config):
 	'acc70_80': 0,
 	'acc80_90': 0,
 	'acc90_100': 0
-    } 
+    }
     logger = config.get_logger('test')
     # setup data_loader instances
     timelapse = config['data_loader_val']['args']['timelapse']
@@ -172,6 +181,10 @@ def main(config):
             # loss = batch['loss']
             # loss = torch.cat((loss, loss, loss, loss), 0)
 
+            update_individual_hists(img0, mask, histq1)
+            update_individual_hists(img1, mask, histq2)
+            update_individual_hists(img2, mask, histq3)
+            update_individual_hists(img3, mask, histq4)
 
             data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
             output = model(data)
@@ -227,6 +240,37 @@ def main(config):
     #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
     # })
     logger.info(log)
+    logger.info(acc_dict)
+
+    accq1, acc_clsq1, mean_iuq1, fwavaccq1, precisionq1, recallq1, f1_scoreq1 = \
+        evaluate(hist=histq1)
+    accq2, acc_clsq2, mean_iuq2, fwavaccq2, precisionq2, recallq2, f1_scoreq2 = \
+        evaluate(hist=histq2)
+    accq3, acc_clsq3, mean_iuq3, fwavaccq3, precisionq3, recallq3, f1_scoreq3 = \
+        evaluate(hist=histq3)
+    accq4, acc_clsq4, mean_iuq4, fwavaccq4, precisionq4, recallq4, f1_scoreq4 = \
+        evaluate(hist=histq4)
+    logq1 = {'lossq1': total_loss / n_samples,
+        'acc': accq1, 'mean_iu': mean_iuq1, 'fwavacc': fwavaccq1,
+        'precision': precisionq1, 'recall': recallq1, 'f1_score': f1_scoreq1
+    }
+    logq2 = {'lossq2': total_loss / n_samples,
+        'acc': accq2, 'mean_iu': mean_iuq2, 'fwavacc': fwavaccq2,
+        'precision': precisionq2, 'recall': recallq2, 'f1_score': f1_scoreq2
+    }
+    logq3 = {'lossq3': total_loss / n_samples,
+        'acc': accq3, 'mean_iu': mean_iuq3, 'fwavacc': fwavaccq3,
+        'precision': precisionq3, 'recall': recallq3, 'f1_score': f1_scoreq3
+    }
+    logq4 = {'lossq4': total_loss / n_samples,
+        'acc': accq4, 'mean_iu': mean_iuq4, 'fwavacc': fwavaccq4,
+        'precision': precisionq4, 'recall': recallq4, 'f1_score': f1_scoreq4
+    }
+    logger.info(logq1)
+    logger.info(logq2)
+    logger.info(logq3)
+    logger.info(logq4)
+
 
 def normalize_inverse(batch, mean, std, input_type):
 
