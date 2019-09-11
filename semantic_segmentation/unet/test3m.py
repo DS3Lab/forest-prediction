@@ -141,18 +141,18 @@ def main(config):
                 if key in ['mask_arr', 'big_mask', 'key'] :
                     continue
                 imgs = batch[key]
-                q1, q2, q3, q4, annual, mask = imgs['q1'], imgs['q2'], \
-                    imgs['q3'], imgs['q4'], imgs['annual'], imgs['mask']
-                uq1, uq2, uq3, uq4, uannual = normalize_inverse(q1, (mean, std)), \
-                    normalize_inverse(q2, (mean, std)), \
-                    normalize_inverse(q3, (mean, std)), \
-                    normalize_inverse(q4, (mean, std)), \
-                    normalize_inverse(annual, (mean, std))
-
-                pred_q1 = update_individual_hists(q1, mask, histq1, device, model)
-                pred_q2 = update_individual_hists(q2, mask, histq1, device, model)
-                pred_q3 = update_individual_hists(q3, mask, histq1, device, model)
-                pred_q4 = update_individual_hists(q4, mask, histq1, device, model)
+                # q1, q2, q3, q4, annual, mask = imgs['q1'], imgs['q2'], \
+                #     imgs['q3'], imgs['q4'], imgs['annual'], imgs['mask']
+                # uq1, uq2, uq3, uq4, uannual = normalize_inverse(q1, (mean, std)), \
+                #     normalize_inverse(q2, (mean, std)), \
+                #     normalize_inverse(q3, (mean, std)), \
+                #     normalize_inverse(q4, (mean, std)), \
+                #     normalize_inverse(annual, (mean, std))
+                annual, mask = imgs['annual'], imgs['mask']
+                # pred_q1 = update_individual_hists(q1, mask, histq1, device, model)
+                # pred_q2 = update_individual_hists(q2, mask, histq1, device, model)
+                # pred_q3 = update_individual_hists(q3, mask, histq1, device, model)
+                # pred_q4 = update_individual_hists(q4, mask, histq1, device, model)
                 pred_annual = update_individual_hists(annual, mask, histy, device, model)
                 recreate_mask[key] = np.squeeze(mask.cpu().numpy(), 0)
                 recreate_mask_pred[key] = np.squeeze(pred_annual.cpu().numpy(), 0)
