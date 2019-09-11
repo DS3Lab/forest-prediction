@@ -51,45 +51,52 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
 
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
-
-def init_data_loader(source, config):
-    # TODO: FINISH
-    if source == 'planet':
-        data_loader = getattr(module_data, config['data_loader_val']['type'])(
-        data_dir=config['data_loader_val']['args']['data_dir'],
-        batch_size=batch_size,
-        years=config['data_loader_val']['args']['years'],
-        qualities=config['data_loader_val']['args']['qualities'],
-        timelapse=timelapse,
-        # max_dataset_size=config['data_loader_val']['args']['max_dataset_size'],
-        # max_dataset_size=9,
-        max_dataset_size=900,
-        shuffle=False,
-        num_workers=32,
-        training=False,
-        testing=True,
-        quarter_type="same_year"
-    )
-    else: # landsat
-        data_loader = getattr(module_data,
-                config['data_loader_val']['type'])(
-                        data_dir=config['data_loader_val']['args']['data_dir'],
-                        batch_size=batch_size,
-                        max_dataset_size='inf',
-                        shuffle=False)
-
+def update_acc(new_acc, acc_dict):
+    if 0 <= new_acc < 0.1:
+        acc_dict['acc0_10'] += 1
+    elif 0.1 <= new_acc < 0.2:
+        acc_dict['acc10_20'] += 1
+    elif 0.2 <= new_acc < 0.3:
+        acc_dict['acc20_30'] += 1
+    elif 0.3 <= new_acc < 0.4:
+        acc_dict['acc30_40'] += 1
+    elif 0.4 <= new_acc < 0.5:
+        acc_dict['acc40_50'] += 1
+    elif 0.5 <= new_acc < 0.6:
+        acc_dict['acc50_60'] += 1
+    elif 0.6 <= new_acc < 0.7:
+        acc_dict['acc60_70'] += 1
+    elif 0.7 <= new_acc < 0.8:
+        acc_dict['acc70_80'] += 1
+    elif 0.8 <= new_acc < 0.9:
+        acc_dict['acc80_90'] += 1
+    else:
+        acc_dict['acc90_100'] += 1
 
 def main(config):
+    acc_dict = {
+	'acc0_10': 0,
+	'acc10_20': 0,
+	'acc20_30': 0,
+	'acc30_40': 0,
+	'acc40_50': 0,
+	'acc50_60': 0,
+	'acc60_70': 0,
+	'acc70_80': 0,
+	'acc80_90': 0,
+	'acc90_100': 0
+    } 
     logger = config.get_logger('test')
     # setup data_loader instances
     timelapse = config['data_loader_val']['args']['timelapse']
     input_type = config['data_loader_val']['args']['input_type']
     # img mode is used to do batch = 1 so it can minus the fc, and get the hansen loss
     img_mode = config['data_loader_val']['args']['img_mode']
-    if timelapse == 'quarter' or img_mode == 'cont':
-        batch_size = 1
-    else:
-        batch_size = 9
+    # if timelapse == 'quarter' or img_mode == 'cont':
+    #     batch_size = 1
+    # else:
+    #     batch_size = 9
+    batch_size = 1
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
         input_dir=config['data_loader_val']['args']['input_dir'],
         label_dir=config['data_loader_val']['args']['label_dir'],
@@ -97,7 +104,7 @@ def main(config):
         years=config['data_loader_val']['args']['years'],
         qualities=config['data_loader_val']['args']['qualities'],
         timelapse=timelapse,
-        max_dataset_size=900,
+        max_dataset_size=float("inf"),
         shuffle=False,
         num_workers=1,
         training=False,
@@ -133,7 +140,7 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    pred_dir = os.path.join(pred_dir, 'landsat2')
+    pred_dir = os.path.join(pred_dir, 'normal')
     out_dir = os.path.join(pred_dir, timelapse)
     if not os.path.isdir(pred_dir):
         os.makedirs(out_dir)
@@ -215,8 +222,9 @@ def main(config):
                 'img': udata.cpu().numpy(),
                 'gt': target.cpu().numpy(),
                 'pred': output_binary.reshape(-1, 1, 256, 256),
-                'loss': loss.cpu().numpy() if loss is not None else np.zeros((gt.shape))
+                'loss': loss.cpu().numpy() if loss is not None else np.zeros((target.shape))
             }
+
             print('prediction_time', time.time() - init_time)
             if timelapse == 'quarter' and input_type == 'two':
             # save sample images, or do something with output here
@@ -230,14 +238,16 @@ def main(config):
                 save_images(2, images, out_dir, i*batch_size, input_type)
             else:
                 print('Save images shape input', images['img'].shape)
-                save_images(3, images, out_dir, i*batch_size, input_type)
-
+                # save_images(3, images, out_dir, i*batch_size, input_type)
+                save_images(1, images, out_dir, i*batch_size, input_type)
             # computing loss, metrics on test set
             loss = loss_fn(output, target)
             batch_size = data.shape[0]
             total_loss += loss.item() * batch_size
             # for i, metric in enumerate(metric_fns):
             #     total_metrics[i] += metric(output, target.float()) * batch_size
+            acc, acc_cls, mean_iu, fwavacc, precission, recall, f1_score = evaluate(hist=mlz)
+            update_acc(acc, acc_dict)
     acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
         evaluate(hist=hist)
     n_samples = len(data_loader.sampler)
@@ -245,6 +255,8 @@ def main(config):
         'acc': acc, 'mean_iu': mean_iu, 'fwavacc': fwavacc,
         'precision': precision, 'recall': recall, 'f1_score': f1_score
     }
+
+    print(acc_dict)
     # log.update({
     #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
     # })

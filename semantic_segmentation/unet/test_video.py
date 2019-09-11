@@ -131,7 +131,7 @@ def main(config):
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
     pred_dir = os.path.join(pred_dir, 'video_predictions')
-    out_dir = os.path.join(pred_dir, 'normal')
+    out_dir = os.path.join(pred_dir, 'normalfinal')
     if not os.path.isdir(pred_dir):
         os.makedirs(out_dir)
     if not os.path.isdir(out_dir):
@@ -141,12 +141,12 @@ def main(config):
     hist = np.zeros((2,2))
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
-            if i == 100:
-                break
         # for i, (data, target) in enumerate(tqdm(data_loader)):
             init_time = time.time()
             loss = None
-
+            print('BATCH KEYS', batch.keys())
+            if 'None' in batch:
+                continue
             gt_imgs = batch['gt_imgs']
             video_imgs = batch['video_imgs']
             forest_loss = batch['forest_loss']
