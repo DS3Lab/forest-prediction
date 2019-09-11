@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from base import BaseDataLoader
-from base import utils3m
+from data_loader import utils3m
 HANSEN_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_processed/no_pct'
 PLANET_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips17'
 # TODO: put in utils
@@ -55,14 +55,14 @@ def get_item(hansen_file):
     path_dict = {}
     for tile in tiles:
         key = str(tile[0]) + '_' + str(tile[1])
-        paths_dict[key] = {
+        path_dict[key] = {
             'q1': tile_template.format(q='q1', x=tile[0], y=tile[1]),
             'q2': tile_template.format(q='q1', x=tile[0], y=tile[1]),
             'q3': tile_template.format(q='q1', x=tile[0], y=tile[1]),
             'q4': tile_template.format(q='q1', x=tile[0], y=tile[1])
         }
-    assert len(paths_dict) == 256
-    return paths_dict
+    assert len(path_dict) == 256
+    return path_dict
 
 
 class PlanetSingleDataset(Dataset):
@@ -112,7 +112,7 @@ class PlanetSingleDataset(Dataset):
 
         for key in keys:
             tile_x, tile_y = key.split('_')
-            quarter_dict = img_dict[key]
+            quarter_dict = path_dict[key]
             img_dict[key] = {}
             q1, q2, q3, q4 = open_image(quarter_dict['q1']), \
                 open_image(quarter_dict['q2']),
@@ -120,6 +120,8 @@ class PlanetSingleDataset(Dataset):
                 open_image(quarter_dict['q4'])
             annual = utils3m.gen_annual_mosaic([q1, q2, q3, q4])
             mask = utils3m.big2small_tile(big_mask_arr, beg_x, beg_y, tile_x, tile_y)
+            # Transform to tensor
+            mask = torch.from_numpy(mask).unsqueeze(0)
             q1, q2, q3, q4, annual = self.transforms(q1), \
                 self.transforms(q2), \
                 self.transforms(q3), \
