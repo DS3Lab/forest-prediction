@@ -6,4 +6,7 @@ test/
 *.pyc
 __pycache__
 _pycache_
-
+*.png
+*.ipynb
+*.pkl
+*.npy
