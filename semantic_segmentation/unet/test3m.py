@@ -9,7 +9,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import save_images, NormalizeInverse
+from utils.util import save_images3m, NormalizeInverse
 from torch.nn import functional as F
 from data_loader import utils3m
 
@@ -20,7 +20,7 @@ def _threshold_outputs(outputs, output_threshold=0.3):
     return outputs
 
 def _fast_hist(outputs, targets, num_classes=2):
-    print(outputs.shape, targets.shape)
+    # print(outputs.shape, targets.shape)
     mask = (targets >= 0) & (targets < num_classes)
     hist = np.bincount(
         num_classes * targets[mask].astype(int) +
@@ -61,11 +61,12 @@ def update_individual_hists(data, target, hist, device, model):
     hist += _fast_hist(output_binary, binary_target)
     return output_binary.reshape(-1, 1, 256, 256)
 
+
 def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances
     batch_size = 1
-    timelapse = 'annual'
+    timelapse = 'quarter'
     input_type = 'same'
     img_mode = 'single'
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
@@ -77,7 +78,7 @@ def main(config):
         timelapse=timelapse,
         max_dataset_size=float("inf"),
         shuffle=False,
-        num_workers=1,
+        num_workers=0,
         training=False,
         testing=True,
         quarter_type="same_year",
@@ -121,25 +122,27 @@ def main(config):
     histq2 = np.zeros((2,2))
     histq3 = np.zeros((2,2))
     histq4 = np.zeros((2,2))
-
+    histg = np.zeros((2,2))
     mean, std = (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
         # for i, (data, target) in enumerate(tqdm(data_loader)):
             init_time = time.time()
             loss = None
-            original_mask = batch['mask']
+            original_mask = batch['mask_arr']
             big_mask = batch['big_mask']
             tile_coord = batch['key'].cpu().numpy()
-            tile_x, tile_y = tile_coord[0], tile_coord[1]
+            tile_x, tile_y = tile_coord[0][0], tile_coord[0][1]
             beg_x, beg_y, num_tiles = utils3m.zoom2zoom(12, tile_x, tile_y, 16)
 
-            keys = batch.keys()
+            keys = list(batch.keys())
             recreate_mask = {}
             recreate_mask_pred = {}
             for key in keys:
                 if key in ['mask_arr', 'big_mask', 'key'] :
                     continue
+                x, y = key.split('_')
+                x, y = int(x), int(y)
                 imgs = batch[key]
                 # q1, q2, q3, q4, annual, mask = imgs['q1'], imgs['q2'], \
                 #     imgs['q3'], imgs['q4'], imgs['annual'], imgs['mask']
@@ -154,20 +157,18 @@ def main(config):
                 # pred_q3 = update_individual_hists(q3, mask, histq1, device, model)
                 # pred_q4 = update_individual_hists(q4, mask, histq1, device, model)
                 pred_annual = update_individual_hists(annual, mask, histy, device, model)
-                recreate_mask[key] = np.squeeze(mask.cpu().numpy(), 0)
-                recreate_mask_pred[key] = np.squeeze(pred_annual.cpu().numpy(), 0)
-                print(recreate_mask[key].shape, recreate_mask_pred[key].shape, 'DEBUGGING RECREATION SHAPE!!!!!')
-
-                mask_recreation_gt = utils3m.reconstruct_tile(recreate_mask)
-                mask_recreation_pred = utils3m.reconstruct_tile(recreate_mask_pred)
-
-                images = {
+                recreate_mask[key] = np.squeeze(np.squeeze(mask.cpu().numpy(), 0),0)
+                recreate_mask_pred[key] = np.squeeze(np.squeeze(pred_annual, 0),0)
+                # print(recreate_mask[key].shape, recreate_mask_pred[key].shape, 'DEBUGGING RECREATION SHAPE!!!!!')
+            # print('BEG X', beg_x, beg_y, num_tiles, keys[:100])
+            mask_recreation_gt = utils3m.reconstruct_tile(recreate_mask, beg_x, beg_y, num_tiles)
+            mask_recreation_pred = utils3m.reconstruct_tile(recreate_mask_pred, beg_x, beg_y, num_tiles)
+            histg += _fast_hist(mask_recreation_pred, mask_recreation_gt)
+            images = {
                     'mask_recreation_gt': mask_recreation_gt,
-                    'mask_recreation_pred': mask_recreation_pred,
-                    'mask': mask.cpu().numpy()
+                    'mask_recreation_pred': mask_recreation_pred
                 }
-                save_images3m(2, images, out_dir, i*batch_size)
-            break
+            save_images3m(2, images, out_dir, i*batch_size)
             # computing loss, metrics on test set
             # loss = loss_fn(output, target)
             # batch_size = data.shape[0]
@@ -191,9 +192,15 @@ def main(config):
     accy, acc_clsy, mean_iuy, fwavaccy, precisiony, recally, f1_scorey = \
         evaluate(hist=histy)
 
+    accg, acc_clsg, mean_iug, fwavaccg, precisiong, recallg, f1_scoreg = \
+        evaluate(hist=histg)
     logy = {'lossy': 'total_loss / n_samples',
         'acc': accy, 'mean_iu': mean_iuy, 'fwavacc': fwavaccy,
         'precision': precisiony, 'recall': recally, 'f1_score': f1_scorey
+    }
+    logg = {'lossg': 'total_loss / n_samples',
+        'acc': accg, 'mean_iu': mean_iug, 'fwavacc': fwavaccg,
+        'precision': precisiong, 'recall': recallg, 'f1_score': f1_scoreg
     }
 
     logq1 = {'lossq1': 'total_loss / n_samples',
@@ -217,7 +224,7 @@ def main(config):
     logger.info(logq3)
     logger.info(logq4)
     logger.info(logy)
-
+    logger.info(logg)
 
     # log = {'loss': total_loss / n_samples,
     #     'acc': acc, 'mean_iu': mean_iu, 'fwavacc': fwavacc,

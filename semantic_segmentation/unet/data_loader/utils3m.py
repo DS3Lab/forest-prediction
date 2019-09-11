@@ -81,6 +81,7 @@ def reconstruct_tile(tile_dict, beg_x, beg_y, num_tiles):
     }
     """
     row_tiles = {}
+    print('DEBUGGING RECONSTRUCT TILE', len(tile_dict))
     # Init empty arrays
     for i in range(beg_x, beg_x + num_tiles):
         row_tiles[str(i)] = []

@@ -116,11 +116,11 @@ class PlanetSingleDataset(Dataset):
             tile_x, tile_y = key.split('_')
             quarter_dict = path_dict[key]
             img_dict[key] = {}
-            q1, q2, q3, q4 = open_image(quarter_dict['q1']), \
-                open_image(quarter_dict['q2']), \
-                open_image(quarter_dict['q3']), \
-                open_image(quarter_dict['q4'])
-            annual = utils3m.gen_annual_mosaic(q1, q2, q3, q4)
+            # q1, q2, q3, q4 = open_image(quarter_dict['q1']), \
+            #     open_image(quarter_dict['q2']), \
+            #     open_image(quarter_dict['q3']), \
+            #     open_image(quarter_dict['q4'])
+            # annual = utils3m.gen_annual_mosaic(q1, q2, q3, q4)
             mask = utils3m.big2small_tile(big_mask_arr, int(beg_x), int(beg_y), int(tile_x), int(tile_y))
             # Transform to tensor
             mask = torch.from_numpy(mask).unsqueeze(0)
@@ -129,12 +129,13 @@ class PlanetSingleDataset(Dataset):
             #     self.transforms(q3), \
             #     self.transforms(q4), \
             #     self.transforms(annual)
-            annual = self.transforms(annual)
+            q4 = self.transforms(open_image(quarter_dict['q4']))
+            # annual = self.transforms(annual)
             # img_dict[key]['q1'] = q1
             # img_dict[key]['q2'] = q2
             # img_dict[key]['q3'] = q3
             # img_dict[key]['q4'] = q4
-            img_dict[key]['annual'] = annual
+            img_dict[key]['annual'] = q4
             img_dict[key]['mask'] = mask
 
         # Transform masks
