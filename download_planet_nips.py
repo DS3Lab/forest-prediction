@@ -93,7 +93,7 @@ def get_planet_urls(hansen_files):
         z = name_split[1]
         x = name_split[2]
         y = name_split[3][:-4]
-        tiles = zoom2tiles(z, x, y, 16)
+        tiles = zoom2tiles(int(z), int(x), int(y), 16)
         for tile in tiles:
             tile_x, tile_y = tile
             mosaics = [
