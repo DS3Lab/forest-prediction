@@ -51,33 +51,6 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
 
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
-
-def init_data_loader(source, config):
-    # TODO: FINISH
-    if source == 'planet':
-        data_loader = getattr(module_data, config['data_loader_val']['type'])(
-        data_dir=config['data_loader_val']['args']['data_dir'],
-        batch_size=batch_size,
-        years=config['data_loader_val']['args']['years'],
-        qualities=config['data_loader_val']['args']['qualities'],
-        timelapse=timelapse,
-        # max_dataset_size=config['data_loader_val']['args']['max_dataset_size'],
-        # max_dataset_size=9,
-        max_dataset_size=900,
-        shuffle=False,
-        num_workers=32,
-        training=False,
-        testing=True,
-        quarter_type="same_year"
-    )
-    else: # landsat
-        data_loader = getattr(module_data,
-                config['data_loader_val']['type'])(
-                        data_dir=config['data_loader_val']['args']['data_dir'],
-                        batch_size=batch_size,
-                        max_dataset_size='inf',
-                        shuffle=False)
-
 def update_individual_hists(data, target, hist, device, model):
     data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
     output = model(data)
@@ -163,26 +136,16 @@ def main(config):
             forest_cover = batch['forest_cover']
             gt_img0, gt_img1, gt_img2, gt_img3 = gt_imgs['q1'], gt_imgs['q2'], gt_imgs['q3'], gt_imgs['q4']
             vd_img0, vd_img1 = video_imgs['00'], video_imgs['01']
-<<<<<<< HEAD
 
-=======
-            # vd_img0, vd_img1, vd_img2 = video_imgs['00'], video_imgs['01'], video_imgs['02']
->>>>>>> 1b6f27f7d7c80b201be201a1137564f13510b25d
             ugt_img0, ugt_img1, ugt_img2, ugt_img3 = normalize_inverse(gt_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img3, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
-<<<<<<< HEAD
             uvd_img0, uvd_img1 = normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
 
             update_individual_hists(vd_img0, forest_cover, histq1, device, model)
             update_individual_hists(vd_img1, forest_cover, histq2, device, model)
-=======
-            uvd_img0, uvd_img1= normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
-                normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
-                # normalize_inverse(vd_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
->>>>>>> 1b6f27f7d7c80b201be201a1137564f13510b25d
 
             datagt = torch.cat((gt_img0, gt_img1, gt_img2, gt_img3), 0)
             dataugt = torch.cat((ugt_img0, ugt_img1, ugt_img2, ugt_img3), 0)
