@@ -138,8 +138,8 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    pred_dir = os.path.join(pred_dir, 'video_predictions')
-    out_dir = os.path.join(pred_dir, 'normalfinal')
+    pred_dir = os.path.join(pred_dir, 'video_predictions_c2')
+    out_dir = os.path.join(pred_dir, 'gan')
     if not os.path.isdir(pred_dir):
         os.makedirs(out_dir)
     if not os.path.isdir(out_dir):
@@ -156,31 +156,41 @@ def main(config):
             loss = None
             print('BATCH KEYS', batch.keys())
             if 'None' in batch:
-                continue
+                break
             gt_imgs = batch['gt_imgs']
             video_imgs = batch['video_imgs']
             forest_loss = batch['forest_loss']
             forest_cover = batch['forest_cover']
             gt_img0, gt_img1, gt_img2, gt_img3 = gt_imgs['q1'], gt_imgs['q2'], gt_imgs['q3'], gt_imgs['q4']
             vd_img0, vd_img1 = video_imgs['00'], video_imgs['01']
+<<<<<<< HEAD
 
+=======
+            # vd_img0, vd_img1, vd_img2 = video_imgs['00'], video_imgs['01'], video_imgs['02']
+>>>>>>> 1b6f27f7d7c80b201be201a1137564f13510b25d
             ugt_img0, ugt_img1, ugt_img2, ugt_img3 = normalize_inverse(gt_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(gt_img3, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+<<<<<<< HEAD
             uvd_img0, uvd_img1 = normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
                 normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
 
             update_individual_hists(vd_img0, forest_cover, histq1, device, model)
             update_individual_hists(vd_img1, forest_cover, histq2, device, model)
+=======
+            uvd_img0, uvd_img1= normalize_inverse(vd_img0, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891)), \
+                normalize_inverse(vd_img1, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+                # normalize_inverse(vd_img2, (0.2311, 0.2838, 0.1752), (0.1265, 0.0955, 0.0891))
+>>>>>>> 1b6f27f7d7c80b201be201a1137564f13510b25d
 
             datagt = torch.cat((gt_img0, gt_img1, gt_img2, gt_img3), 0)
             dataugt = torch.cat((ugt_img0, ugt_img1, ugt_img2, ugt_img3), 0)
 
-            datavd = torch.cat((vd_img0, vd_img1, vd_img2), 0)
-            datauvd = torch.cat((uvd_img0, uvd_img1, uvd_img2), 0)
-            target_loss = torch.cat((forest_loss, forest_loss, forest_loss), 0)
-            target_cover = torch.cat((forest_cover, forest_cover, forest_cover), 0)
+            datavd = torch.cat((vd_img0, vd_img1), 0)
+            datauvd = torch.cat((uvd_img0, uvd_img1), 0)
+            target_loss = torch.cat((forest_loss, forest_loss), 0)
+            target_cover = torch.cat((forest_cover, forest_cover), 0)
 
             datavd, target_cover = datavd.to(device, dtype=torch.float), target_cover.to(device, dtype=torch.float)
             output = model(datavd)
