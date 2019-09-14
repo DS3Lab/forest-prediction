@@ -172,7 +172,7 @@ def main():
 	zoom = 11
 	tile_coords = bbox2tiles(bbox, zoom)
 	hansen_urls = gen_hansen_urls(tile_coords, zoom)
-	out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality'
+	out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality11'
 	out_hansen_dir = os.path.join(out_dir, 'hansen')
 	create_dir(out_dir)
 	create_dir(out_hansen_dir)
