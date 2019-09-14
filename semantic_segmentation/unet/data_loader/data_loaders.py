@@ -46,7 +46,7 @@ def open_image(img_path):
         # return img_arr / 255.
     else:
         # For images transforms.ToTensor() does range to (0.,1.)
-        
+
         img_arr = cv2.imread(img_path)
         try:
             img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
