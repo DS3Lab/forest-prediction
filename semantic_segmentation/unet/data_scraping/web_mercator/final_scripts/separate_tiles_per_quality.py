@@ -27,7 +27,7 @@ five2ten = []
 tenplus = []
 
 def open_img(path):
-    img_arr = cv2.imread(forest_loss_path)
+    img_arr = cv2.imread(path)
     img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2GRAY)
     return img_arr
 
@@ -40,10 +40,17 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n] # yields a list of size n
 
-def create_tuple(list_):
-    return [(l) for l in list_]
+def create_tuple(list_, name1):
+    return [(l, name1) for l in list_]
 
 def check_quality_label(img_path):
+    global zero2one
+    global one2two
+    global two2three
+    global three2four
+    global four2five
+    global five2ten
+    global tenplus
     img = open_img(img_path)
     count_nonzero = np.count_nonzero(img)
     img_size = img.size
@@ -64,9 +71,19 @@ def check_quality_label(img_path):
         tenplus.append(img_path)
 
 def main():
-	for loss_file_chunk in chunks(loss_files, 16):
-            with multiprocessing.Pool(processes=16) as pool:
-                results = pool.starmap(check_quality_label, create_tuple(loss_file_chunk))
+    global loss_files
+    global zero2one
+    global one2two
+    global two2three
+    global three2four
+    global four2five
+    global five2ten
+    global tenplus
+    # for chunk in chunks(loss_files[:100], 10):
+    #     with multiprocessing.Pool(processes=16) as pool:
+    #         results = pool.starmap(check_quality_label, create_tuple(chunk, 'hello'))
+    for f in loss_files:
+        check_quality_label(f)
     stats = {
         'zero2one': zero2one,
         'one2two': one2two,
