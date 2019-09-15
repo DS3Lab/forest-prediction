@@ -162,7 +162,8 @@ def main():
     out_dir = '/mnt/ds3lab-scratch/lming/data/min_quality11'
     # create_dir(out_dir)
     with open('download_stats.pkl', 'rb') as f:
-        files = pkl.load(f)
+        stats = pkl.load(f)
+    files = stats['one2two'] + stats['two2three'] + stats['three2four'] + stats['four2five'] + stats['five2ten'] + stats['tenplus']
     zoom = 11
     for chunk in chunks(files, 16):
         with multiprocessing.Pool(processes=16) as pool:
