@@ -82,18 +82,6 @@ def bbox2tiles(bbox, zoom):
 
     return tile_coords
 
-def check_quality_label(img, threshold = 0.02):
-    """
-    img = np.array(256,256)
-    """
-    count_nonzero = np.count_nonzero(img)  # asume BGR, labels in red channel
-    img_size = img.size
-    print('nonzeros is',count_nonzero)
-    if (count_nonzero / img_size) >= threshold:
-        return True
-    else:
-        return False
-
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
