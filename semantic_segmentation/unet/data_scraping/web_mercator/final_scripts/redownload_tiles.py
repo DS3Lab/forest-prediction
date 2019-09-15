@@ -38,10 +38,10 @@ FOREST_GAIN_URL = "https://storage.googleapis.com/earthenginepartners-hansen/til
 
 PLANET_URL = "https://tiles.planet.com/basemaps/v1/planet-tiles/global_quarterly_{year}{q}_mosaic/gmap/{z}/{x}/{y}.png?api_key=25647f4fc88243e2a6e91150aaa117e3"
 
-logger = logging.getLogger('donwload_tiles')
+logger = logging.getLogger('redonwload_tiles')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('download_tiles.log')
+fh = logging.FileHandler('redownload_tiles.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
