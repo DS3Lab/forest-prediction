@@ -97,9 +97,9 @@ def download_file(url, path, redo=True):
                 for chunk in r.iter_content(chunk_size=8192):
                     if chunk: # filter out keep-alive new chunks
                         f.write(chunk)
-        logger.debug('SUCCESS', url)
+        logger.debug('SUCCESS ' + url)
     except:
-        logger.debug('FAIL', url)
+        logger.debug('FAIL ' + url)
 
 def download_item(tile, z, out_dir):
     forest_loss_name = 'fl{year}_{z}_{x}_{y}.png'
