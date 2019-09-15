@@ -77,7 +77,7 @@ def main():
         'tenplus': tenplus
     }
     with open('download_stats.pkl', 'wb') as pkl_file:
-        pkl.dump(, pkl_file)
+        pkl.dump(stats, pkl_file)
 
 if __name__ == '__main__':
     main()
