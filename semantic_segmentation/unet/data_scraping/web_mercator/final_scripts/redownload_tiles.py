@@ -164,8 +164,9 @@ def main():
     with open('download_stats.pkl', 'rb') as f:
         stats = pkl.load(f)
     files = stats['one2two'] + stats['two2three'] + stats['three2four'] + stats['four2five'] + stats['five2ten'] + stats['tenplus']
+    tiles = get_dw_tiles(files)
     zoom = 11
-    for chunk in chunks(files, 16):
+    for chunk in chunks(tiles, 16):
         with multiprocessing.Pool(processes=16) as pool:
             results = pool.starmap(download_item, create_tuple(chunk, zoom, out_dir))
 
