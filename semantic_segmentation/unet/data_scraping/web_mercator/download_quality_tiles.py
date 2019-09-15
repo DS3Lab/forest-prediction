@@ -82,18 +82,6 @@ def bbox2tiles(bbox, zoom):
 
     return tile_coords
 
-def check_quality_label(img, threshold = 0.02):
-    """
-    img = np.array(256,256)
-    """
-    count_nonzero = np.count_nonzero(img)  # asume BGR, labels in red channel
-    img_size = img.size
-    print('nonzeros is',count_nonzero)
-    if (count_nonzero / img_size) >= threshold:
-        return True
-    else:
-        return False
-
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
@@ -106,6 +94,7 @@ def download_file(url, path, redo=True):
     try:
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
+
             if folder:
                 path = os.path.join(folder, local_filename)
             else:
@@ -146,14 +135,15 @@ def download_others(tile, z, out_dir):
     planet_name = 'pl{year}_{q}_{z}_{x}_{y}.png'
     landsat_name = 'ld{year}_{z}_{x}_{y}.png'
 
-    years = [2014, 2015, 2016, 2017]
+    years = [2013, 2014, 2015, 2016, 2017]
     quarters = ['q1', 'q2', 'q3', 'q4']
 
     for year in years:
         # Download forest loss file
-        forest_loss_path = os.path.join(out_dir, 'forest_loss', str(year), forest_loss_name.format(year=year, z=z, x=tile[0], y=tile[1]))
-        forest_loss_url = FOREST_LOSS_URLS[str(year)].format(z=z, x=x, y=y)
-        download_file(forest_loss_url, forest_loss_path, redo=True)
+        if year != 2013:
+            forest_loss_path = os.path.join(out_dir, 'forest_loss', str(year), forest_loss_name.format(year=year, z=z, x=tile[0], y=tile[1]))
+            forest_loss_url = FOREST_LOSS_URLS[str(year)].format(z=z, x=x, y=y)
+            download_file(forest_loss_url, forest_loss_path, redo=True)
         # Download forest cover, foresst gain and landsat file
         forest_cover_path = os.path.join(out_dir, 'forest_cover', forest_cover_name.format(z=z, x=tile[0], y=tile[1]))
         forest_gain_path = os.path.join(out_dir, 'forest_gain', forest_gain_name.format(z=z, x=tile[0], y=tile[1]))
