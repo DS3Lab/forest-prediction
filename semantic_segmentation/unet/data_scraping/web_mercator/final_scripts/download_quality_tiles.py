@@ -106,10 +106,6 @@ def download_file(url, path, redo=True):
     try:
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
-            if folder:
-                path = os.path.join(folder, local_filename)
-            else:
-                path = local_filename
             with open(path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     if chunk: # filter out keep-alive new chunks
@@ -130,9 +126,9 @@ def download_item(tile, z, out_dir):
     forest_loss_url2013 = FOREST_LOSS_URLS[str(2013)].format(z=z, x=tile[0], y=tile[1])
     response2013 = download_file(forest_loss_url, forest_loss_path2013, redo=False)
     if response2013 == 1:
-        img_arr = cv2.imread(forest_loss_path)
+        img_arr = cv2.imread(forest_loss_path2013)
         img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2GRAY)
-        quality_label = check_quality_label(img)
+        quality_label = check_quality_label(img_arr)
         if check_quality_label:
             logger.debug('Success:' + forest_loss_url2013)
             download_others(tile, z, out_dir)
@@ -166,11 +162,11 @@ def download_others(tile, z, out_dir):
         landsat_url = LANDSAT_URLS[str(year)].format(z=z, x=tile[0], y=tile[1])
         download_file(forest_cover_url, forest_cover_path)
         download_file(forest_gain_url, forest_gain_path)
-        download_file(lansdat_url, landsat_path)
+        download_file(landsat_url, landsat_path)
         # Download planet file
         for q in quarters:
             if year in [2016, 2017, 2018, 2019]: # there are only this years available in planet satellites
-                planet_path = os.path.join(out_dir, 'planet', str(year), planet_name.format(q=q, z=z, x=tile[0], y=tile[1]))
+                planet_path = os.path.join(out_dir, 'planet', str(year), planet_name.format(year=year, q=q, z=z, x=tile[0], y=tile[1]))
                 planet_url = PLANET_URL.format(year=year, q=q, z=z, x=tile[0], y=tile[1])
                 download_file(planet_url, planet_path)
 
