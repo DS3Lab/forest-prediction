@@ -65,14 +65,18 @@ def mv_tiles(tile, fc_path, fg_path, fl_path, landsat_path, planet_path):
 
     # Move forest cover
     if os.path.exists(os.path.join(fc_path, forest_cover_name)):
-        os.rename(os.path.join(fc_path, forest_cover_name),
+        print(os.path.join(fc_path, forest_cover_name),
             os.path.join(fc_path, 'min_pct', forest_cover_name))
+        # os.rename(os.path.join(fc_path, forest_cover_name),
+        #     os.path.join(fc_path, 'min_pct', forest_cover_name))
     else:
         logger.debug('Not exist: ' + forest_cover_name)
     # Move forest gain
     if os.path.exists(os.path.join(fg_path, forest_gain_name)):
-        os.rename(os.path.join(fg_path, forest_gain_name),
+        print(os.path.join(fg_path, forest_gain_name),
             os.path.join(fg_path, 'min_pct', forest_gain_name))
+        # os.rename(os.path.join(fg_path, forest_gain_name),
+        #     os.path.join(fg_path, 'min_pct', forest_gain_name))
     else:
         logger.debug('Not exist: ' + forest_gain_name)
 
@@ -80,23 +84,29 @@ def mv_tiles(tile, fc_path, fg_path, fl_path, landsat_path, planet_path):
         # Move forest loss
         forest_loss = forest_loss_name.format(year=year, z=z, x=x, y=y)
         if os.path.exists(os.path.join(fl_path, year, forest_loss)):
-            os.rename(os.path.join(fl_path, year, forest_loss),
+            print(os.path.join(fl_path, year, forest_loss),
                 os.path.join(fl_path, 'min_pct', year, forest_loss))
+            # os.rename(os.path.join(fl_path, year, forest_loss),
+            #     os.path.join(fl_path, 'min_pct', year, forest_loss))
         else:
             logger.debug('Not exist: ' + forest_loss)
         # Move landsat
         landsat = landsat_name.format(year=year, z=z, x=x, y=y)
         if os.path.exists(os.path.join(landsat_path, year, landsat)):
-            os.rename(os.path.join(landsat_path, year, landsat),
+            print(os.path.join(landsat_path, year, landsat),
                 os.path.join(landsat_path, 'min_pct', year, landsat))
+            # os.rename(os.path.join(landsat_path, year, landsat),
+            #     os.path.join(landsat_path, 'min_pct', year, landsat))
         else:
             logger.debug('Not exist: ' + landsat)
         # Move planet
         for quarter in quarters:
             planet = planet_name.format(year=year, q=quarter, z=z, x=x, y=y)
             if os.path.exists(os.path.join(planet_path, year, planet)):
-                os.rename(os.path.join(planet_path, year, planet),
+                print(os.path.join(planet_path, year, planet),
                     os.path.join(planet_path, 'min_pct', year, planet))
+                # os.rename(os.path.join(planet_path, year, planet),
+                #     os.path.join(planet_path, 'min_pct', year, planet))
             else:
                 logger.debug('Not exist: ' + planet)
 def main():
@@ -127,8 +137,8 @@ def main():
         create_dir(os.path.join(planet_path, 'min_pct', year))
 
     for tile in tiles:
-        mv_tiles(tile, )
-
+        mv_tiles(tile, fc_path, fg_path, fl_path, landsat_path, planet_path)
+        break
 
 if __name__ == '__main__':
     main()
