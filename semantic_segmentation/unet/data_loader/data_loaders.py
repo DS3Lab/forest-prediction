@@ -11,8 +11,6 @@ from torchvision import datasets, transforms
 from base import BaseDataLoader
 from data_loader import utils3m, utils
 
-HANSEN_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_processed/no_pct/nips'
-PLANET_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips17'
 # TODO: put in utils
 def get_tile_info(tile):
     """
@@ -81,8 +79,8 @@ class PlanetSingleDataset(Dataset):
         # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
-            Normalize((0.2311, 0.2838, 0.1752),
-                (0.1265, 0.0955, 0.0891))
+            Normalize((0.3326, 0.3570, 0.2224),
+                (0.1059, 0.1086, 0.1283))
         ])
         self.dataset_size = len(self.paths)
 
