@@ -72,7 +72,7 @@ def create_forest_cover_tiles(forest_cover_files, forest_loss_dir,
     loss_template = 'fl{year}_{z}_{x}_{y}.png'
     gain_template = 'fg2012_{z}_{x}_{y}.png'
     years = ['2013', '2014', '2015', '2016', '2017']
-    out_img_template = 'fc{year}_{z}_{x}_{y}.png'
+    out_img_template = 'fc{year}_{z}_{x}_{y}.npy'
 
     for file in forest_cover_files:
         print('processing', file)
@@ -88,7 +88,6 @@ def create_forest_cover_tiles(forest_cover_files, forest_loss_dir,
             fl_img = open_image(fl_path)
             out_img_dir = os.path.join(out_dir, year, out_img_template.format(year=year, z=z, x=x, y=y))
             create_forest_cover_tile(fc_img, fg_img, fl_img, out_img_dir)
-        break
 
 
 def main():
@@ -97,7 +96,7 @@ def main():
     forest_gain2012_dir = os.path.join(src_dir, 'forest_gain', 'min_pct')
     forest_loss_dir = os.path.join(src_dir, 'forest_loss', 'min_pct')
 
-    out_dir = os.path.join(source_dir, 'forest_cover', 'processed')
+    out_dir = os.path.join(src_dir, 'forest_cover', 'processed')
     create_dir(out_dir)
     years = ['2013', '2014', '2015', '2016', '2017']
     for year in years:
