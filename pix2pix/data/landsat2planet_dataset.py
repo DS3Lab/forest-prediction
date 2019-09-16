@@ -30,19 +30,19 @@ class PlanetDataset(BaseDataset):
         # Test: second half of year 2017
 
         if opt.phase == 'train':
-            input_dir = os.path.join(opt.dataroot, 'landsat', '2016')
-            target_dir = os.path.join(opt.dataroot, 'planet', '2016')
+            input_dir = os.path.join(opt.dataroot, 'landsat', 'min_pct', '2016')
+            target_dir = os.path.join(opt.dataroot, 'planet', 'min_pct', '2016')
             self.paths = make_landsat2planet_dataset(input_dir, target_dir, opt.phase)
         elif opt.phase in ['val', 'test']:
-            input_dir = os.path.join(opt.dataroot, 'landsat', '2017')
-            target_dir = os.path.join(opt.dataroot, 'planet', '2016')
+            input_dir = os.path.join(opt.dataroot, 'landsat', 'min_pct', '2017')
+            target_dir = os.path.join(opt.dataroot, 'planet', 'min_pct', '2016')
             self.paths = make_landsat2planet_dataset(input_dir, target_dir, opt.phase)
         else: # generate images for all dataset
             # with phase=train it returns all files
             years = ['2016', '2017']
             for year in years
-                input_dir = os.path.join(opt.dataroot, 'landsat', year)
-                target_dir = os.path.join(opt.dataroot, 'planet', year)
+                input_dir = os.path.join(opt.dataroot, 'landsat', 'min_pct', year)
+                target_dir = os.path.join(opt.dataroot, 'planet', 'min_pct', year)
                 self.paths.extend(make_landsat2planet_dataset(input_dir, target_dir, 'train'))
 
         self.size = len(self.paths)
