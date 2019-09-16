@@ -110,7 +110,7 @@ class MyDataset(Dataset):
         # TODO - use paths_dict
         img = open_image(self.dataset[index])
         img = self.transforms(img)
-        print(img)
+        # print(img)
         return img
 
 def main():
