@@ -83,14 +83,13 @@ def add_img(dic, img_dir, year, z, x, y):
     years = ['2013', '2014', '2015', '2016', '2017']
     key = '_'.join((z, x, y))
     template = 'ld{year}_{z}_{x}_{y}.png'
-    for year in years:
-        dic[key] = {
-            '2013': os.path.join(img_dir, '2013', template.format(year=year, z=z, x=x, y=y)),
-            '2014': os.path.join(img_dir, '2014', template.format(year=year, z=z, x=x, y=y)),
-            '2015': os.path.join(img_dir, '2015', template.format(year=year, z=z, x=x, y=y)),
-            '2016': os.path.join(img_dir, '2016', template.format(year=year, z=z, x=x, y=y)),
-            '2017': os.path.join(img_dir, '2017', template.format(year=year, z=z, x=x, y=y))
-        }
+    dic[key] = {
+        '2013': os.path.join(img_dir, '2013', template.format(year='2013', z=z, x=x, y=y)),
+        '2014': os.path.join(img_dir, '2014', template.format(year='2014', z=z, x=x, y=y)),
+        '2015': os.path.join(img_dir, '2015', template.format(year='2015', z=z, x=x, y=y)),
+        '2016': os.path.join(img_dir, '2016', template.format(year='2016', z=z, x=x, y=y)),
+        '2017': os.path.join(img_dir, '2017', template.format(year='2017', z=z, x=x, y=y))
+    }
 
 def get_imgs(img_dir):
     data = {}
