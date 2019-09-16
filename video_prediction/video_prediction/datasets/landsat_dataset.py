@@ -180,9 +180,9 @@ def partition_data(quads):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_dir", type=str, help="directory containing the quarter mosaics from landsat")
-    parser.add_argument("output_dir", type=str)
-    parser.add_argument("image_size", type=int)
+    parser.add_argument("--input_dir", type=str, help="directory containing the quarter mosaics from landsat")
+    parser.add_argument("--output_dir", type=str)
+    parser.add_argument("--image_size", type=int)
     args = parser.parse_args()
 
     partition_names = ['train', 'val', 'test']
