@@ -37,7 +37,7 @@ def make_landsat2planet_dataset(dir, target_dir, phase, max_dataset_size=float("
 def landsat2planet(filename, target_dir):
     items = filename.split('/')[-1].split('_')
     year, z, x, y = items[0][2:], items[1], items[2], items[3][:-4]
-    target_name = '_'.join(year, z, x, y) + '.npy'
+    target_name = 'pl' + '_'.join((year, z, x, y)) + '.npy'
     target_name = os.path.join(target_dir, target_name)
     return target_name
 

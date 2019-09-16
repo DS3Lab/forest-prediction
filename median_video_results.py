@@ -1,3 +1,4 @@
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -57,35 +58,41 @@ def gen_annual_mosaic(q1, q2, q3, q4):
 gan_dir = '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/gan/ours_deterministic_l1/'
 normal_dir = '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/normalfinal/ours_deterministic_l1/'
 img_gan_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped_gan/test'
-img_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/test'
+img_normal_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/test'
 
 gan_dirs = glob.glob(gan_dir + '*/')
 normal_dirs = glob.glob(normal_dir + '*/')
 
 out_gan_dir = '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/gan/test'
 out_normal_dir = '/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_today/normalfinal/test'
-os.makedirs(out_gan_dir)
-os.makedirs(out_normal_dir)
+if not os.path.exists(out_gan_dir):
+    os.makedirs(out_gan_dir)
+if not os.path.exists(out_normal_dir):
+    os.makedirs(out_normal_dir)
 
 out = 'pl{year}_{z}_{x}_{y}_{cx}_{cy}.npy'
 pl = 'pl{year}_{q}_{z}_{x}_{y}_{cx}_{cy}.png'
 
+'''
 for gan_dir in gan_dirs:
     imgs = glob.glob(os.path.join(gan_dir, '*.png'))
     q2, q3, q4 = imgs[0], imgs[1], imgs[2]
-    key = gan_dir.split('/')[1]
+    key = gan_dir.split('/')[-2]
     year, z, x, y, cx, cy = key.split('_')
     q1 = os.path.join(img_gan_dir, pl.format(year=year, q='q1', z=z, x=x, y=y, cx=cx, cy=cy))
     annual_mosaic = gen_annual_mosaic(open_image(q1), open_image(q2), open_image(q3), open_image(q4))
     annual_out = os.path.join(out_gan_dir, out.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy))
     np.save(annual_out, annual_mosaic)
-
+    print('mosaic', annual_out, 'saved!')
+'''
 for normal_dir in normal_dirs:
     imgs = glob.glob(os.path.join(normal_dir, '*.png'))
     q2, q3, q4 = imgs[0], imgs[1], imgs[2]
-    key = normal_dir.split('/')[1]
+    key = normal_dir.split('/')[-2]
     year, z, x, y, cx, cy = key.split('_')
     q1 = os.path.join(img_normal_dir, pl.format(year=year, q='q1', z=z, x=x, y=y, cx=cx, cy=cy))
     annual_mosaic = gen_annual_mosaic(open_image(q1), open_image(q2), open_image(q3), open_image(q4))
     annual_out = os.path.join(out_normal_dir, out.format(year=year, z=z, x=x, y=y, cx=cx, cy=cy))
     np.save(annual_out, annual_mosaic)
+    print('mosaic', annual_out, 'saved!')
+

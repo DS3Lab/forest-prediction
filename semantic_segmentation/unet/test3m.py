@@ -66,7 +66,7 @@ def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances
     batch_size = 1
-    timelapse = 'quarter'
+    timelapse = 'annual'
     input_type = 'same'
     img_mode = 'single'
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
@@ -179,7 +179,7 @@ def main(config):
     # acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
     #     evaluate(hist=hist)
     n_samples = len(data_loader.sampler)
-
+    '''
     accq1, acc_clsq1, mean_iuq1, fwavaccq1, precisionq1, recallq1, f1_scoreq1 = \
         evaluate(hist=histq1)
     accq2, acc_clsq2, mean_iuq2, fwavaccq2, precisionq2, recallq2, f1_scoreq2 = \
@@ -188,12 +188,10 @@ def main(config):
         evaluate(hist=histq3)
     accq4, acc_clsq4, mean_iuq4, fwavaccq4, precisionq4, recallq4, f1_scoreq4 = \
         evaluate(hist=histq4)
+    '''
+    accy, acc_clsy, mean_iuy, fwavaccy, precisiony, recally, f1_scorey = evaluate(hist=histy)
 
-    accy, acc_clsy, mean_iuy, fwavaccy, precisiony, recally, f1_scorey = \
-        evaluate(hist=histy)
-
-    accg, acc_clsg, mean_iug, fwavaccg, precisiong, recallg, f1_scoreg = \
-        evaluate(hist=histg)
+    accg, acc_clsg, mean_iug, fwavaccg, precisiong, recallg, f1_scoreg = evaluate(hist=histg)
     logy = {'lossy': 'total_loss / n_samples',
         'acc': accy, 'mean_iu': mean_iuy, 'fwavacc': fwavaccy,
         'precision': precisiony, 'recall': recally, 'f1_score': f1_scorey
@@ -202,7 +200,7 @@ def main(config):
         'acc': accg, 'mean_iu': mean_iug, 'fwavacc': fwavaccg,
         'precision': precisiong, 'recall': recallg, 'f1_score': f1_scoreg
     }
-
+    '''
     logq1 = {'lossq1': 'total_loss / n_samples',
         'acc': accq1, 'mean_iu': mean_iuq1, 'fwavacc': fwavaccq1,
         'precision': precisionq1, 'recall': recallq1, 'f1_score': f1_scoreq1
@@ -219,10 +217,12 @@ def main(config):
         'acc': accq4, 'mean_iu': mean_iuq4, 'fwavacc': fwavaccq4,
         'precision': precisionq4, 'recall': recallq4, 'f1_score': f1_scoreq4
     }
+    
     logger.info(logq1)
     logger.info(logq2)
     logger.info(logq3)
     logger.info(logq4)
+    '''
     logger.info(logy)
     logger.info(logg)
 
