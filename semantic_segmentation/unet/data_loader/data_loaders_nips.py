@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from base import BaseDataLoader
-from data_loader import utils3m, utils
+from data_loader import utils3m
 
 HANSEN_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/forest_cover_processed/no_pct/nips'
 PLANET_PATH_DB = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/forest_cover_3m_nips17'
@@ -75,20 +75,16 @@ class PlanetSingleDataset(Dataset):
     """
     Planet 3-month mosaic dataset
     """
-    def __init__(self, img_dir, label_dir, years):
+    def __init__(self):
         """Initizalize dataset.
             Params:
                 data_dir: absolute path, string
                 years: list of years
                 filetype: png or npy. If png it is raw data, if npy it has been preprocessed
         """
-        self.paths_dict = []
-        for year in years:
-            imgs_path = os.path.join(label_dir, year)
-            selfs.paths_dict.extend(glob.glob(os.path.join(imgs_path, '*')))
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
-            Normalize((0.2311, 0.2838, 0.1752),
+            utils.Normalize((0.2311, 0.2838, 0.1752),
                 (0.1265, 0.0955, 0.0891))
         ])
         self.paths_dict = glob.glob(os.path.join(HANSEN_PATH_DB, '*'))
@@ -128,8 +124,17 @@ class PlanetSingleDataset(Dataset):
             mask = utils3m.big2small_tile(big_mask_arr, int(beg_x), int(beg_y), int(tile_x), int(tile_y))
             # Transform to tensor
             mask = torch.from_numpy(mask).unsqueeze(0)
+            # q1, q2, q3, q4, annual = self.transforms(q1), \
+            #     self.transforms(q2), \
+            #     self.transforms(q3), \
+            #     self.transforms(q4), \
+            #     self.transforms(annual)
+            # q4 = self.transforms(open_image(quarter_dict['q4']))
             annual = self.transforms(annual)
-
+            # img_dict[key]['q1'] = q1
+            # img_dict[key]['q2'] = q2
+            # img_dict[key]['q3'] = q3
+            # img_dict[key]['q4'] = q4
             img_dict[key]['annual'] = annual
             img_dict[key]['mask'] = mask
 
@@ -141,7 +146,21 @@ class PlanetSingleDataset(Dataset):
         img_dict['big_mask'] = big_mask_arr
         img_dict['key'] = torch.tensor([int(x), int(y)])
         return img_dict
-
+        # img_dict = get_item(self.paths_dict[index])
+        #
+        # img_arr0 = self.transforms(open_image(path_dict['img'][0]))
+        # img_arr1 = self.transforms(open_image(path_dict['img'][1]))
+        # img_arr2 = self.transforms(open_image(path_dict['img'][2]))
+        # img_arr3 = self.transforms(open_image(path_dict['img'][3]))
+        # img_arr_q1_q2 = torch.cat((img_arr0, img_arr1), 0)
+        # img_arr_q2_q3 = torch.cat((img_arr1, img_arr2), 0)
+        # img_arr_q3_q4 = torch.cat((img_arr2, img_arr3), 0)
+        # mask_arr = open_image(path_dict['mask'])
+        # mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+        # return {
+        #     'imgs': (img_arr_q1_q2, img_arr_q2_q3, img_arr_q3_q4),
+        #     'mask': mask_arr
+        # }
 
 class PlanetDataLoader(BaseDataLoader):
     def __init__(self, input_dir,
@@ -149,8 +168,78 @@ class PlanetDataLoader(BaseDataLoader):
             batch_size,
             years,
             qualities,
+            timelapse,
             max_dataset_size=float('inf'),
             shuffle=True,
-            num_workers=16):
+            num_workers=1,
+            testing=False,
+            training=True,
+            quarter_type='same_year',
+            source='planet',
+            input_type='two',
+            img_mode='same'):
         self.dataset = PlanetSingleDataset()
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
+
+class Normalize(object):
+    """Normalize a tensor image with mean and standard deviation.
+    Given mean: ``(M1,...,Mn)`` and std: ``(S1,..,Sn)`` for ``n`` channels, this transform
+    will normalize each channel of the input ``torch.*Tensor`` i.e.
+    ``input[channel] = (input[channel] - mean[channel]) / std[channel]``
+
+    .. note::
+        This transform acts out of place, i.e., it does not mutates the input tensor.
+
+    Args:
+        mean (sequence): Sequence of means for each channel.
+        std (sequence): Sequence of standard deviations for each channel.
+    [1]. https://pytorch.org/docs/stable/_modules/torchvision/transforms/transforms.html#Normalize
+    """
+
+    def __init__(self, mean, std, inplace=False):
+        self.mean = mean
+        self.std = std
+        self.inplace = inplace
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+
+        Returns:
+            Tensor: Normalized Tensor image.
+        """
+        return normalize(tensor.double(), self.mean, self.std, self.inplace)
+
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+
+
+def _is_tensor_image(img):
+        return torch.is_tensor(img) and img.ndimension() == 3
+
+def normalize(tensor, mean, std, inplace=False):
+    """Normalize a tensor image with mean and standard deviation.
+    .. note::
+        This transform acts out of place by default, i.e., it does not mutates the input tensor.
+    See :class:`~torchvision.transforms.Normalize` for more details.
+    Args:
+        tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+        mean (sequence): Sequence of means for each channel.
+        std (sequence): Sequence of standard deviations for each channel.
+        inplace(bool,optional): Bool to make this operation inplace.
+    Returns:
+        Tensor: Normalized Tensor image.
+    """
+    if not _is_tensor_image(tensor):
+        raise TypeError('tensor is not a torch image.')
+
+    if not inplace:
+        tensor = tensor.clone()
+
+    dtype = tensor.dtype
+    mean = torch.as_tensor(mean, dtype=dtype, device=tensor.device)
+    std = torch.as_tensor(std, dtype=dtype, device=tensor.device)
+    tensor.sub_(mean[:, None, None]).div_(std[:, None, None])
+    return tensor

@@ -12,16 +12,42 @@ import pickle as pkl
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
+def open_image(img_path):
+    filetype = img_path[-3:]
+    assert filetype in ['png', 'npy']
+    if filetype == 'npy':
+        return np.load(img_path).transpose([1,2,0]) / 255.
+    else:
+        img_arr = cv2.imread(img_path)
+        return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
 def open_image(img_path):
     filetype = img_path[-3:]
     assert filetype in ['png', 'npy']
     if filetype == 'npy':
-        # (3,256,256)->(256,256,3). With transforms.ToTensor()
-        # it will be converted to NCHW format.
-        return np.load(img_path).transpose([1,2,0]) / 255.
+        try:
+            img_arr = np.load(img_path)
+            if len(img_arr.shape) == 3: # RGB
+                # if RGB, it expects a (3, height, width)
+                # transpose it to (height, width, 3)
+                img_arr = img_arr.transpose([1,2,0])
+                return img_arr / 255.
+            elif len(img_arr.shape) == 2: # mask
+                # change to binary mask
+                nonzero = np.where(img_arr!=0)
+                img_arr[nonzero] = 1
+                return img_arr
+        except:
+            print('ERROR', img_path)
+            return None
+        # return img_arr / 255.
     else:
+        # For images transforms.ToTensor() does range to (0.,1.)
         img_arr = cv2.imread(img_path)
+        try:
+            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
+        except:
+            print(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
 def online_mean_and_std(loader):
@@ -53,7 +79,7 @@ class MyDataset(Dataset):
     """
     Custom dataset to calculate the mean of annual & quarter mosaics
     """
-    def __init__(self, data_dir):
+    def __init__(self, img_paths):
         """Initizalize dataset.
             Params:
                 data_dir: absolute path, string
@@ -64,8 +90,8 @@ class MyDataset(Dataset):
         #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter'
         # else:
         #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/annual'
-        self.data_dir = data_dir
-        self.dataset = glob.glob(os.path.join(self.data_dir, '*'))
+
+        self.dataset = img_paths
         self.dataset_size = len(self.dataset)
         print('Loaded {} files'.format(self.dataset_size))
         self.transforms = transforms.Compose([
@@ -84,10 +110,18 @@ class MyDataset(Dataset):
         # TODO - use paths_dict
         img = open_image(self.dataset[index])
         img = self.transforms(img)
+        print(img)
         return img
 
 def main():
-    dataset = MyDataset('/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter_cropped/train')
+    img_paths = []
+    label_dir = '/mnt/ds3lab-scratch/lming/data/min_quality11/forest_cover/processed'
+    years = ['2013', '2014', '2015']
+    for year in years:
+        imgs = glob.glob(os.path.join(label_dir, year, '*'))
+        img_paths.extend(imgs)
+
+    dataset = MyDataset(img_paths)
     loader = DataLoader(
         dataset,
         batch_size=1,
