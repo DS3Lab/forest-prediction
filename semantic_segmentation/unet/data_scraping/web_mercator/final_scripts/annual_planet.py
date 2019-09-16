@@ -95,27 +95,28 @@ def main():
     years = ['2016', '2017']
     for year in years:
         create_dir(os.path.join(out_dir, year))
-    planet_files = get_planet_files(hansen_files, src_quarter_path)
+    planet_files = get_planet_files(input_dir)
     planet_files = reduce_planet_files(planet_files)
 
     for key in planet_files.keys():
-        name_template = os.path.join(input_dir, str(year), 'pl{year}_{q}_{z}_{x}_{y}.png')
         img_info = planet_files[key]
         year, z, x, y = img_info['year'], img_info['z'], img_info['x'], img_info['y']
+        name_template = os.path.join(input_dir, str(year), 'pl{year}_{q}_{z}_{x}_{y}.png')
         quads = [
             name_template.format(year=year, q='q1', z=z, x=x, y=y),
             name_template.format(year=year, q='q2', z=z, x=x, y=y),
             name_template.format(year=year, q='q3', z=z, x=x, y=y),
             name_template.format(year=year, q='q4', z=z, x=x, y=y)
         ]
-        out_name = os.path.join(out_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
+        out_name = os.path.join(out_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy'.format(year=year, z=z, x=x, y=y))
+
         if not os.path.isfile(out_name):
             try:
                 mosaic = gen_yearly_mosaic(quads)
-                np.save(name, mosaic)
-                logger.debug('SAVED: ' + name)
+                np.save(out_name, mosaic)
+                logger.debug('SAVED: ' + out_name)
             except:
-                logger.debug('FAILED: ' + name)
+                logger.debug('FAILED: ' + out_name)
 
 if __name__ == '__main__':
     main()
