@@ -138,7 +138,7 @@ def main():
 
     for tile in tiles:
         mv_tiles(tile, fc_path, fg_path, fl_path, landsat_path, planet_path)
-        break
+        
 
 if __name__ == '__main__':
     main()
