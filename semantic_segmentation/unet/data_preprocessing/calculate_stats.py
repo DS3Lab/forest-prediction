@@ -115,7 +115,7 @@ class MyDataset(Dataset):
 
 def main():
     img_paths = []
-    label_dir = '/mnt/ds3lab-scratch/lming/data/min_quality11/forest_cover/processed'
+    label_dir = '/mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct'
     years = ['2013', '2014', '2015']
     for year in years:
         imgs = glob.glob(os.path.join(label_dir, year, '*'))
