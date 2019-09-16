@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from base import BaseDataLoader
-from data_loader import utils3m, utils
+from data_loader import utils
 
 # TODO: put in utils
 def get_tile_info(tile):
@@ -52,7 +52,7 @@ def open_image(img_path):
             print(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
-def get_item(mask_path, img_dir):
+def get_img(mask_path, img_dir):
     year, z, x, y = get_tile_info(mask_path.split('/')[-1])
     img_template = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
     return img_template.format(year=year, z=z, x=x, y=y)
@@ -79,7 +79,7 @@ class PlanetSingleDataset(Dataset):
         # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
-            Normalize((0.3326, 0.3570, 0.2224),
+            utils.Normalize((0.3326, 0.3570, 0.2224),
                 (0.1059, 0.1086, 0.1283))
         ])
         self.dataset_size = len(self.paths)
@@ -102,7 +102,7 @@ class PlanetSingleDataset(Dataset):
         mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
         img_arr = self.transforms(img_arr)
 
-        return img_arr, mask_arr
+        return img_arr.float(), mask_arr.float()
 
 class PlanetDataLoader(BaseDataLoader):
     def __init__(self, img_dir,
