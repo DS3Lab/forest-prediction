@@ -134,7 +134,7 @@ def main():
         'mean': mean,
         'std': std
     }
-    with open('cropped_quarter_stats.pkl', 'wb') as pkl_file:
+    with open('landsat_stats.pkl', 'wb') as pkl_file:
         pkl.dump(stats, pkl_file)
 
 if __name__ == '__main__':
