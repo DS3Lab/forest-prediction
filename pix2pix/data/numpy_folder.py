@@ -19,6 +19,28 @@ def make_planet_dataset(dir, target_dir, max_dataset_size=float("inf")):
         image_pairs.append((img, get_target(img, target_dir)))
     return image_pairs[:min(max_dataset_size, len(images))]
 
+def make_landsat2planet_dataset(dir, target_dir, phase, max_dataset_size=float("inf")):
+    assert os.path.isdir(dir), '%s is not a valid directory' % dir
+    assert phase in ['train', 'val', 'test']
+    image_pairs = []
+    images = glob.glob(os.path.join(dir, '*'))
+    for img in images:
+        image_pairs.append((img, landsat2planet(img, target_dir)))
+    if phase == 'val':
+        return image_pairs[:len(image_pairs)//2]
+    elif phase == 'test':
+        return image_pairs[len(image_pairs)//2:]
+    else: # train
+        return image_pairs[:min(len(image_pairs), max_dataset_size)]
+
+
+def landsat2planet(filename, target_dir):
+    items = filename.split('/')[-1].split('_')
+    year, z, x, y = items[0][2:], items[1], items[2], items[3][:-4]
+    target_name = '_'.join(year, z, x, y) + '.npy'
+    target_name = os.path.join(target_dir, target_name)
+    return target_name
+
 def get_target(filename, target_dir):
     items = filename.split('/')[-1].split('_')
     target_name = '_'.join((items[0], items[2], items[3],

@@ -25,23 +25,29 @@ class PlanetDataset(BaseDataset):
         """
         BaseDataset.__init__(self, opt)
 
-        # self.dir = os.path.join(opt.dataroot, opt.phase)
-        if opt.phase != 'gen':
-            input_dir = os.path.join(opt.dataroot, 'quarter_cropped', opt.phase)
-            target_dir = os.path.join(opt.dataroot, 'annual_cropped', opt.phase)
-            self.paths = make_planet_dataset(input_dir, target_dir)
-        else: # Gen data for video prediction
-            self.paths = []
-            phases = ['train', 'val', 'test']
-            for phase in phases:
-                input_dir = os.path.join(opt.dataroot, 'quarter_cropped', phase)
-                target_dir = os.path.join(opt.dataroot, 'annual_cropped', phase)
-                self.paths.extend(make_planet_dataset(input_dir, target_dir))
+        # Train: year 2016
+        # Val: first half of year 2017
+        # Test: second half of year 2017
+
+        if opt.phase == 'train':
+            input_dir = os.path.join(opt.dataroot, 'landsat', '2016')
+            target_dir = os.path.join(opt.dataroot, 'planet', '2016')
+            self.paths = make_landsat2planet_dataset(input_dir, target_dir, opt.phase)
+        elif opt.phase in ['val', 'test']:
+            input_dir = os.path.join(opt.dataroot, 'landsat', '2017')
+            target_dir = os.path.join(opt.dataroot, 'planet', '2016')
+            self.paths = make_landsat2planet_dataset(input_dir, target_dir, opt.phase)
+        else: # generate images for all dataset
+            # with phase=train it returns all files
+            years = ['2016', '2017']
+            for year in years
+                input_dir = os.path.join(opt.dataroot, 'landsat', year)
+                target_dir = os.path.join(opt.dataroot, 'planet', year)
+                self.paths.extend(make_landsat2planet_dataset(input_dir, target_dir, 'train'))
 
         self.size = len(self.paths)
-
-        self.transform_A = get_transform(self.opt, timelapse='quarter')
-        self.transform_B = get_transform(self.opt, timelapse='annual')
+        self.transform_A = get_transform(self.opt)
+        self.transform_B = get_transform(self.opt)
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
