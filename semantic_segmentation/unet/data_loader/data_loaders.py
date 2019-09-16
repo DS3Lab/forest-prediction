@@ -109,9 +109,8 @@ class PlanetDataLoader(BaseDataLoader):
             label_dir,
             batch_size,
             years,
-            qualities,
             max_dataset_size=float('inf'),
             shuffle=True,
             num_workers=16):
-        self.dataset = PlanetSingleDataset()
+        self.dataset = PlanetSingleDataset(img_dir, label_dir, years)
         super().__init__(self.dataset, batch_size, shuffle, 16, num_workers)
