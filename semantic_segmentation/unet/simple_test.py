@@ -57,12 +57,16 @@ def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances
     batch_size = 9
+    if config['data_loader_val']['args']['max_dataset_size'] == 'inf':
+        max_dataset_size = float('inf')
+    else:
+        max_dataset_size = config['data_loader_val']['args']['max_dataset_size']
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
         img_dir=config['data_loader_val']['args']['img_dir'],
         label_dir=config['data_loader_val']['args']['label_dir'],
         batch_size=batch_size,
         years=config['data_loader_val']['args']['years'],
-        max_dataset_size=float("inf"),
+        max_dataset_size=max_dataset_size,
         shuffle=False,
         num_workers=1,
     )
