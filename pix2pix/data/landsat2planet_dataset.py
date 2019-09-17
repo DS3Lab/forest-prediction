@@ -39,6 +39,7 @@ class Landsat2PlanetDataset(BaseDataset):
             self.paths = make_landsat2planet_dataset(input_dir, target_dir, opt.phase)
         else: # generate images for all dataset
             # with phase=train it returns all files
+            self.paths = []
             years = ['2016', '2017']
             for year in years:
                 input_dir = os.path.join(opt.dataroot, 'landsat', 'min_pct', year)
