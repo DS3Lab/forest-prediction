@@ -92,7 +92,7 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    out_dir = os.path.join(pred_dir, 'landsat')
+    out_dir = os.path.join(pred_dir, 'planet')
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):
