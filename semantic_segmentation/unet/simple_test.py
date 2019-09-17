@@ -148,7 +148,6 @@ def main(config):
         'precision': precision, 'recall': recall, 'f1_score': f1_score
     }
 
-    print(acc_dict)
     # log.update({
     #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
     # })
