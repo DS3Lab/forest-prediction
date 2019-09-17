@@ -47,25 +47,26 @@ def save_simple_images(batch_size, images, out_dir, idx_start):
 
         for tile in tiles:
             # img1, img2, gt, pred
-            img = images['img'][tile]
-            gt = images['gt'][tile]
-            pred = images['pred'][tile]
-            # Set up plot
-            ax = plt.subplot(gs[0, tile%batch_size])
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            print('plot 0')
-            plt.imshow(np.transpose(img, axes=[1,2,0]))
-            ax = plt.subplot(gs[1, tile%batch_size])
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            print('plot 1')
-            plt.imshow(gt[0], cmap=plt.cm.binary)
-            ax = plt.subplot(gs[2, tile%batch_size])
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            print('plot 2')
-            plt.imshow(pred[0], cmap=plt.cm.binary)
+            if tile < images['img'].shape[0]:
+                img = images['img'][tile]
+                gt = images['gt'][tile]
+                pred = images['pred'][tile]
+                # Set up plot
+                ax = plt.subplot(gs[0, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 0')
+                plt.imshow(np.transpose(img, axes=[1,2,0]))
+                ax = plt.subplot(gs[1, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 1')
+                plt.imshow(gt[0], cmap=plt.cm.binary)
+                ax = plt.subplot(gs[2, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 2')
+                plt.imshow(pred[0], cmap=plt.cm.binary)
 
         out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
         print('Saved!', out_imgs_dir)

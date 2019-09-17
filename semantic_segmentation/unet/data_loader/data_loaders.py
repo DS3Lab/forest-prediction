@@ -79,7 +79,7 @@ class PlanetSingleDataset(Dataset):
         for year in years:
             imgs_path = os.path.join(label_dir, year)
             self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
-
+        self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
         # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
@@ -116,5 +116,5 @@ class PlanetDataLoader(BaseDataLoader):
             max_dataset_size=float('inf'),
             shuffle=True,
             num_workers=16):
-        self.dataset = PlanetSingleDataset(img_dir, label_dir, years)
+        self.dataset = PlanetSingleDataset(img_dir, label_dir, years, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 16, num_workers)
