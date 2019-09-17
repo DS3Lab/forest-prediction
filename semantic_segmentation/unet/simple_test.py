@@ -128,7 +128,7 @@ def main(config):
             print('prediction_time', time.time() - init_time)
 
             print('Save images shape input', images['img'].shape)
-            save_images(3, images, out_dir, i*batch_size, input_type)
+            save_simple_images(3, images, out_dir, i*batch_size, input_type)
             # computing loss, metrics on test set
             loss = loss_fn(output, target)
             batch_size = data.shape[0]
