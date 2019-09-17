@@ -54,7 +54,11 @@ def open_image(img_path):
 
 def get_img(mask_path, img_dir):
     year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-    img_template = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
+    if 'landsat' in img_dir:
+        img_template = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
+    else: # planet
+        img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
+
     return img_template.format(year=year, z=z, x=x, y=y)
 
 
