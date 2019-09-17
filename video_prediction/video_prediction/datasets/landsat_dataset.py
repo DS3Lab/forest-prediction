@@ -136,10 +136,9 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
     for video_iter, key in enumerate(img_quads.keys()):
         frame_fnames = get_quad_list(img_quads[key])
         # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
+        print('Opening', frame_fnames)
         frames = skimage.io.imread_collection(frame_fnames)
         frames = [frame[:,:,:3] for frame in frames] # take only RGB
-        for frame in frames:
-            print(frame.shape)
         if not sequences:
             last_start_sequence_iter = sequence_iter
             print("reading sequences starting at sequence %d" % sequence_iter)
