@@ -57,8 +57,8 @@ def py_gif_summary(tag, images, max_outputs, fps):
     image_summ.width = width
     image_summ.colorspace = channels  # 1: grayscale, 3: RGB
     try:
-      # image_summ.encoded_image_string = ffmpeg_gif.encode_gif(images[i], fps)
-      image_summ.encoded_image_string = ffmpeg_gif.encode_gif(utils.rescale_if_negative(images[i]), fps)
+      image_summ.encoded_image_string = ffmpeg_gif.encode_gif(images[i], fps)
+      # image_summ.encoded_image_string = ffmpeg_gif.encode_gif(utils.rescale_if_negative(images[i]), fps)
     except (IOError, OSError) as e:
       tf.logging.warning(
           "Unable to encode images to a gif string because either ffmpeg is "
@@ -68,7 +68,8 @@ def py_gif_summary(tag, images, max_outputs, fps):
         from PIL import Image  # pylint: disable=g-import-not-at-top
         import io  # pylint: disable=g-import-not-at-top
         with io.BytesIO() as output:
-          Image.fromarray(rescale_if_negative(images[i][0])).save(output, "PNG")
+          # Image.fromarray(rescale_if_negative(images[i][0])).save(output, "PNG")
+          Image.fromarray(images[i][0].save(output, "PNG"))
           image_summ.encoded_image_string = output.getvalue()
       except:
         tf.logging.warning(
