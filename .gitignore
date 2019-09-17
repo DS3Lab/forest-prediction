@@ -10,3 +10,4 @@ _pycache_
 *.ipynb
 *.pkl
 *.npy
+*.tar.gz
