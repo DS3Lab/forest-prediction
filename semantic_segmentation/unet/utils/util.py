@@ -37,7 +37,7 @@ def make_grid_2(tensor, nrow=8, padding=2, normalize=False, range=None, scale_ea
     tensor = torch.cat([tensor1, tensor2], dim=3)
     return make_grid(tensor, nrow, padding, normalize, range, scale_each, pad_value)
 
-def save_simple_images(batch_size, images, out_dir, idx_start, limit):
+def save_simple_images(batch_size, images, out_dir, idx_start):
 
     for i in range(0, images['img'].shape[0], batch_size):
         num_y_tiles = 3 # input, gt, prediction
