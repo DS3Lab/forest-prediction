@@ -66,7 +66,7 @@ class PlanetSingleDataset(Dataset):
     """
     Planet 3-month mosaic dataset
     """
-    def __init__(self, img_dir, label_dir, years):
+    def __init__(self, img_dir, label_dir, years, max_dataset_size):
         """Initizalize dataset.
             Params:
                 data_dir: absolute path, string
