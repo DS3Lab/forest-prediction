@@ -8,6 +8,7 @@ from .ucf101_dataset import UCF101VideoDataset
 from .cartgripper_dataset import CartgripperVideoDataset
 from .planet_dataset import PlanetVideoDataset
 from .cropped_dataset import CroppedVideoDataset
+from .landsat_dataset import LandsatVideoDataset
 
 def get_dataset_class(dataset):
     dataset_mappings = {
@@ -19,9 +20,11 @@ def get_dataset_class(dataset):
         'ucf101': 'UCF101VideoDataset',
         'cartgripper': 'CartgripperVideoDataset',
         'planet': 'PlanetVideoDataset',
-        'cropped': 'CroppedVideoDataset'
+        'cropped': 'CroppedVideoDataset',
+        'landsat': 'LandsatVideoDataset'
     }
     dataset_class = dataset_mappings.get(dataset, dataset)
+    print(dataset_class)
     dataset_class = globals().get(dataset_class)
     if dataset_class is None or not issubclass(dataset_class, BaseVideoDataset):
         raise ValueError('Invalid dataset %s' % dataset)

@@ -24,7 +24,7 @@ class LandsatVideoDataset(VarLenFeatureVideoDataset):
         self.state_like_names_and_shapes['images'] = 'images/encoded', image_shape
 
     def get_default_hparams_dict(self):
-        default_hparams = super(PlanetVideoDataset, self).get_default_hparams_dict()
+        default_hparams = super(LandsatVideoDataset, self).get_default_hparams_dict()
         hparams = dict(
             context_frames=2,
             sequence_length=5,
