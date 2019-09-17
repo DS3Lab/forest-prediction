@@ -9,7 +9,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import save_images, NormalizeInverse
+from utils.util import save_simple_images, NormalizeInverse
 from torch.nn import functional as F
 
 
