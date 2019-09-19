@@ -81,6 +81,7 @@ class PlanetSingleDataset(Dataset):
             imgs_path = os.path.join(label_dir, year)
             self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
         self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
+        self.paths.sort()
         # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
