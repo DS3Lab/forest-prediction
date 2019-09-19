@@ -2,7 +2,7 @@ import argparse
 import glob
 import itertools
 import os
-import pickle
+import pickle as pkl
 import random
 import re
 
@@ -94,10 +94,11 @@ def add_img(dic, img_dir, year, z, x, y):
 def get_imgs(img_dir):
     data = {}
     img_paths = glob.glob(os.path.join(img_dir, '2013', '*'))
+    img_paths.sort()
     for path in img_paths:
         year, z, x, y = get_tile_info(path)
         add_img(data, img_dir, year, z, x, y)
-    return data.order()
+    return data
 
 def save_tf_record(output_fname, sequences):
     print('saving sequences to %s' % output_fname)
@@ -122,7 +123,7 @@ def get_quad_list(imgs):
     ]
 
 
-def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences_per_file=1):
+def read_frames_and_save_tf_records(output_dir, img_quads, sequences_per_file=128):
     """
     img_quads: {
         year: landsat_year
@@ -136,7 +137,7 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
     for video_iter, key in enumerate(img_quads.keys()):
         frame_fnames = get_quad_list(img_quads[key])
         # frame_fnames = [quads['q1'], quads['q2'], quads['q3'], quads['q4']]
-        print('Opening', frame_fnames)
+        # print('Opening', frame_fnames)
         frames = skimage.io.imread_collection(frame_fnames)
         frames = [frame[:,:,:3] for frame in frames] # take only RGB
         if not sequences:
@@ -152,6 +153,35 @@ def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences
             save_tf_record(output_fname, sequences)
             sequences[:] = []
     sequence_lengths_file.close()
+
+
+def read_frames_and_save_single_tf_records(output_dir, img_quads, sequences_per_file=1):
+    """
+    img_quads: {
+        year: landsat_year
+    }
+    """
+    partition_name = os.path.split(output_dir)[1]
+    sequences = [] 
+    sequence_iter = 0
+    sequence_lengths_file = open(os.path.join(output_dir, 'sequence_lengths.txt'), 'w')
+    frame_fnames = get_quad_list(img_quads)
+    frames = skimage.io.imread_collection(frame_fnames)
+    frames = [frame[:,:,:3] for frame in frames] # take only RGB
+    if not sequences:
+        last_start_sequence_iter = sequence_iter
+        print("reading sequences starting at sequence %d" % sequence_iter)
+    sequences.append(frames)
+    sequence_iter += 1
+    sequence_lengths_file.write("%d\n" % len(frames)) # should be always 3
+    if (len(sequences) == sequences_per_file or
+            (video_iter == (len(img_quads) - 1))):
+        output_fname = 'sequence_{0}_to_{1}.tfrecords'.format(0, 3)
+        output_fname = os.path.join(output_dir, output_fname)
+        save_tf_record(output_fname, sequences)
+        sequences[:] = []
+    sequence_lengths_file.close()
+
 
 def part_dict(dic, num):
     total = len(dic)
@@ -178,12 +208,7 @@ def partition_data(quads):
     print(len(train_quads), len(val_quads), len(test_quads), len(quads))
     return [train_quads, val_quads, test_quads]
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input_dir", type=str, help="directory containing the quarter mosaics from landsat")
-    parser.add_argument("--output_dir", type=str)
-    args = parser.parse_args()
-
+def create_dataset_from_scratch(args):
     partition_names = ['train', 'val', 'test']
     quads = get_imgs(args.input_dir)
 #     train_quads, val_quads, test_quads
@@ -200,7 +225,51 @@ def main():
         partition_dir = os.path.join(args.output_dir, partition_name)
         if not os.path.exists(partition_dir):
             os.makedirs(partition_dir)
-        read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size)
+        read_frames_and_save_tf_records(partition_dir, partition_quad)
+
+def create_single_test_dataset(args):
+    with open('train_val_test.pkl', 'rb') as pkl_file:
+        train_val_test = pkl.load(pkl_file)
+    test_files = train_val_test['test']
+    keys = list(test_files.keys())
+    for key in keys:
+        output_dir = os.path.join(args.output_dir, key, 'test')
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        read_frames_and_save_single_tf_records(output_dir, test_files[key], sequences_per_file=1)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input_dir", type=str, help="directory containing the quarter mosaics from landsat")
+    parser.add_argument("--output_dir", type=str)
+    parser.add_argument("--dataset_type", type=str, help="whether to create dataset from scratch, or just generate separate TFRecords for image tracking")
+    args = parser.parse_args()
+    if args.dataset_type == 'scratch':
+        create_dataset_from_scratch(args)
+    elif args.dataset_type == 'sep': # separate tf records
+        create_single_test_dataset(args)
+    else:
+        print('Dataset type not found')
+    '''
+    partition_names = ['train', 'val', 'test']
+    quads = get_imgs(args.input_dir)
+#     train_quads, val_quads, test_quads
+    quad_list = partition_data(quads)
+    with open('train_val_test.pkl', 'wb') as pkl_file:
+        pkl.dump({
+            'train': quad_list[0],
+            'val': quad_list[1],
+            'test': quad_list[2]
+        }, pkl_file)
+    print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
+    for partition_name, partition_quad in zip(partition_names, quad_list):
+    # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
+        partition_dir = os.path.join(args.output_dir, partition_name)
+        if not os.path.exists(partition_dir):
+            os.makedirs(partition_dir)
+        read_frames_and_save_tf_records(partition_dir, partition_quad)
+    '''
 ############################################################################################
     
 
