@@ -97,7 +97,7 @@ def get_imgs(img_dir):
     for path in img_paths:
         year, z, x, y = get_tile_info(path)
         add_img(data, img_dir, year, z, x, y)
-    return data
+    return data.order()
 
 def save_tf_record(output_fname, sequences):
     print('saving sequences to %s' % output_fname)
@@ -122,7 +122,7 @@ def get_quad_list(imgs):
     ]
 
 
-def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences_per_file=128):
+def read_frames_and_save_tf_records(output_dir, img_quads, image_size, sequences_per_file=1):
     """
     img_quads: {
         year: landsat_year
@@ -182,13 +182,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dir", type=str, help="directory containing the quarter mosaics from landsat")
     parser.add_argument("--output_dir", type=str)
-    parser.add_argument("--image_size", type=int)
     args = parser.parse_args()
 
     partition_names = ['train', 'val', 'test']
     quads = get_imgs(args.input_dir)
 #     train_quads, val_quads, test_quads
     quad_list = partition_data(quads)
+    with open('train_val_test.pkl', 'wb') as pkl_file:
+        pkl.dump({
+            'train': quad_list[0],
+            'val': quad_list[1],
+            'test': quad_list[2]
+        }, pkl_file)
     print(len(quad_list[0]), len(quad_list[1]), len(quad_list[2]))
     for partition_name, partition_quad in zip(partition_names, quad_list):
     # for partition_name, partition_fnames in zip(partition_names, partition_fnames):
@@ -196,7 +201,8 @@ def main():
         if not os.path.exists(partition_dir):
             os.makedirs(partition_dir)
         read_frames_and_save_tf_records(partition_dir, partition_quad, args.image_size)
-
+############################################################################################
+    
 
 if __name__ == '__main__':
     main()
