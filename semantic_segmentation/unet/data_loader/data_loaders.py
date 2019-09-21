@@ -151,7 +151,7 @@ class PlanetSingleVideoDataset(Dataset):
         ])
         self.dataset_size = len(self.paths)
 
-    def _get_item(self, index):
+    def get_item(self, index):
         key = self.paths[index]
         img_gt_template = os.path.join(self.img_dir, '{year_dir}', 'ld{year_f}_{key}.png')
         img_video_template = os.path.join(self.video_dir, key, 'gen_image_00000_00_0{}.png')
@@ -210,7 +210,7 @@ class PlanetSingleVideoDataset(Dataset):
     def __getitem__(self, index):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
-        imgs_dict = self._get_item(self, index)
+        imgs_dict = self.get_item(self, index)
 
         tensor_dict = {
             '2013': self._process_img_pair(self, imgs_dict['2013']),
