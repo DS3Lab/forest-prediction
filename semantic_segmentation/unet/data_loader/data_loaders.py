@@ -210,14 +210,14 @@ class PlanetSingleVideoDataset(Dataset):
     def __getitem__(self, index):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
-        imgs_dict = self.get_item(self, index)
+        imgs_dict = self.get_item(index)
 
         tensor_dict = {
-            '2013': self._process_img_pair(self, imgs_dict['2013']),
-            '2014': self._process_img_pair(self, imgs_dict['2014']),
-            '2015': self._process_img_pair(self, imgs_dict['2015']),
-            '2016': self._process_img_pair(self, imgs_dict['2016']),
-            '2017': self._process_img_pair(self, imgs_dict['2017'])
+            '2013': self._process_img_pair(imgs_dict['2013']),
+            '2014': self._process_img_pair(imgs_dict['2014']),
+            '2015': self._process_img_pair(imgs_dict['2015']),
+            '2016': self._process_img_pair(imgs_dict['2016']),
+            '2017': self._process_img_pair(imgs_dict['2017'])
         }
         return tensor_dict
 
