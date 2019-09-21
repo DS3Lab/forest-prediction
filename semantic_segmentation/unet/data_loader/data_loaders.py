@@ -120,3 +120,115 @@ class PlanetDataLoader(BaseDataLoader):
             num_workers=16):
         self.dataset = PlanetSingleDataset(img_dir, label_dir, years, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
+
+def get_immediate_subdirectories(a_dir):
+    return [name for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
+
+class PlanetSingleVideoDataset(Dataset):
+    """
+    Planet 3-month mosaic dataset
+    """
+    # def __init__(self, img_dir, label_dir, years, max_dataset_size):
+    def __init__(self, img_dir, label_dir, video_dir, max_dataset_size):
+        """Initizalize dataset.
+            Params:
+                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
+        """
+        self.years = ['2013', '2014', '2015', '2016', '2017']
+        # self.img_dir = '/mnt/ds3lab-lming/data/min_quality11/landsat/min_pct'
+        # self.video_dir = '/mnt/ds3lab-lming/forest-prediction/video_prediction/landsat_video_prediction_results/ours_deterministic_l1'
+        # self.label_dir = '/mnt/ds3lab-lming/data/min_quality11/forest_cover/processed'
+        self.img_dir = img_dir
+        self.label_dir = label_dir
+        self.video_dir = video_dir
+        self.paths = get_immediate_subdirectories(self.img_dir)
+        self.paths.sort()
+        # TODO: update mean/std
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            utils.Normalize((0.3326, 0.3570, 0.2224),
+                (0.1059, 0.1086, 0.1283))
+        ])
+        self.dataset_size = len(self.paths)
+
+    def _get_item(self, index):
+        key = self.paths[index]
+        img_gt_template = os.path.join(self.img_dir, '{year_dir}', 'ld{year_f}_{key}.png')
+        img_video_template = os.path.join(self.video_dir, key, 'gen_image_00000_00_0{}.png')
+        label_template = os.path.join(self.label_dir, '{year_dir}', 'fc{year_f}_{key}.npy')
+
+        img2013 = img_gt_template.format(year_dir=2013, year_f=2013, key=key)
+        img2014 = img_gt_template.format(year_dir=2014, year_f=2014, key=key)
+        img2015 = img_video_template.format(0)
+        img2016 = img_video_template.format(1)
+        img2017 = img_video_template.format(2)
+
+        label2013 = label_template.format(year_dir=2013, year_f=2013, key=key)
+        label2014 = label_template.format(year_dir=2014, year_f=2014, key=key)
+        label2015 = label_template.format(year_dir=2015, year_f=2015, key=key)
+        label2016 = label_template.format(year_dir=2016, year_f=2016, key=key)
+        label2017 = label_template.format(year_dir=2017, year_f=2017, key=key)
+
+        return {
+            '2013': {
+                'img_dir': img2013,
+                'label_dir': label2013
+            },
+            '2014': {
+                'img_dir': img2014,
+                'label_dir': label2014
+            },
+            '2015': {
+                'img_dir': img2015,
+                'label_dir': label2015
+            },
+            '2016': {
+                'img_dir': img2016,
+                'label_dir': label2016
+            },
+            '2017': {
+                'img_dir': img2017,
+                'label_dir': label2017
+            }
+        }
+
+    def _process_img_pair(self, img_dict):
+        img_arr = open_image(img_dict['img_dir'])
+        mask_arr = open_image(img_dict['label_dir'])
+        img_arr = self.transforms(img_arr)
+        mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+
+        return {
+            'img_arr': img_arr.float(),
+            'mask_arr': mask_arr.float()
+        }
+
+    def __len__(self):
+        # print('Planet Dataset len called')
+        return self.dataset_size
+
+    def __getitem__(self, index):
+        r"""Returns data point and its binary mask"""
+        # Notes: tiles in annual mosaics need to be divided by 255.
+        imgs_dict = self._get_item(self, index)
+
+        tensor_dict = {
+            '2013': self._process_img_pair(self, imgs_dict['2013']),
+            '2014': self._process_img_pair(self, imgs_dict['2014']),
+            '2015': self._process_img_pair(self, imgs_dict['2015']),
+            '2016': self._process_img_pair(self, imgs_dict['2016']),
+            '2017': self._process_img_pair(self, imgs_dict['2017'])
+        }
+        return tensor_dict
+
+
+class PlanetVideoDataLoader(BaseDataLoader):
+    def __init__(self, img_dir,
+            label_dir,
+            video_dir,
+            batch_size,
+            max_dataset_size=float('inf'),
+            shuffle=True,
+            num_workers=16):
+        self.dataset = PlanetSingleVideoDataset(img_dir, label_dir, video_dir, batch_size, max_dataset_size)
+        super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
