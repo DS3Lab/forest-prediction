@@ -228,7 +228,7 @@ class PlanetVideoDataLoader(BaseDataLoader):
             video_dir,
             batch_size,
             max_dataset_size=float('inf'),
-            shuffle=True,
+            shuffle=False,
             num_workers=16):
-        self.dataset = PlanetSingleVideoDataset(img_dir, label_dir, video_dir, batch_size, max_dataset_size)
+        self.dataset = PlanetSingleVideoDataset(img_dir, label_dir, video_dir, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
