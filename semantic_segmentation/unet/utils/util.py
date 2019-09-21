@@ -37,6 +37,37 @@ def make_grid_2(tensor, nrow=8, padding=2, normalize=False, range=None, scale_ea
     tensor = torch.cat([tensor1, tensor2], dim=3)
     return make_grid(tensor, nrow, padding, normalize, range, scale_each, pad_value)
 
+def save_video_images256(images, out_dir, idx_start):
+    num_y_tiles = 3
+    f = plt.figure(figsize=(4, num_y_tiles*2))
+    gs = gridspec.GridSpec(num_y_tiles, 1, wspace=0.0, hspace=0.0)
+    years = ['2013', '2014', '2015', '2016', '2017']
+    for i in range(0, len(years)):
+        year = years[i]
+        img = images[year]['img']
+        gt = images[year]['gt']
+        pred = images[year]['pred']
+        ax = plt.subplot(gs[0, i%len(years)])
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        print('plot 0')
+        plt.imshow(np.transpose(img, axes=[1,2,0]))
+
+        ax = plt.subplot(gs[1, i%len(years)])
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        print('plot 1')
+        plt.imshow(gt[0], cmap=plt.cm.binary)
+        ax = plt.subplot(gs[2, i%len(years)])
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        print('plot 2')
+        plt.imshow(pred[0], cmap=plt.cm.binary)
+    out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
+    print('Saved!', out_imgs_dir)
+    plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+    plt.close(f)
+
 def save_simple_images(batch_size, images, out_dir, idx_start):
 
     for i in range(0, images['img'].shape[0], batch_size):
