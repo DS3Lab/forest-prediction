@@ -40,29 +40,30 @@ def make_grid_2(tensor, nrow=8, padding=2, normalize=False, range=None, scale_ea
 def save_video_images256(images, out_dir, idx_start):
     num_y_tiles = 3
     f = plt.figure(figsize=(4, num_y_tiles*2))
-    gs = gridspec.GridSpec(num_y_tiles, 1, wspace=0.0, hspace=0.0)
+    gs = gridspec.GridSpec(num_y_tiles, 5, wspace=0.0, hspace=0.0)
     years = ['2013', '2014', '2015', '2016', '2017']
     for i in range(0, len(years)):
         year = years[i]
         img = images[year]['img']
         gt = images[year]['gt']
         pred = images[year]['pred']
-        ax = plt.subplot(gs[0, i%len(years)])
+        ax = plt.subplot(gs[0, i])
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         print('plot 0')
-        plt.imshow(np.transpose(img, axes=[1,2,0]))
+        plt.imshow(np.transpose(img[0], axes=[1,2,0]))
 
-        ax = plt.subplot(gs[1, i%len(years)])
+        ax = plt.subplot(gs[1, i])
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         print('plot 1')
-        plt.imshow(gt[0], cmap=plt.cm.binary)
-        ax = plt.subplot(gs[2, i%len(years)])
+        print(gt.shape, 'SHAPEEE 1')
+        plt.imshow(gt[0][0], cmap=plt.cm.binary)
+        ax = plt.subplot(gs[2, i])
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         print('plot 2')
-        plt.imshow(pred[0], cmap=plt.cm.binary)
+        plt.imshow(pred[0][0], cmap=plt.cm.binary)
     out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
     print('Saved!', out_imgs_dir)
     plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)

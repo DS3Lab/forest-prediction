@@ -141,7 +141,8 @@ class PlanetSingleVideoDataset(Dataset):
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.video_dir = video_dir
-        self.paths = get_immediate_subdirectories(self.img_dir)
+        self.paths = get_immediate_subdirectories(self.video_dir)
+        print('SELF PATTHSSS',self.paths, self.video_dir)
         self.paths.sort()
         # TODO: update mean/std
         self.transforms = transforms.Compose([
@@ -211,7 +212,6 @@ class PlanetSingleVideoDataset(Dataset):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
         imgs_dict = self.get_item(index)
-
         tensor_dict = {
             '2013': self._process_img_pair(imgs_dict['2013']),
             '2014': self._process_img_pair(imgs_dict['2014']),

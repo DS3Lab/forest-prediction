@@ -9,7 +9,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import save_images, NormalizeInverse, save_video_images
+from utils.util import save_images, NormalizeInverse, save_video_images256
 from torch.nn import functional as F
 
 def _threshold_outputs(outputs, output_threshold=0.3):
@@ -70,8 +70,8 @@ def main(config):
         max_dataset_size = config['data_loader_val']['args']['max_dataset_size']
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
         img_dir=config['data_loader_val']['args']['img_dir'],
-        label_dir=config['data_loader_val']['args']['img_dir'],
-        video_dir=config['data_loader_val']['args']['img_dir'],
+        label_dir=config['data_loader_val']['args']['label_dir'],
+        video_dir=config['data_loader_val']['args']['video_dir'],
         batch_size=batch_size,
         max_dataset_size=max_dataset_size,
         shuffle=False,
@@ -129,7 +129,7 @@ def main(config):
             img_arr2016, mask_arr2016 = batch['2016']['img_arr'], batch['2016']['mask_arr']
             img_arr2017, mask_arr2017 = batch['2017']['img_arr'], batch['2017']['mask_arr']
 
-            uimg_arr2013, uimg_arr2014, uimg_arr2015, uimg_arr_2016, uimg_arr_2017 = \
+            uimg_arr2013, uimg_arr2014, uimg_arr2015, uimg_arr2016, uimg_arr2017 = \
                 normalize_inverse(img_arr2013, landsat_mean, landsat_std), \
                 normalize_inverse(img_arr2014, landsat_mean, landsat_std), \
                 normalize_inverse(img_arr2015, landsat_mean, landsat_std), \
@@ -144,69 +144,84 @@ def main(config):
 
             images = {
                 '2013':{
-                    'img': uim_arr2013.cpu().numpy(),
+                    'img': uimg_arr2013.cpu().numpy(),
                     'gt': mask_arr2013.cpu().numpy(),
-                    'pred': pred2013.cpu().numpy()
+                    'pred': pred2013
                 },
                 '2014':{
-                    'img': uim_arr2014.cpu().numpy(),
+                    'img': uimg_arr2014.cpu().numpy(),
                     'gt': mask_arr2014.cpu().numpy(),
-                    'pred': pred2014.cpu().numpy()
+                    'pred': pred2014
                 },
                 '2015':{
-                    'img': uim_arr2015.cpu().numpy(),
+                    'img': uimg_arr2015.cpu().numpy(),
                     'gt': mask_arr2015.cpu().numpy(),
-                    'pred': pred2015.cpu().numpy()
+                    'pred': pred2015
                 },
                 '2016':{
-                    'img': uim_arr2016.cpu().numpy(),
+                    'img': uimg_arr2016.cpu().numpy(),
                     'gt': mask_arr2016.cpu().numpy(),
-                    'pred': pred2016.cpu().numpy()
+                    'pred': pred2016
                 },
                 '2017':{
-                    'img': uim_arr2017.cpu().numpy(),
+                    'img': uimg_arr2017.cpu().numpy(),
                     'gt': mask_arr2017.cpu().numpy(),
-                    'pred': pred2017.cpu().numpy()
+                    'pred': pred2017
                 }
             }
             save_video_images256(images, out_dir, i*batch_size)
             # computing loss, metrics on test set
-            loss = loss_fn(output, target_cover)
-            batch_size = datavd.shape[0]
-            total_loss += loss.item() * batch_size
+            # loss = loss_fn(output, target_cover)
+            # batch_size = datavd.shape[0]
+            # total_loss += loss.item() * batch_size
             # for i, metric in enumerate(metric_fns):
             #     total_metrics[i] += metric(output, target.float()) * batch_size
-    acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
-        evaluate(hist=hist)
+    acc2013, acc_cls2013, mean_iu2013, fwavacc2013, precision2013, recall2013, f1_score2013 = \
+        evaluate(hist=hist2013)
 
-    accq1, acc_clsq1, mean_iuq1, fwavaccq1, precisionq1, recallq1, f1_scoreq1 = \
-        evaluate(hist=histq1)
+    acc2014, acc_cls2014, mean_iu2014, fwavacc2014, precision2014, recall2014, f1_score2014 = \
+        evaluate(hist=hist2014)
 
-    accq2, acc_clsq2, mean_iuq2, fwavaccq2, precisionq2, recallq2, f1_scoreq2 = \
-        evaluate(hist=histq2)
+    acc2015, acc_cls2015, mean_iu2015, fwavacc2015, precision2015, recall2015, f1_score2015 = \
+        evaluate(hist=hist2015)
 
+    acc2016, acc_cls2016, mean_iu2016, fwavacc2016, precision2016, recall2016, f1_score2016 = \
+        evaluate(hist=hist2016)
+    acc2017, acc_cls2017, mean_iu2017, fwavacc2017, precision2017, recall2017, f1_score2017 = \
+        evaluate(hist=hist2017)
     n_samples = len(data_loader.sampler)
-    log = {'loss': total_loss / n_samples,
-        'acc': acc, 'mean_iu': mean_iu, 'fwavacc': fwavacc,
-        'precision': precision, 'recall': recall, 'f1_score': f1_score
+    log2013 = {'loss2013': -1,
+        'acc': acc2013, 'mean_iu': mean_iu2013, 'fwavacc': fwavacc2013,
+        'precision': precision2013, 'recall': recall2013, 'f1_score': f1_score2013
     }
 
-    logq1 = {'lossq1': total_loss / n_samples,
-        'acc': accq1, 'mean_iu': mean_iuq1, 'fwavacc': fwavaccq1,
-        'precision': precisionq1, 'recall': recallq1, 'f1_score': f1_scoreq1
+    log2014 = {'loss2014': -1,
+        'acc': acc2014, 'mean_iu': mean_iu2014, 'fwavacc': fwavacc2014,
+        'precision': precision2014, 'recall': recall2014, 'f1_score': f1_score2014
     }
 
-    logq2 = {'lossq2': total_loss / n_samples,
-        'acc': accq2, 'mean_iu': mean_iuq2, 'fwavacc': fwavaccq2,
-        'precision': precisionq2, 'recall': recallq2, 'f1_score': f1_scoreq2
+    log2015 = {'loss2015': -1,
+        'acc': acc2015, 'mean_iu': mean_iu2015, 'fwavacc': fwavacc2015,
+        'precision': precision2015, 'recall': recall2015, 'f1_score': f1_score2015
+    }
+
+    log2016 = {'loss2016': -1,
+        'acc': acc2016, 'mean_iu': mean_iu2016, 'fwavacc': fwavacc2016,
+        'precision': precision2016, 'recall': recall2016, 'f1_score': f1_score2016
+    }
+
+    log2017 = {'loss2017': -1,
+        'acc': acc2017, 'mean_iu': mean_iu2017, 'fwavacc': fwavacc2017,
+        'precision': precision2017, 'recall': recall2017, 'f1_score': f1_score2017
     }
     # log.update({
     #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
     # })
-    logger.info(log)
-    logger.info(logq1)
-    logger.info(logq2)
-
+    logger.info(log2013)
+    logger.info(log2014)
+    logger.info(log2015)
+    logger.info(log2016)
+    logger.info(log2017)
 def normalize_inverse(batch, mean, std, input_type='one'):
 
     with torch.no_grad():
