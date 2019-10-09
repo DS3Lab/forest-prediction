@@ -6,6 +6,8 @@ import numpy as np
 import math
 import argparse
 import matplotlib.pyplot as plt
+import pickle as pkl
+import logging
 from utils import deg2num, num2deg, geodesic2spherical, create_dir
 from rasterio.merge import merge
 from rasterio.windows import Window
@@ -15,10 +17,10 @@ def get_tiles(path):
     tiles = []
     for f in files:
         items = f.split('/')[-1].split('_')
-        tiles.append('_'.join((items[1], items[2], items[3][-:4])))
+        tiles.append('_'.join((items[1], items[2], items[3][:-4])))
     return tiles
 
-def extract_tile(bigtif, zoom, lon, lat, tile_size, crs):
+def extract_tile(mosaicdb, lon, lat, tile_size, crs):
     '''
     Extract tile_size x tile_size tile from a bif tif starting from lon, lat
     bigtif: Rasterio Data Reader
@@ -36,6 +38,13 @@ def extract_tile(bigtif, zoom, lon, lat, tile_size, crs):
 
 
 def main(args):
+    logger = logging.getLogger('gee')
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('gee.log')
+    fh.setLevel(logging.DEBUG)
+    logger.addHandler(fh)
+
     path = '/mnt/ds3lab-scratch/lming/data/min_quality12/forest_cover_raw'
     tiles = get_tiles(path)
     vrt_list = ['/mnt/ds3lab-scratch/lming/gee_data/landsat2013.vrt',
@@ -44,23 +53,32 @@ def main(args):
                 '/mnt/ds3lab-scratch/lming/gee_data/landsat2016.vrt',
                 '/mnt/ds3lab-scratch/lming/gee_data/landsat2017.vrt',
                 '/mnt/ds3lab-scratch/lming/gee_data/landsat2018.vrt']
-    mosaics = [rasterio.open(vrt) for vrt in vrt_list]
+    mosaic_years = [(rasterio.open(vrt), vrt.split('/')[-1][-8:-4]) for vrt in vrt_list]
+    # print('MOSAICS', mosaics)
+    # print('TILES', tiles)
     tile_size = 256
     # year = args.input_dir.split('/')[-1] # assume is /mnt/ds3-..../2017
     name_template = 'ld{year}_{z}_{x}_{y}.npy'
-    years = [mosaic.split('/')[-1][-8:-4] for mosaic in mosaics]
-    for year in years:
-        create_dir(os.path.join(args.out_dir, year))
+    # years = [vrt.split('/')[-1][-8:-4] for vrt in vrt_list]
+    nans = []
+    for _, year in mosaic_years:
+        create_dir(os.path.join(args.output_dir, year))
     for tile in tiles:
         zoom, x, y = tile.split('_')
-        lon, lat = num2deg(x, y, zoom) # this is ESPG: 4326
-        for mosaic in mosaics:
+        lon, lat = num2deg(int(x), int(y), int(zoom)) # this is ESPG: 4326
+        print('Processing tile', zoom, x, y)
+        for mosaic, year in mosaic_years:
             img_arr = extract_tile(mosaic, lon, lat, tile_size, crs='ESPG:4326')
-            year = mosaic.split('/')[-1][-8:-4]
-            outname = os.path.join(args.out_dir, year, name_template.format(year=year, zoom=z, x=x, y=y))
+            if np.isnan(img_arr).any():
+                nans.append((tile, img_arr))
+                logger.debug('WARNING: {} has nans'.format(tile))
+            outname = os.path.join(args.output_dir, year, name_template.format(year=year, z=zoom, x=x, y=y))
             np.save(outname, img_arr)
+    
+    with open('nans.pkl', 'wb') as f:
+        pkl.dump(nans, f)
 
-if __name__ == '__init__':
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument("--input_dir", type=str, help="directory containing the tifs from gee")
     parser.add_argument("--output_dir", type=str, help="output directory")

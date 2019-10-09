@@ -1,3 +1,4 @@
+import os
 import math
 from pyproj import Proj, transform
 from rasterio.merge import merge
