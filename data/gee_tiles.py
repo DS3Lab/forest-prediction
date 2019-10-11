@@ -120,9 +120,9 @@ def extract_tiles(tiles, year, landsat_db, hansen_db, landsat_dir, forest_cover_
     # for z, x, y in tiles:
         lon, lat = num2deg(int(x), int(y), int(z))
         int_year = int(year[2:])
-        gen_tile(landsat_db, lon, lat, 'ld', year, os.path.join(out_landsat, landsat_template.format(year=year, z=z, x=x, y=y)))
-        gen_tile(hansen_db, lon, lat, 'fc', year, os.path.join(out_fc, fc_template.format(year=year, z=z, x=x, y=y)))
-        gen_tile(hansen_db, lon, lat, 'fl', year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
+        gen_tile(landsat_db, lon, lat, 'ld', int_year, os.path.join(out_landsat, landsat_template.format(year=year, z=z, x=x, y=y)))
+        gen_tile(hansen_db, lon, lat, 'fc', int_year, os.path.join(out_fc, fc_template.format(year=year, z=z, x=x, y=y)))
+        gen_tile(hansen_db, lon, lat, 'fl', int_year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
 
 def main():
     gee_dir = '/mnt/ds3lab-scratch/lming/gee_data'
