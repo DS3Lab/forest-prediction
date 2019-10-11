@@ -134,7 +134,7 @@ def main():
     for year in years:
         create_dir(os.path.join(forest_cover_dir, year))
         create_dir(os.path.join(forest_loss_dir, year))
-        lansdat_dbs[year] = rasterio.open(os.path.join(landsat_dir, 'landsat' + year + '.vrt'))
+        landsat_dbs[year] = rasterio.open(os.path.join(landsat_dir, 'landsat' + year + '.vrt'))
     hansen_db = rasterio.open(os.path.join(gee_dir, 'hansen.vrt'))
 
     processes = []
