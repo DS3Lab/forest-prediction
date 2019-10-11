@@ -82,21 +82,27 @@ def gen_tile(img_db, lon, lat, tile_type, year, out_name):
     FC_IDX = 0 # forest cover index
     GAIN_IDX = 1 # forest gain index
     LOSS_IDX = 2 # forest loss index
+    img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
     if tile_type == 'fc':
-        loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
+        # loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
+        loss_arr = np.copy(img_arr[LOSS_IDX])
         loss2000_2012 = get_aggregated_loss(loss_arr, beg=1, end=12) # 0 is no loss in this band, get loss from [1,12]
-        gain2000_2012 = extract_tile(img_db[GAIN_IDX])
+        # gain2000_2012 = extract_tile(img_db[GAIN_IDX])
+        gain2000_2012 = np.copy(img_arr[GAIN_IDX])
         loss2013_year = get_aggregated_loss(loss_arr, beg=13, end=year)
-        fc2000 = extract_tile(img_db[FC_IDX], lon, lat, 256, crs='ESPG:4326')
+        # fc2000 = extract_tile(img_db[FC_IDX], lon, lat, 256, crs='ESPG:4326')
+        fc2000 = np.copy(img_arr[FC_IDX])
+        fc2000 = preprocess_fc(fc2000)
         img_arr = create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year)
     elif tile_type == 'fl':
-        img_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
+        # img_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
+        img_arr = np.copy(img_arr[LOSS_IDX])
         loss_mask = np.where(img_arr == year)
         no_loss_mask = np.where(img_arr != year)
         img_arr[loss_mask] = 1
         img_arr[no_loss_mask] = 0
-    else:
-        img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
+    # else:
+        # img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
     np.save(out_name, img_arr)
 
 
