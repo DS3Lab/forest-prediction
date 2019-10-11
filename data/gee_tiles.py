@@ -126,13 +126,14 @@ def extract_tiles(tiles, year, landsat_db, hansen_db, landsat_dir, forest_cover_
 
 def main():
     gee_dir = '/mnt/ds3lab-scratch/lming/gee_data'
-    landsat_dir = os.path.join(gee_dir, 'ls7')
+    landsat_db_dir = os.path.join(gee_dir, 'ls7')
 
     with open('tiles.pkl', 'rb') as f:
         tiles = pkl.load(f)
 
-    forest_cover_dir = os.path.join(gee_dir, 'forest_cover')
-    forest_loss_dir = os.path.join(gee_dir, 'forest_loss')
+    forest_cover_dir = os.path.join(gee_dir, 'forest_cover', 'processed')
+    forest_loss_dir = os.path.join(gee_dir, 'forest_loss', 'processed')
+    landsat_dir = os.path.join(gee_dir, 'ls7', 'processed')
     create_dir(forest_cover_dir)
     create_dir(forest_loss_dir)
     years = ['2013', '2014', '2015', '2016', '2017', '2018']
@@ -140,7 +141,8 @@ def main():
     for year in years:
         create_dir(os.path.join(forest_cover_dir, year))
         create_dir(os.path.join(forest_loss_dir, year))
-        landsat_dbs[year] = rasterio.open(os.path.join(landsat_dir, processed, 'landsat' + year + '.vrt'))
+        create_dir(os.path.join(landsat_dir, 'processed', year))
+        landsat_dbs[year] = rasterio.open(os.path.join(landsat_db_dir, landsat' + year + '.vrt'))
     hansen_db = rasterio.open(os.path.join(gee_dir, 'hansen.vrt'))
 
     processes = []
