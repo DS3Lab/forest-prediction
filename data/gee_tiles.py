@@ -83,6 +83,9 @@ def gen_tile(img_db, lon, lat, tile_type, year, out_name):
     GAIN_IDX = 1 # forest gain index
     LOSS_IDX = 2 # forest loss index
     img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
+    if img_arr.size == 0:
+        print('WARNING:', out_name)
+     
     if tile_type == 'fc':
         # loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
         loss_arr = np.copy(img_arr[LOSS_IDX])
@@ -104,8 +107,7 @@ def gen_tile(img_db, lon, lat, tile_type, year, out_name):
     # else:
         # img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
     np.save(out_name, img_arr)
-
-
+    
 def extract_tiles(tiles, year, landsat_db, hansen_db, landsat_dir, forest_cover_dir, forest_loss_dir):
     out_landsat = os.path.join(landsat_dir, year)
     out_fc = os.path.join(forest_cover_dir, year)
@@ -116,11 +118,11 @@ def extract_tiles(tiles, year, landsat_db, hansen_db, landsat_dir, forest_cover_
     landsat_template = 'ld{year}_{z}_{x}_{y}.npy'
     fc_template = 'fc{year}_{z}_{x}_{y}.npy'
     fl_template = 'fl{year}_{z}_{x}_{y}.npy'
-    for z,x,y in [(12, 1260, 2185)]:
-    # for z, x, y in tiles:
+    # for z,x,y in [(12, 1260, 2185)]:
+    for z, x, y in tiles:
         lon, lat = num2deg(int(x), int(y), int(z))
         int_year = int(year[2:])
-        gen_tile(landsat_db, lon, lat, 'ld', int_year, os.path.join(out_landsat, landsat_template.format(year=year, z=z, x=x, y=y)))
+        # gen_tile(landsat_db, lon, lat, 'ld', int_year, os.path.join(out_landsat, landsat_template.format(year=year, z=z, x=x, y=y)))
         gen_tile(hansen_db, lon, lat, 'fc', int_year, os.path.join(out_fc, fc_template.format(year=year, z=z, x=x, y=y)))
         gen_tile(hansen_db, lon, lat, 'fl', int_year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
 
@@ -128,11 +130,11 @@ def main():
     gee_dir = '/mnt/ds3lab-scratch/lming/gee_data'
     landsat_db_dir = os.path.join(gee_dir, 'ls7')
 
-    with open('tiles.pkl', 'rb') as f:
+    with open('tiles11.pkl', 'rb') as f:
         tiles = pkl.load(f)
 
-    forest_cover_dir = os.path.join(gee_dir, 'forest_cover', 'processed')
-    forest_loss_dir = os.path.join(gee_dir, 'forest_loss', 'processed')
+    forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_cover')
+    forest_loss_dir = os.path.join(gee_dir, 'z11', 'forest_loss')
     landsat_dir = os.path.join(gee_dir, 'ls7', 'processed')
     create_dir(forest_cover_dir)
     create_dir(forest_loss_dir)
@@ -141,9 +143,9 @@ def main():
     for year in years:
         create_dir(os.path.join(forest_cover_dir, year))
         create_dir(os.path.join(forest_loss_dir, year))
-        create_dir(os.path.join(landsat_dir, 'processed', year))
-        landsat_dbs[year] = rasterio.open(os.path.join(landsat_db_dir, landsat' + year + '.vrt'))
-    hansen_db = rasterio.open(os.path.join(gee_dir, 'hansen.vrt'))
+        create_dir(os.path.join(landsat_dir, year))
+        landsat_dbs[year] = rasterio.open(os.path.join(landsat_db_dir, 'landsat' + year + '.vrt'))
+    hansen_db = rasterio.open(os.path.join(gee_dir, 'hansen11.vrt'))
 
     processes = []
     for year in years:
