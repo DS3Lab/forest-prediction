@@ -52,15 +52,28 @@ def open_image(img_path):
             print(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
-def get_img(mask_path, img_dir):
+def get_img(mask_path, img_dir, double=False):
     year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-    if 'planet2landsat' in img_dir:
-        img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.png')
-    elif 'landsat' in img_dir:
-        img_template = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
+    if not double:
+        if 'planet2landsat' in img_dir:
+            img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.png')
+        elif 'landsat' in img_dir:
+            img_template = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
+        else:
+            img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
+        return img_template.format(year=year, z=z, x=x, y=y)
     else:
-        img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
-    return img_template.format(year=year, z=z, x=x, y=y)
+        if 'planet2landsat' in img_dir:
+            img_template1 = os.path.join(img_dir, str(year-1), 'pl{year}_{z}_{x}_{y}.png')
+            img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.png')
+        elif 'landsat' in img_dir:
+            img_template1 = os.path.join(img_dir, str(year-1), 'ld{year}_{z}_{x}_{y}.png')
+            img_template2 = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
+        else:
+            img_template1 = os.path.join(img_dir, str(year-1), 'pl{year}_{z}_{x}_{y}.npy')
+            img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
+        return img_template1.format(year=year-1, z=z, x=x, y=y),
+            img_template2.format(year=year, z=z, x=x, y=y)
 
 
 class PlanetSingleDataset(Dataset):
@@ -121,6 +134,66 @@ class PlanetDataLoader(BaseDataLoader):
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
         self.dataset = PlanetSingleDataset(img_dir, label_dir, years, max_dataset_size)
+        super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
+
+class PlanetDoubleDataset(Dataset):
+    """
+    Planet 3-month mosaic dataset
+    """
+    def __init__(self, img_dir, label_dir, years, max_dataset_size):
+        """Initizalize dataset.
+            Params:
+                data_dir: absolute path, string
+                years: list of years
+                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
+        """
+        self.img_dir = img_dir
+        self.label_dir = label_dir
+        self.paths = []
+        for year in years:
+            imgs_path = os.path.join(label_dir, year)
+            self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
+        self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
+        self.paths.sort()
+        # TODO: update mean/std
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            utils.Normalize((0.3326, 0.3570, 0.2224),
+                (0.1059, 0.1086, 0.1283))
+        ])
+        self.dataset_size = len(self.paths)
+
+    def __len__(self):
+        # print('Planet Dataset len called')
+        return self.dataset_size
+
+    def __getitem__(self, index):
+        r"""Returns data point and its binary mask"""
+        # Notes: tiles in annual mosaics need to be divided by 255.
+        mask_path = self.paths[index]
+        year, z, x, y = get_tile_info(mask_path.split('/')[-1])
+        img_path1, img_path2 = get_img(mask_path, self.img_dir)
+
+        mask_arr = open_image(mask_path)
+        img_arr1 = open_image(img_path1)
+        img_arr2 = open_image(img_path2)
+        mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+        img_arr1 = self.transforms(img_arr1)
+        img_arr2 = self.transforms(img_arr2)
+        img_arr = torch.cat((img_arr1, img_arr2), 0)
+        return img_arr.float(), mask_arr.float()
+
+class PlanetDobleDataLoader(BaseDataLoader):
+    def __init__(self, img_dir,
+            label_dir,
+            batch_size,
+            years,
+            max_dataset_size=float('inf'),
+            shuffle=True,
+            num_workers=16):
+        if max_dataset_size == 'inf':
+            max_dataset_size = float('inf')
+        self.dataset = PlanetDoubleDataset(img_dir, label_dir, years, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
 
 def get_immediate_subdirectories(a_dir):
