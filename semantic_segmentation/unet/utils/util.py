@@ -105,6 +105,47 @@ def save_simple_images(batch_size, images, out_dir, idx_start):
         plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
         plt.close(f)
 
+def save_double_images(batch_size, images, out_dir, idx_start):
+
+    for i in range(0, images['img'].shape[0], batch_size):
+        num_y_tiles = 4 # input, gt, prediction
+        f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
+        gs = gridspec.GridSpec(num_y_tiles, batch_size, wspace=0.0, hspace=0.0)
+        tiles = list(range(i, i + batch_size))
+
+        for tile in tiles:
+            # img1, img2, gt, pred
+            if tile < images['img'].shape[0]:
+                img = images['img'][tile]
+                gt = images['gt'][tile]
+                pred = images['pred'][tile]
+                # Set up plot
+                ax = plt.subplot(gs[0, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 0')
+                plt.imshow(np.transpose(img[:3], axes=[1,2,0]))
+                ax = plt.subplot(gs[1, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 1')
+                plt.imshow(np.transpose(img[3:], axes=[1,2,0]))
+                ax = plt.subplot(gs[2, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 2')
+                plt.imshow(gt[0], cmap=plt.cm.binary)
+                ax = plt.subplot(gs[3, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 3')
+                plt.imshow(pred[0], cmap=plt.cm.binary)
+
+        out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
+        print('Saved!', out_imgs_dir)
+        plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+        plt.close(f)
+
 
 def get_loss_pred(img0, img1):
     # img0 = quarter0

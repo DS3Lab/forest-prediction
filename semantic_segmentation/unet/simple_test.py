@@ -9,7 +9,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import save_simple_images, NormalizeInverse
+from utils.util import save_simple_images, NormalizeInverse, save_double_images
 from torch.nn import functional as F
 
 
@@ -132,7 +132,10 @@ def main(config):
             print('prediction_time', time.time() - init_time)
 
             print('Save images shape input', images['img'].shape)
-            save_simple_images(3, images, out_dir, i*batch_size)
+            if images['img'].shape[1] == 3:
+                save_simple_images(3, images, out_dir, i*batch_size)
+            else:
+                save_double_images(3, images, out_dir, i*batch_size)
             # computing loss, metrics on test set
             loss = loss_fn(output, target)
             batch_size = data.shape[0]
@@ -157,9 +160,17 @@ def normalize_inverse(batch, mean, std):
     with torch.no_grad():
         img = batch.clone()
         ubatch = torch.Tensor(batch.shape)
-        ubatch[:, 0, :, :] = img[:, 0, :, :] * std[0] + mean[0]
-        ubatch[:, 1, :, :] = img[:, 1, :, :] * std[1] + mean[1]
-        ubatch[:, 2, :, :] = img[:, 2, :, :] * std[2] + mean[2]
+        if img.shape[1] == 3: # 1 image
+            ubatch[:, 0, :, :] = img[:, 0, :, :] * std[0] + mean[0]
+            ubatch[:, 1, :, :] = img[:, 1, :, :] * std[1] + mean[1]
+            ubatch[:, 2, :, :] = img[:, 2, :, :] * std[2] + mean[2]
+        else: # 2 input images
+            ubatch[:, 0, :, :] = img[:, 0, :, :] * std[0] + mean[0]
+            ubatch[:, 1, :, :] = img[:, 1, :, :] * std[1] + mean[1]
+            ubatch[:, 2, :, :] = img[:, 2, :, :] * std[2] + mean[2]
+            ubatch[:, 3, :, :] = img[:, 3, :, :] * std[0] + mean[0]
+            ubatch[:, 4, :, :] = img[:, 4, :, :] * std[1] + mean[1]
+            ubatch[:, 5, :, :] = img[:, 5, :, :] * std[2] + mean[2]
     return ubatch
 
 if __name__ == '__main__':
