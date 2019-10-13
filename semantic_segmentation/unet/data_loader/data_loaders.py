@@ -72,8 +72,7 @@ def get_img(mask_path, img_dir, double=False):
         else:
             img_template1 = os.path.join(img_dir, str(year-1), 'pl{year}_{z}_{x}_{y}.npy')
             img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
-        return img_template1.format(year=year-1, z=z, x=x, y=y),
-            img_template2.format(year=year, z=z, x=x, y=y)
+        return img_template1.format(year=year-1, z=z, x=x, y=y), img_template2.format(year=year, z=z, x=x, y=y)
 
 
 class PlanetSingleDataset(Dataset):
@@ -172,7 +171,7 @@ class PlanetDoubleDataset(Dataset):
         # Notes: tiles in annual mosaics need to be divided by 255.
         mask_path = self.paths[index]
         year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-        img_path1, img_path2 = get_img(mask_path, self.img_dir)
+        img_path1, img_path2 = get_img(mask_path, self.img_dir, double=True)
 
         mask_arr = open_image(mask_path)
         img_arr1 = open_image(img_path1)
@@ -183,7 +182,7 @@ class PlanetDoubleDataset(Dataset):
         img_arr = torch.cat((img_arr1, img_arr2), 0)
         return img_arr.float(), mask_arr.float()
 
-class PlanetDobleDataLoader(BaseDataLoader):
+class PlanetDoubleDataLoader(BaseDataLoader):
     def __init__(self, img_dir,
             label_dir,
             batch_size,
