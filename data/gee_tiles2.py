@@ -97,6 +97,7 @@ def get_aggregated_loss(img_arr, beg=1, end=12):
 
 def save_fc(img_arr, out_name, year):
     FC_IDX = 0 # forest cover index
+    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data'
     GAIN_IDX = 1 # forest gain index
     LOSS_IDX = 2 # forest loss index
     # loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
@@ -137,14 +138,8 @@ def gen_tile(img_db, lon, lat, year, out_name):
         save_fc(img_arr, out_name, year)
 
 def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
-    out_landsat = os.path.join(landsat_dir, year)
-    out_fc = os.path.join(forest_cover_dir, year)
     out_fl = os.path.join(forest_loss_dir, year)
-    create_dir(out_landsat)
-    create_dir(out_fc)
     create_dir(out_fl)
-    landsat_template = 'ld{year}_{z}_{x}_{y}.npy'
-    fc_template = 'fc{year}_{z}_{x}_{y}.npy'
     fl_template = 'fl{year}_{z}_{x}_{y}.npy'
     # for z,x,y in [(12, 1260, 2185)]:
     for z, x, y in tiles:
@@ -161,9 +156,9 @@ def main():
     bbox = {
 		'upper_left': (-84.04511825722398, 13.898213869443307),
 		'lower_right': (-38.082088, -52.993502)
-	}
-	zoom = 11
-	tiles = bbox2tiles(bbox, zoom)
+    }
+    zoom = 11
+    tiles = bbox2tiles(bbox, zoom)
 
     forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2')
     forest_loss_dir = os.path.join(gee_dir, 'z11', 'forest_lossv2')
