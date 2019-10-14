@@ -73,13 +73,19 @@ def get_img(mask_path, img_dir, double=False):
             img_template1 = os.path.join(img_dir, str(year-1), 'pl{year}_{z}_{x}_{y}.npy')
             img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
         return img_template1.format(year=year-1, z=z, x=x, y=y), img_template2.format(year=year, z=z, x=x, y=y)
-
+def get_mask(img_path, mask_dir):
+    year, z, x, y = get_tile_info(mask_path.split('/')[-1])
+    if 'loss' in mask_dir:
+        mask_template = os.path.join(mask_dir, str(year), 'fl{year}_{z}_{x}_{y}.npy')
+    else: # cover
+        mask_template = os.path.join(mask_dir, str(year), 'fc{year}_{z}_{x}_{y}.npy')
+    return mask_template.format(year=year, z=z, x=x, y=y)
 
 class PlanetSingleDataset(Dataset):
     """
     Planet 3-month mosaic dataset
     """
-    def __init__(self, img_dir, label_dir, years, max_dataset_size):
+    def __init__(self, img_dir, label_dir, years, max_dataset_size, video=False):
         """Initizalize dataset.
             Params:
                 data_dir: absolute path, string
@@ -89,9 +95,19 @@ class PlanetSingleDataset(Dataset):
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.paths = []
-        for year in years:
-            imgs_path = os.path.join(label_dir, year)
-            self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
+        # Delete after video training or update dataset properly
+        if video:
+            with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/train_val_test.pkl', 'rb') as pkl_file:
+                train_val_test = pkl.load(pkl_file)
+            for key in train_val_test['train'].keys():
+                imgs = train_val_test['train'][key]
+                for year in years:
+                    mask_path = get_mask(imgs[year], self.label_dir)
+                    self.paths.append(mask_path)
+        else:
+            for year in years:
+                imgs_path = os.path.join(label_dir, year)
+                self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
         self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
         self.paths.sort()
         # TODO: update mean/std
