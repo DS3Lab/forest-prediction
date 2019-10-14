@@ -12,7 +12,7 @@ import logging
 import cv2
 import numpy as np
 from itertools import product
-
+import requests
 import os
 import glob
 import rasterio
@@ -66,30 +66,37 @@ def download_file(url, path, redo=True):
                 for chunk in r.iter_content(chunk_size=8192):
                     if chunk: # filter out keep-alive new chunks
                         f.write(chunk)
+        logger.debug('SUCCESS {} {}'.format(url, path))
         return 1
     except:
-        if redo:
-            REDOWNLOAD.append((path, url))
-        return None
+         if redo:
+             REDOWNLOAD.append((path, url))
+         logger.debug('FAIL', url, path)
+         return None
 
 def download_tile(tile, out_dir):
     planet_name = 'pl{year}_{q}_{z}_{x}_{y}.png'
     landsat_name = 'ld{year}_{z}_{x}_{y}.png'
     quarters = ['q1', 'q2', 'q3', 'q4']
     year, z, x, y = tile
-    landsat_path1 = os.path.join(out_dir, 'landsat', str(year-1), landsat_name.format(year=year, z=z, x=x, y=y))
+    year = int(year)
+    landsat_path1 = os.path.join(out_dir, 'landsat', str(year-1), landsat_name.format(year=year-1, z=z, x=x, y=y))
     landsat_path2 = os.path.join(out_dir, 'landsat', str(year), landsat_name.format(year=year, z=z, x=x, y=y))
-    landsat_url1 = LANDSAT_URLS[str(year-1)].format(z=z, x=x, y=y)
-    landsat_url2 = LANDSAT_URLS[str(year)].format(z=z, x=x, y=y)
-    if not os.path.exists(landsat_path1):
+    if not os.path.exists(landsat_path1) and year!= 2013:
+        landsat_url1 = LANDSAT_URLS[str(year-1)].format(z=z, x=x, y=y)
         download_file(landsat_url1, landsat_path1)
     if not os.path.exists(landsat_path2):
+        landsat_url2 = LANDSAT_URLS[str(year)].format(z=z, x=x, y=y)
         download_file(landsat_url2, landsat_path2)
     # Download planet file
-    # for q in quarters:
-    #     planet_path = os.path.join(out_dir, 'planet', str(year), planet_name.format(year=year, q=q, z=z, x=x, y=y))
-    #     planet_url = PLANET_URL.format(year=year, q=q, z=z, x=tile[0], y=tile[1])
-    #     download_file(planet_url, planet_path)
+    for q in quarters:
+        if year in [2017, 2018]:
+            planet_path1 = os.path.join(out_dir, 'planet', str(year-1), planet_name.format(year=year-1, q=q, z=z, x=x, y=y))
+            planet_path2 = os.path.join(out_dir, 'planet', str(year), planet_name.format(year=year, q=q, z=z, x=x, y=y))
+            planet_url1 = PLANET_URL.format(year=year-1, q=q, z=z, x=x, y=y)
+            planet_url2 = PLANET_URL.format(year=year, q=q, z=z, x=x, y=y)
+            download_file(planet_url1, planet_path1)
+            download_file(planet_url2, planet_path2)
 
 def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
     years = ['2013', '2014', '2015', '2016', '2017']
@@ -108,7 +115,12 @@ def main():
     tiles = get_tiles()
     print(len(tiles))
     out_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl'
+    create_dir(os.path.join(out_dir, 'landsat'))
+    create_dir(os.path.join(out_dir, 'planet'))
     create_dir(out_dir)
+    for year in ['2013', '2014', '2015', '2016', '2017']:
+        create_dir(os.path.join(out_dir, 'landsat', year))
+        create_dir(os.path.join(out_dir, 'planet', year))
 
     for chunk in chunks(tiles, 16):
         with multiprocessing.Pool(processes=16) as pool:

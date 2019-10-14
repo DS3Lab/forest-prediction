@@ -22,7 +22,7 @@ fh = logging.FileHandler('gee.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
-def check_quality_label(img, threshold = 0.02):
+def check_quality_label(img, threshold = 0.01):
     """
     img = np.array(256,256)
     """
