@@ -1,7 +1,5 @@
 """Module to download "high quality" hansen tiles (min 5% forest loss)
 """
-import argparse
-import requests
 import os
 import sys
 import json
@@ -40,6 +38,7 @@ LANDSAT_URLS = {
 
 PLANET_URL = "https://tiles.planet.com/basemaps/v1/planet-tiles/global_quarterly_{year}{q}_mosaic/gmap/{z}/{x}/{y}.png?api_key=25647f4fc88243e2a6e91150aaa117e3"
 
+REDOWNLOAD = []
 logger = logging.getLogger('donwload_tiles')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
@@ -73,7 +72,7 @@ def download_file(url, path, redo=True):
             REDOWNLOAD.append((path, url))
         return None
 
-def download_tile(tile, z, out_dir):
+def download_tile(tile, out_dir):
     planet_name = 'pl{year}_{q}_{z}_{x}_{y}.png'
     landsat_name = 'ld{year}_{z}_{x}_{y}.png'
     quarters = ['q1', 'q2', 'q3', 'q4']
@@ -92,7 +91,7 @@ def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
     years = ['2013', '2014', '2015', '2016', '2017']
     tiles = []
     for year in years:
-        year_tiles = glob.glob(os.path.join(path, '*.npy'))
+        year_tiles = glob.glob(os.path.join(path, year, '*.npy'))
         for yt in year_tiles:
             # fl{year}_{z}_{x}_{y}.npy
             tile = yt.split('/')[-1].split('_')
@@ -102,13 +101,14 @@ def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
 def main():
 
     zoom = 11
-    tiles = get_tiles
+    tiles = get_tiles()
+    print(len(tiles))
     out_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl'
     create_dir(out_dir)
 
     for chunk in chunks(tiles, 16):
         with multiprocessing.Pool(processes=16) as pool:
-            results = pool.starmap(download_imgs, create_tuple(chunk, out_dir))
+            results = pool.starmap(download_tile, create_tuple(chunk, out_dir))
 
     with open('redownload.pkl', 'wb') as pkl_file:
         pkl.dump(REDOWNLOAD, pkl_file)
