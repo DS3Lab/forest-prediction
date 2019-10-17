@@ -39,9 +39,9 @@ You can change the type of model used, and its configuration by altering (or cre
 
 ### Structure of `config.json`
 The fields of the config file are self explanatory. We explain the most important ones.
-`name`: indicates the name of the experiment. It is the folder in which both the training logs and models are going to be stored
-`n_gpu`: for multi-GPU training, it is necessary to specify how many gpus it is going to use. For instance, if the user specifies `-d 0,1`, in order to use both gpus `n_gpu` needs to be set up to 2. If it is set up to 1, it will only use gpu 0, if it is set up to a number higher than 2, then it will yield an error.
-`arch`: it specifies the model that will be used for training/testing purposes.
-`data_loader_train` and `data_loader_val`: data loaders for training and validation purposes. For testing, change `data_loader_val`.
+* `name`: indicates the name of the experiment. It is the folder in which both the training logs and models are going to be stored
+* `n_gpu`: for multi-GPU training, it is necessary to specify how many gpus it is going to use. For instance, if the user specifies `-d 0,1`, in order to use both gpus `n_gpu` needs to be set up to 2. If it is set up to 1, it will only use gpu 0, if it is set up to a number higher than 2, then it will yield an error.
+* `arch`: it specifies the model that will be used for training/testing purposes.
+* `data_loader_train` and `data_loader_val`: data loaders for training and validation purposes. For testing, change             `data_loader_val`.
     
 
