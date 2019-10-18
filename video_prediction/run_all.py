@@ -17,7 +17,7 @@ parser.add_argument("--output_dir")
 parser.add_argument("--model_dir")
 args = parser.parse_args()
 directories = get_immediate_subdirectories(args.input_dir)
-cmd_template = 'python scripts/generate.py --input_dir {input_dir} --dataset cropped --dataset_hparams sequence_length=5 --checkpoint {model_dir} --mode test --results_dir {output_dir} --batch_size 1'
+cmd_template = 'python scripts/generate.py --input_dir {input_dir} --dataset landsat --dataset_hparams sequence_length=5 --checkpoint {model_dir} --mode test --results_dir {output_dir} --batch_size 1'
 
 print(os.getcwd(), 'DIRECTORY')
 # cmd_template = ['python', 'scripts/generate.py', '--input_dir', '{input_dir}', '--dataset cropped', '--dataset_hparams', 'sequence_length=', '--checkpoint', 'logs/planet_cropped_gan4_experiments/ours_deterministic_l1/', '--mode test', '--results_dir', '{output_dir}', '--batch_size', '1']

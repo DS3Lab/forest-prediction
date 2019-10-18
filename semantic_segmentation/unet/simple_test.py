@@ -51,7 +51,13 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
 
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
-
+def get_output_dir(img_dir):
+    if 'pix2pix' in img_dir:
+        return 'pix2pix'
+    elif 'landsat' in img_dir:
+        return 'landsat'
+    else:
+        return 'planet'
 
 def main(config):
     logger = config.get_logger('test')
@@ -96,7 +102,7 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    out_dir = os.path.join(pred_dir, 'pix2pix')
+    out_dir = os.path.join(pred_dir, get_output_dir(config['data_loader_val']['args']['img_dir']))
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):

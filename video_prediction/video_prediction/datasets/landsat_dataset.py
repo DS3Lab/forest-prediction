@@ -239,6 +239,28 @@ def create_single_test_dataset(args):
         read_frames_and_save_single_tf_records(output_dir, test_files[key], sequences_per_file=1)
 
 
+def create_single_test_dataset_tmp(args):
+    # path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
+    path = args.input_dir
+    files = glob.glob(os.path.join(path, '2013', '*.png'))
+    tmpl = 'ld{}_{}_{}_{}.png'
+    for f in files:
+        items = f.split('/')[-1].split('_')
+        z,x,y = items[1], items[2], items[3][:-4]
+        key = '_'.join((z,x,y))
+        output_dir = os.path.join(args.output_dir, key, 'test')
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        files_dict = {
+                '2013': os.path.join(path, '2013', tmpl.format('2013',z,x,y)),
+                '2014': os.path.join(path, '2014', tmpl.format('2014',z,x,y)),
+                '2015': os.path.join(path, '2015', tmpl.format('2015',z,x,y)),
+                '2016': os.path.join(path, '2016', tmpl.format('2016',z,x,y)),
+                '2017': os.path.join(path, '2017', tmpl.format('2017',z,x,y)),
+                }
+        read_frames_and_save_single_tf_records(output_dir, files_dict, sequences_per_file=1)
+    
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dir", type=str, help="directory containing the quarter mosaics from landsat")
@@ -250,6 +272,7 @@ def main():
     elif args.dataset_type == 'sep': # separate tf records
         create_single_test_dataset(args)
     else:
+        create_single_test_dataset_tmp(args)
         print('Dataset type not found')
     '''
     partition_names = ['train', 'val', 'test']

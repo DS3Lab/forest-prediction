@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import torch
 import torchvision
+import pickle as pkl
 # import rasterio
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -28,19 +29,22 @@ def open_image(img_path):
     filetype = img_path[-3:]
     assert filetype in ['png', 'npy']
     if filetype == 'npy':
-        try:
-            img_arr = np.load(img_path)
-            if len(img_arr.shape) == 3: # RGB
+        # try:
+        img_arr = np.load(img_path)
+        if len(img_arr.shape) == 3: # RGB
+            if img_arr.shape[0] == 3: # NCHW
                 img_arr = img_arr.transpose([1,2,0])
-                return img_arr / 255.
-            elif len(img_arr.shape) == 2: # mask
+            img_arr = img_arr / 255.
+        #     print(img_arr.shape)
+            return img_arr
+        elif len(img_arr.shape) == 2: # mask
                 # change to binary mask
-                nonzero = np.where(img_arr!=0)
-                img_arr[nonzero] = 1
-                return img_arr
-        except:
-            print('ERROR', img_path)
-            return None
+            nonzero = np.where(img_arr!=0)
+            img_arr[nonzero] = 1
+            return img_arr
+        # except:
+        #     print('ERROR', img_path)
+        #     return None
         # return img_arr / 255.
     else:
         # For images transforms.ToTensor() does range to (0.,1.)
@@ -74,7 +78,7 @@ def get_img(mask_path, img_dir, double=False):
             img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
         return img_template1.format(year=year-1, z=z, x=x, y=y), img_template2.format(year=year, z=z, x=x, y=y)
 def get_mask(img_path, mask_dir):
-    year, z, x, y = get_tile_info(mask_path.split('/')[-1])
+    year, z, x, y = get_tile_info(img_path.split('/')[-1])
     if 'loss' in mask_dir:
         mask_template = os.path.join(mask_dir, str(year), 'fl{year}_{z}_{x}_{y}.npy')
     else: # cover
@@ -85,7 +89,7 @@ class PlanetSingleDataset(Dataset):
     """
     Planet 3-month mosaic dataset
     """
-    def __init__(self, img_dir, label_dir, years, max_dataset_size, video=False):
+    def __init__(self, img_dir, label_dir, years, max_dataset_size, video=False, mode='train'):
         """Initizalize dataset.
             Params:
                 data_dir: absolute path, string
@@ -99,8 +103,8 @@ class PlanetSingleDataset(Dataset):
         if video:
             with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/train_val_test.pkl', 'rb') as pkl_file:
                 train_val_test = pkl.load(pkl_file)
-            for key in train_val_test['train'].keys():
-                imgs = train_val_test['train'][key]
+            for key in train_val_test[mode].keys():
+                imgs = train_val_test[mode][key]
                 for year in years:
                     mask_path = get_mask(imgs[year], self.label_dir)
                     self.paths.append(mask_path)
@@ -145,10 +149,12 @@ class PlanetDataLoader(BaseDataLoader):
             years,
             max_dataset_size=float('inf'),
             shuffle=True,
-            num_workers=16):
+            num_workers=16,
+            video=False,
+            mode='train'):
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
-        self.dataset = PlanetSingleDataset(img_dir, label_dir, years, max_dataset_size)
+        self.dataset = PlanetSingleDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
 
 class PlanetDoubleDataset(Dataset):
