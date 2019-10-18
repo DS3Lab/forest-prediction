@@ -129,12 +129,19 @@ def main(config):
             img_arr2016, mask_arr2016 = batch['2016']['img_arr'], batch['2016']['mask_arr']
             img_arr2017, mask_arr2017 = batch['2017']['img_arr'], batch['2017']['mask_arr']
 
+            img_arr2015p, _ = batch['2015p']['img_arr'], batch['2015']['mask_arr']
+            img_arr2016p, _ = batch['2016p']['img_arr'], batch['2016']['mask_arr']
+            img_arr2017p, _ = batch['2017p']['img_arr'], batch['2017']['mask_arr']
+
             uimg_arr2013, uimg_arr2014, uimg_arr2015, uimg_arr2016, uimg_arr2017 = \
                 normalize_inverse(img_arr2013, landsat_mean, landsat_std), \
                 normalize_inverse(img_arr2014, landsat_mean, landsat_std), \
                 normalize_inverse(img_arr2015, landsat_mean, landsat_std), \
                 normalize_inverse(img_arr2016, landsat_mean, landsat_std), \
                 normalize_inverse(img_arr2017, landsat_mean, landsat_std)
+            uimg_arr2015p, uimg_arr2016p, uimg_arr2017p = normalize_inverse(img_arr2015p, landsat_mean, landsat_std), \
+                normalize_inverse(img_arr2016p, landsat_mean, landsat_std), \
+                normalize_inverse(img_arr2017p, landsat_mean, landsat_std), \
 
             pred2013 = update_individual_hists(img_arr2013, mask_arr2013, hist2013, device, model)
             pred2014 = update_individual_hists(img_arr2014, mask_arr2014, hist2014, device, model)
@@ -167,7 +174,22 @@ def main(config):
                     'img': uimg_arr2017.cpu().numpy(),
                     'gt': mask_arr2017.cpu().numpy(),
                     'pred': pred2017
-                }
+                },
+                '2015p':{
+                    'img': uimg_arr2015p.cpu().numpy(),
+                    'gt': mask_arr2015.cpu().numpy(),
+                    'pred': pred2015
+                },
+                '2016p':{
+                    'img': uimg_arr2016p.cpu().numpy(),
+                    'gt': mask_arr2016.cpu().numpy(),
+                    'pred': pred2016
+                },
+                '2017p':{
+                    'img': uimg_arr2017p.cpu().numpy(),
+                    'gt': mask_arr2017.cpu().numpy(),
+                    'pred': pred2017
+                },
             }
             save_video_images256(images, out_dir, i*batch_size)
             # computing loss, metrics on test set
