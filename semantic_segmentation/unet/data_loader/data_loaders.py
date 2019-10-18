@@ -250,9 +250,13 @@ class PlanetSingleVideoDataset(Dataset):
 
         img2013 = img_gt_template.format(year_dir=2013, year_f=2013, key=key)
         img2014 = img_gt_template.format(year_dir=2014, year_f=2014, key=key)
-        img2015 = img_video_template.format(0)
-        img2016 = img_video_template.format(1)
-        img2017 = img_video_template.format(2)
+        img2015 = img_gt_template.format(year_dir=2015, year_f=2015, key=key)
+        img2016 = img_gt_template.format(year_dir=2016, year_f=2016, key=key)
+        img2017 = img_gt_template.format(year_dir=2017, year_f=2017, key=key)
+
+        pred2015 = img_video_template.format(0)
+        pred2016 = img_video_template.format(1)
+        pred2017 = img_video_template.format(2)
 
         label2013 = label_template.format(year_dir=2013, year_f=2013, key=key)
         label2014 = label_template.format(year_dir=2014, year_f=2014, key=key)
@@ -280,7 +284,19 @@ class PlanetSingleVideoDataset(Dataset):
             '2017': {
                 'img_dir': img2017,
                 'label_dir': label2017
-            }
+            },
+            '2015p': {
+                'img_dir': pred2015,
+                'label_dir': label2015
+            },
+            '2016p': {
+                'img_dir': pred2016,
+                'label_dir': label2016
+            },
+            '2017p': {
+                'img_dir': pred2017,
+                'label_dir': label2017
+            },
         }
 
     def _process_img_pair(self, img_dict):
@@ -307,7 +323,10 @@ class PlanetSingleVideoDataset(Dataset):
             '2014': self._process_img_pair(imgs_dict['2014']),
             '2015': self._process_img_pair(imgs_dict['2015']),
             '2016': self._process_img_pair(imgs_dict['2016']),
-            '2017': self._process_img_pair(imgs_dict['2017'])
+            '2017': self._process_img_pair(imgs_dict['2017']),
+            '2015p': self._process_img_pair(imgs_dict['2015p']),
+            '2016p': self._process_img_pair(imgs_dict['2016p']),
+            '2017p': self._process_img_pair(imgs_dict['2017p']),
         }
         return tensor_dict
 
