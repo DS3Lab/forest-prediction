@@ -1,5 +1,6 @@
 import json
 import torch
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
@@ -11,6 +12,12 @@ from datetime import datetime
 from itertools import repeat
 from collections import OrderedDict
 from PIL import Image
+
+
+def create_dir(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+##
 
 def ensure_dir(dirname):
     dirname = Path(dirname)
@@ -41,14 +48,38 @@ def save_video_images256(images, out_dir, idx_start):
     years0 = ['2013', '2014', '2015', '2016', '2017']
     years1 = ['2015p', '2016p', '2017p']
     years = years0 + years1
-    for year in years:
-        img = images[year]['img']
-        gt = images[year]['gt']
-        pred = images[year]['pred']
-        img_save = Image.fromarray(img)
-        gt_save = Image.fromarray(gt)
-        pred_save = Image.fromarray(pred)
-        img_save.save(os.path.join(out_dir, idx_start, year + '.png'))
+    out = os.path.join(out_dir, str(idx_start))
+    create_dir(out)
+    for year in years0:
+        img = np.transpose(images[year]['img'][0], [1,2,0])
+        gt = images[year]['gt'][0][0]
+        pred = images[year]['pred'][0][0]
+        print(img.shape, gt.shape, pred.shape)
+        out_landsat = os.path.join(out, 'landsat_gt')
+        out_gt = os.path.join(out, 'fc_gt')
+        out_pred_gt = os.path.join(out, 'pred_gt')
+        create_dir(out_gt)
+        create_dir(out_landsat)
+        create_dir(out_pred_gt)
+        matplotlib.image.imsave(os.path.join(out_landsat, str(year) + 'img.png'), img)
+        matplotlib.image.imsave(os.path.join(out_gt, str(year) + 'gt.png'), gt)
+        matplotlib.image.imsave(os.path.join(out_pred_gt, str(year) + 'pred.png'), pred)
+    for year in years1:
+        img = np.transpose(images[year]['img'][0], [1,2,0])
+        gt = images[year]['gt'][0][0]
+        pred = images[year]['pred'][0][0]
+        print(img.shape, gt.shape, pred.shape)
+        out_landsat_pred = os.path.join(out, 'landsat_pred')
+        out_pred_pred = os.path.join(out, 'fc_pred_pred')
+        create_dir(out_pred_pred)
+        create_dir(out_landsat_pred)
+
+        matplotlib.image.imsave(os.path.join(out_landsat_pred, str(year) + 'img.png'), img)
+        matplotlib.image.imsave(os.path.join(out_pred_pred, str(year) + 'pred.png'), pred)
+        # img_save = Image.fromarray(img)
+        # gt_save = Image.fromarray(gt)
+        # pred_save = Image.fromarray(pred)
+        # img_save.save(os.path.join(out_dir, idx_start, year + '.png'))
 
     # num_y_tiles = 6
     # f = plt.figure(figsize=(4, num_y_tiles*2))

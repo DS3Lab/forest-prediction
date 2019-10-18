@@ -80,6 +80,7 @@ def download_tile(tile, out_dir):
     quarters = ['q1', 'q2', 'q3', 'q4']
     year, z, x, y = tile
     year = int(year)
+    
     landsat_path1 = os.path.join(out_dir, 'landsat', str(year-1), landsat_name.format(year=year-1, z=z, x=x, y=y))
     landsat_path2 = os.path.join(out_dir, 'landsat', str(year), landsat_name.format(year=year, z=z, x=x, y=y))
     if not os.path.exists(landsat_path1) and year!= 2013:
@@ -88,6 +89,7 @@ def download_tile(tile, out_dir):
     if not os.path.exists(landsat_path2):
         landsat_url2 = LANDSAT_URLS[str(year)].format(z=z, x=x, y=y)
         download_file(landsat_url2, landsat_path2)
+    
     # Download planet file
     for q in quarters:
         if year in [2017, 2018]:
@@ -95,11 +97,33 @@ def download_tile(tile, out_dir):
             planet_path2 = os.path.join(out_dir, 'planet', str(year), planet_name.format(year=year, q=q, z=z, x=x, y=y))
             planet_url1 = PLANET_URL.format(year=year-1, q=q, z=z, x=x, y=y)
             planet_url2 = PLANET_URL.format(year=year, q=q, z=z, x=x, y=y)
-            download_file(planet_url1, planet_path1)
-            download_file(planet_url2, planet_path2)
+            if not os.path.exists(planet_path1):
+                download_file(planet_url1, planet_path1)
+            if not os.path.exists(planet_path2):
+                download_file(planet_url2, planet_path2)
+
+
+def download_tilev2(tile, out_dir):
+    landsat_name = 'ld{year}_{z}_{x}_{y}.png'
+    years = [2013, 2014, 2015, 2016, 2017]
+    for year in years:
+        z, x, y = tile
+        landsat_path = os.path.join(out_dir, str(year), landsat_name.format(year=year, z=z, x=x, y=y))
+        if not os.path.exists(landsat_path):
+            landsat_url = LANDSAT_URLS[str(year)].format(z=z, x=x, y=y)
+            download_file(landsat_url, landsat_path)
+    
+def add_in_dict(dic, key):
+    z, x, y = key[0], key[1], key[2]
+    if key not in dic:
+        dic[key] = {}
+        dic[key]['z']= z
+        dic[key]['x']= x
+        dic[key]['y']= z
 
 def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
-    years = ['2013', '2014', '2015', '2016', '2017']
+    # years = ['2013', '2014', '2015', '2016', '2017', '2018']
+    years = ['2017', '2018', '2017_1', '2018_1']
     tiles = []
     for year in years:
         year_tiles = glob.glob(os.path.join(path, year, '*.npy'))
@@ -109,25 +133,36 @@ def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
             tiles.append((tile[0][2:], tile[1], tile[2], tile[3][:-4]))
     return tiles
 
-def main():
+def get_tilesv2(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
+    years = ['2014', '2015', '2016', '2016_1', '2017', '2017_1']
+    tiles = {}
+    for year in years:
+        year_tiles = glob.glob(os.path.join(path, year, '*.npy'))
+        for yt in year_tiles:
+            # fl{year}_{z}_{x}_{y}.npy
+            tile = yt.split('/')[-1].split('_')
+            key = (tile[1], tile[2], tile[3][:-4])
+            add_in_dict(tiles, key) 
+    return tiles
 
+def main():
     zoom = 11
-    tiles = get_tiles()
+    tiles = list(get_tilesv2().keys())
     print(len(tiles))
-    out_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl'
-    create_dir(os.path.join(out_dir, 'landsat'))
-    create_dir(os.path.join(out_dir, 'planet'))
+    out_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
     create_dir(out_dir)
+    # create_dir(os.path.join(out_dir, 'planet'))
+    # create_dir(out_dir)
     for year in ['2013', '2014', '2015', '2016', '2017']:
-        create_dir(os.path.join(out_dir, 'landsat', year))
-        create_dir(os.path.join(out_dir, 'planet', year))
+        create_dir(os.path.join(out_dir, year))
+    #     create_dir(os.path.join(out_dir, 'planet', year))
 
     for chunk in chunks(tiles, 16):
         with multiprocessing.Pool(processes=16) as pool:
-            results = pool.starmap(download_tile, create_tuple(chunk, out_dir))
+            results = pool.starmap(download_tilev2, create_tuple(chunk, out_dir))
 
-    with open('redownload.pkl', 'wb') as pkl_file:
-        pkl.dump(REDOWNLOAD, pkl_file)
+    # with open('redownload.pkl', 'wb') as pkl_file:
+    #     pkl.dump(REDOWNLOAD, pkl_file)
 
 if __name__ == '__main__':
     main()
