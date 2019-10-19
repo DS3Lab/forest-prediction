@@ -131,6 +131,7 @@ class PlanetSingleDataset(Dataset):
         # Notes: tiles in annual mosaics need to be divided by 255.
         mask_path = self.paths[index]
         year, z, x, y = get_tile_info(mask_path.split('/')[-1])
+        print('PREDICTING TILE {z}_{x}_{y}'.format(z=z, x=x, y=y))
         # For img_dir give
         # /mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct
         img_path = get_img(mask_path, self.img_dir)
@@ -237,9 +238,14 @@ class PlanetSingleVideoDataset(Dataset):
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.video_dir = video_dir
-        self.paths = get_immediate_subdirectories(self.video_dir)
-        print('SELF PATTHSS',self.paths)
+        # self.paths = get_immediate_subdirectories(self.video_dir)
+        # print('SELF PATTHSS',self.paths)
+        with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') as f:
+            no_in_training = pkl.load(f)
+        self.paths = no_in_training
         self.paths.sort()
+        print('SELF PATHS', self.paths)
+        # self.paths.sort()
         # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
@@ -250,6 +256,7 @@ class PlanetSingleVideoDataset(Dataset):
 
     def get_item(self, index):
         key = self.paths[index]
+        print('PREDICTING TILE {i} {key}'.format(i=index, key=key))
         img_gt_template = os.path.join(self.img_dir, '{year_dir}', 'ld{year_f}_{key}.png')
         img_video_template = os.path.join(self.video_dir, key, 'gen_image_00000_00_0{}.png')
         label_template = os.path.join(self.label_dir, '{year_dir}', 'fc{year_f}_{key}.npy')

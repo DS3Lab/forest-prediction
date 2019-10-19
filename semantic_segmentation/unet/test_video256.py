@@ -103,7 +103,7 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    out_dir = os.path.join(pred_dir, 'video_loss')
+    out_dir = os.path.join(pred_dir, 'video_loss_some')
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):
@@ -120,8 +120,10 @@ def main(config):
     # This script only supports batch=1
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
-    #         if i not in [0, 55, 76, 77, 79, 80, 81, 121, 284, 330, 356, 357, 358]:
-    #             continue
+        # if i not in [0, 55, 76, 77, 79, 80, 81, 121, 284, 330, 356, 357, 358]:
+            # if i not in [18, 43, 51, 61, 73, 84, 85, 88, 116, 124, 198, 201, 214, 245, 325, 330]:
+            # if i not in [84, 85, 88, 116, 124, 198, 201, 214, 245, 325]:
+            #     continue
         # for i, (data, target) in enumerate(tqdm(data_loader)):
             init_time = time.time()
             loss = None
@@ -150,6 +152,10 @@ def main(config):
             pred2015 = update_individual_hists(img_arr2015, mask_arr2015, hist2015, device, model)
             pred2016 = update_individual_hists(img_arr2016, mask_arr2016, hist2016, device, model)
             pred2017 = update_individual_hists(img_arr2017, mask_arr2017, hist2017, device, model)
+            
+            pred2015p = update_individual_hists(img_arr2015p, mask_arr2015, hist2015, device, model)
+            pred2016p = update_individual_hists(img_arr2016p, mask_arr2016, hist2016, device, model)
+            pred2017p = update_individual_hists(img_arr2017p, mask_arr2017, hist2017, device, model)
 
             images = {
                 '2013':{
@@ -180,17 +186,17 @@ def main(config):
                 '2015p':{
                     'img': uimg_arr2015p.cpu().numpy(),
                     'gt': mask_arr2015.cpu().numpy(),
-                    'pred': pred2015
+                    'pred': pred2015p
                 },
                 '2016p':{
                     'img': uimg_arr2016p.cpu().numpy(),
                     'gt': mask_arr2016.cpu().numpy(),
-                    'pred': pred2016
+                    'pred': pred2016p
                 },
                 '2017p':{
                     'img': uimg_arr2017p.cpu().numpy(),
                     'gt': mask_arr2017.cpu().numpy(),
-                    'pred': pred2017
+                    'pred': pred2017p
                 },
             }
             save_video_images256(images, out_dir, i*batch_size)
