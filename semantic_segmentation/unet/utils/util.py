@@ -70,23 +70,26 @@ def save_video_images256(images, out_dir, idx_start):
     years = years0 + years1
     out = os.path.join(out_dir, str(idx_start))
     create_dir(out)
+    total_loss_gt = np.zeros((256, 256))
+    total_loss_pred_gt = np.zeros((256, 256))
+    total_loss_pred_pred = np.zeros((256, 256))
     for i in range(len(years0)):
         year = years0[i]
         img = np.transpose(images[year]['img'][0], [1,2,0])
         gt = images[year]['gt'][0][0]
         pred_gt = images[year]['pred'][0][0]
-        total_loss_gt = np.zeros(pred_gt.shape)
-        total_loss_pred_gt = np.zeros(pred_gt.shape)
+
         if int_year(year) < 2017:
             gt_fc0 = np.copy(gt)
             gt_fc1 = images[years0[i+1]]['gt'][0][0]
             gt_loss = create_loss(gt_fc0, gt_fc1)
+            total_loss_gt = update_total_loss(total_loss_gt, gt_loss)
+
             pred_fc0 = np.copy(pred_gt)
             pred_fc1 = images[years0[i+1]]['pred'][0][0]
             pred_loss_gt = create_loss(pred_fc0, pred_fc1)
-            total_loss_gt = update_total_loss(total_loss_gt, gt_loss)
             total_loss_pred_gt = update_total_loss(total_loss_pred_gt, pred_loss_gt)
-                
+
             out_fl_gt = os.path.join(out, 'fl_gt')
             out_fl_pred_gt = os.path.join(out, 'fl_pred_gt')
             create_dir(out_fl_gt)
@@ -99,18 +102,34 @@ def save_video_images256(images, out_dir, idx_start):
         out_landsat = os.path.join(out, 'landsat_gt')
         out_gt = os.path.join(out, 'fc_gt')
         out_pred_gt = os.path.join(out, 'fc_pred_gt')
+        # landsat with losses
+        out_landsat_loss_gt = os.path.join(out, 'landsat_loss_gt')
+        out_landsat_loss_pred_gt = os.path.join(out, 'landsat_loss_pred_gt')
         create_dir(out_gt)
         create_dir(out_landsat)
         create_dir(out_pred_gt)
+
+
         matplotlib.image.imsave(os.path.join(out_landsat, str(year) + 'img.png'), img)
         matplotlib.image.imsave(os.path.join(out_gt, str(year) + 'gt.png'), gt)
         matplotlib.image.imsave(os.path.join(out_pred_gt, str(year) + 'pred_gt.png'), pred_gt)
+
+        img_with_loss_gt = np.copy(img)
+        mask_gt = np.where(total_loss_gt != 0)
+        img_with_loss_gt[mask_gt] = 1,0,0
+
+        img_with_loss_pred_gt = np.copy(pred_gt)
+        mask_pred = np.where(total_loss_pred_gt != 0)
+        img_with_loss_pred_gt = 1,0,0
+
+        matplotlib.image.imsave(os.path.join(out_landsat_loss_gt, str(year) + 'img_with_loss_gt.png'), img)
+        matplotlib.image.imsave(os.path.join(out_landsat_loss_pred_gt, str(year) + 'img_with_loss_pred_gt.png'), img)
+
     for i in range(len(years1)):
         year = years1[i]
         img = np.transpose(images[year]['img'][0], [1,2,0])
         gt = images[year]['gt'][0][0]
         pred_pred = images[year]['pred'][0][0]
-        total_loss_pred_pred = np.zeros(pred_pred.shape)
         # print(img.shape, gt.shape, pred_pred.shape)
         out_landsat_pred = os.path.join(out, 'landsat_pred')
         out_pred_pred = os.path.join(out, 'fc_pred_pred')
@@ -129,6 +148,14 @@ def save_video_images256(images, out_dir, idx_start):
             create_dir(out_fl_pred_pred)
             # Save losses
             matplotlib.image.imsave(os.path.join(out_fl_pred_pred, str(year) + 'fl_pred_pred.png'), total_loss_pred_pred)
+
+        out_landsat_loss_pred_pred = os.path.join(out, 'landsat_loss_pred_pred')
+        img_with_loss_pred_pred = np.copy(pred_pred)
+        mask_pred = np.where(total_loss_pred_pred != 0)
+        img_with_loss_pred_pred = 1,0,0
+
+        matplotlib.image.imsave(os.path.join(out_landsat_loss_pred_pred, str(year) + 'img_with_loss_pred_pred.png'), img)
+
         # img_save = Image.fromarray(img)
         # gt_save = Image.fromarray(gt)
         # pred_save = Image.fromarray(pred)
