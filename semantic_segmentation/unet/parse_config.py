@@ -1,3 +1,42 @@
+"""
+Creates a class that processes config.json
+
+A config json consists of:
+
+- name: directory where experiments are saved
+- n_gpu: number of GPUs used
+- arch:
+    - type: name of model in unet/model/model.py
+    - args: argument that the model takes
+- data_loader_train:
+    - type: name of the data loader in unet/data_loader/data_loaders.py
+    - args: arguments of data loader
+- data_loader_val:
+    - type: name of the data loader in unet/data_loader/data_loaders.py
+    - args: arguments of data loader
+- optimizer:
+    - type: name of the optimizer from torch.optim package
+    - args: arguments of optimizer
+- loss:
+    - type: name of the loss in unet/model/loss.py
+    - args: arguments of the loss
+- metrics: [ <name of the method in unet/model/metric.py>, ... ]
+- lr_scheduler: 
+    - type: name of the scheduler from pytorch from torch.optim package
+    - args: arguments of the scheduler
+- trainer: 
+    - epochs: number of epochs to train
+    - save_dir: path of the root directory to save experiments
+    - save_period: checkpoint is saved after each `save_period` epoch
+    - verbosity: console logging stages (0,1,2)
+    - keep_last: number of most recent models to keep
+    - monitor: takes `<mode><space><metric>` and saves the best model on validation dataset with equation: mode(metric)
+        `e.g. min val_loss` saves the model that has minimal validation loss as model_best.pth
+    - early_stop: number of epochs to check - if validation didn't improved it stops
+    - tensorboard: boolean - whether to use tensorboard
+"""
+
+
 import os
 import logging
 from pathlib import Path
@@ -7,7 +46,9 @@ from datetime import datetime
 from logger import setup_logging
 from utils import read_json, write_json
 
-
+"""
+ConfigParser is used in train.py and test.py and takes in config.json files with `-c`
+"""
 class ConfigParser:
     def __init__(self, args, options='', timestamp=True):
         # parse default and custom cli options
