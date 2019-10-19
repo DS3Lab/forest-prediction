@@ -53,7 +53,7 @@ def open_image(img_path):
         try:
             img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
         except:
-            print(img_path)
+            print("ERROR OPENING IMAGE", img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
 def get_img(mask_path, img_dir, double=False):
@@ -239,12 +239,6 @@ class PlanetSingleVideoDataset(Dataset):
         self.video_dir = video_dir
         self.paths = get_immediate_subdirectories(self.video_dir)
         print('SELF PATTHSS',self.paths)
-        rm = []
-        for path in self.paths:
-            if not os.path.exists('/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2013/fc2013.npy'.format(path)):
-                rm.append(path)
-        for r in rm:
-            self.paths.remove(r)
         self.paths.sort()
         # TODO: update mean/std
         self.transforms = transforms.Compose([
@@ -258,7 +252,7 @@ class PlanetSingleVideoDataset(Dataset):
         key = self.paths[index]
         img_gt_template = os.path.join(self.img_dir, '{year_dir}', 'ld{year_f}_{key}.png')
         img_video_template = os.path.join(self.video_dir, key, 'gen_image_00000_00_0{}.png')
-        label_template = os.path.join(self.label_dir, '{year_dir}', 'fc{year_f}{key}.npy')
+        label_template = os.path.join(self.label_dir, '{year_dir}', 'fc{year_f}_{key}.npy')
 
         img2013 = img_gt_template.format(year_dir=2013, year_f=2013, key=key)
         img2014 = img_gt_template.format(year_dir=2014, year_f=2014, key=key)
