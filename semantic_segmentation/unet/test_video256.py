@@ -103,7 +103,7 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    out_dir = os.path.join(pred_dir, 'video_loss_some')
+    out_dir = os.path.join(pred_dir, 'video_loss_last_three')
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):
@@ -120,7 +120,9 @@ def main(config):
     # This script only supports batch=1
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
-        # if i not in [0, 55, 76, 77, 79, 80, 81, 121, 284, 330, 356, 357, 358]:
+            if i not in [0, 84, 55]:
+                continue
+
             # if i not in [18, 43, 51, 61, 73, 84, 85, 88, 116, 124, 198, 201, 214, 245, 325, 330]:
             # if i not in [84, 85, 88, 116, 124, 198, 201, 214, 245, 325]:
             #     continue

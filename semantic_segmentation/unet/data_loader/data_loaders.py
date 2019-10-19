@@ -238,11 +238,10 @@ class PlanetSingleVideoDataset(Dataset):
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.video_dir = video_dir
-        # self.paths = get_immediate_subdirectories(self.video_dir)
-        # print('SELF PATTHSS',self.paths)
-        with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') as f:
-            no_in_training = pkl.load(f)
-        self.paths = no_in_training
+        self.paths = get_immediate_subdirectories(self.video_dir)
+        # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') as f:
+        #     no_in_training = pkl.load(f)
+        # self.paths = no_in_training
         self.paths.sort()
         print('SELF PATHS', self.paths)
         # self.paths.sort()
