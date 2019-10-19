@@ -44,30 +44,60 @@ def make_grid_2(tensor, nrow=8, padding=2, normalize=False, range=None, scale_ea
     tensor = torch.cat([tensor1, tensor2], dim=3)
     return make_grid(tensor, nrow, padding, normalize, range, scale_each, pad_value)
 
+def create_loss(fc0, fc1):
+    """
+    fc0: forest cover at time year t
+    fc1: forest cover at time year t+1
+    fc0 - fc1 = forest loss at year t
+    """
+    fl0 = fc0 - fc1
+    gain_mask = np.where(fl0 < 0) # there is forest in t+1 but not in t
+    fl0[gain_mask] = 0
+    return fl0
+
+def int_year(str_year):
+    return int(str_year[:4])
+
 def save_video_images256(images, out_dir, idx_start):
     years0 = ['2013', '2014', '2015', '2016', '2017']
-    years1 = ['2015p', '2016p', '2017p']
+    years1 = ['2013', '2014', '2015p', '2016p', '2017p']
     years = years0 + years1
     out = os.path.join(out_dir, str(idx_start))
     create_dir(out)
-    for year in years0:
+    for i in range(len(years0)):
+        year = years0[i]
         img = np.transpose(images[year]['img'][0], [1,2,0])
         gt = images[year]['gt'][0][0]
-        pred = images[year]['pred'][0][0]
-        print(img.shape, gt.shape, pred.shape)
+        pred_gt = images[year]['pred'][0][0]
+        if int_year(year) < 2017:
+            gt_fc0 = np.copy(gt)
+            gt_fc1 = images[years0[i+1]]['gt'][0][0]
+            gt_loss = create_loss(gt_fc0, gt_fc1)
+            pred_fc0 = np.copy(pred_gt)
+            pred_fc1 = images[years0[i+1]]['pred'][0][0]
+            pred_loss_gt = create_loss(pred_fc0, pred_fc1)
+
+            out_fl_gt = os.path.join(out, 'fl_gt')
+            out_fl_pred_gt = os.path.join(out, 'fl_pred_gt')
+            # Save losses
+            matplotlib.image.imsave(os.path.join(out_fl_gt, str(year) + 'fl_gt.png'), gt_loss)
+            matplotlib.image.imsave(os.path.join(out_fl_pred_gt, str(year) + 'fl_pred_gt.png'), pred_loss_gt)
+
+        print(img.shape, gt.shape, pred_gt.shape)
         out_landsat = os.path.join(out, 'landsat_gt')
         out_gt = os.path.join(out, 'fc_gt')
-        out_pred_gt = os.path.join(out, 'pred_gt')
+        out_pred_gt = os.path.join(out, 'fc_pred_gt')
         create_dir(out_gt)
         create_dir(out_landsat)
         create_dir(out_pred_gt)
         matplotlib.image.imsave(os.path.join(out_landsat, str(year) + 'img.png'), img)
         matplotlib.image.imsave(os.path.join(out_gt, str(year) + 'gt.png'), gt)
-        matplotlib.image.imsave(os.path.join(out_pred_gt, str(year) + 'pred.png'), pred)
+        matplotlib.image.imsave(os.path.join(out_pred_gt, str(year) + 'pred_gt.png'), pred_gt)
+
     for year in years1:
         img = np.transpose(images[year]['img'][0], [1,2,0])
         gt = images[year]['gt'][0][0]
-        pred = images[year]['pred'][0][0]
+        pred_pred = images[year]['pred'][0][0]
         print(img.shape, gt.shape, pred.shape)
         out_landsat_pred = os.path.join(out, 'landsat_pred')
         out_pred_pred = os.path.join(out, 'fc_pred_pred')
@@ -75,7 +105,16 @@ def save_video_images256(images, out_dir, idx_start):
         create_dir(out_landsat_pred)
 
         matplotlib.image.imsave(os.path.join(out_landsat_pred, str(year) + 'img.png'), img)
-        matplotlib.image.imsave(os.path.join(out_pred_pred, str(year) + 'pred.png'), pred)
+        matplotlib.image.imsave(os.path.join(out_pred_pred, str(year) + 'pred.png'), pred_pred)
+
+        if int_year(year) < 2017:
+            pred_fc0 = np.copy(pred_pred)
+            pred_fc1 = images[years1[i+1]]['pred'][0][0]
+            pred_loss_pred = create_loss(pred_fc0, pred_fc1)
+
+            out_fl_pred_pred = os.path.join(out, 'fl_pred_pred')
+            # Save losses
+            matplotlib.image.imsave(os.path.join(out_fl_pred_pred, str(year) + 'fl_pred_pred.png'), pred_loss_pred)
         # img_save = Image.fromarray(img)
         # gt_save = Image.fromarray(gt)
         # pred_save = Image.fromarray(pred)
