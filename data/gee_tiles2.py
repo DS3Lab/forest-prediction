@@ -125,7 +125,7 @@ def save_fc(img_arr, out_name, year):
     fc2000 = preprocess_fc(fc2000)
     img_arr = create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year)
 
-    forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
+    forest_cover_dir = os.path.join(gee_dir, 'forest_coverv2', '20' + str(year))
     create_dir(forest_cover_dir)
 
     fl_name = out_name.split('/')[-1]
@@ -215,7 +215,7 @@ def extract_forma_tiles(tiles, year, hansen_db, forest_loss_dir):
     create_dir(out_fl)
     fl_template = 'fl{year}_{z}_{x}_{y}.npy'
     for z, x, y in tiles:
-        out_name = os.path.join(out_fl, fl_template.format(z=z, x=x, y=y))
+        out_name = os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y))
         lon, lat = num2deg(int(x), int(y), int(z))
         int_year = int(year[2:])
         img_arr = extract_tile(hansen_db, lon, lat, 256, crs='ESPG:4326')
@@ -231,7 +231,7 @@ def main():
     }
     zoom = 11
     # tiles = bbox2tiles(bbox, zoom)
-    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2016.pkl', rb) as f:
+    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2016.pkl', 'rb') as f:
         tiles = pkl.load(f)
 
     forest_cover_dir = os.path.join(gee_dir, 'forest_coverv2')
@@ -254,10 +254,9 @@ def main():
         # p = Process(target=extract_tiles, args=(tiles, year, hansen_db,
         #         forest_loss_dir,))
         # p = Process(target=extract_video_tiles, args=(tiles, year, hansen_db, forest_loss_dir))
-        # p.start()
         p = Process(target=extract_forma_tiles, args=(tiles, year, hansen_db, forest_loss_dir))
         processes.append(p)
-
+        p.start()
     for p in processes:
         p.join()
 
