@@ -1,3 +1,17 @@
+"""
+Main entry point for semantic segmentation task.
+It takes following arguments:
+-c flag takes in the path to config.json
+-d specifies the GPU ids to be used (it takes max n_gpus defined in config.json)
+-r continues training from most recent checkpoint from a previous experiment (specify path to timestamp)
+
+Example usage:
+```
+python train.py -c config.json -d [gpu_id,] -r path_of_saved_model 
+```
+
+"""
+
 import time
 import argparse
 import collections
@@ -43,6 +57,7 @@ def main(config):
     _wait()
 
 def _wait():
+    # dirty trick to reserve GPUs on spaceml, hahahaha
     while True:
         time.sleep(3600)
 

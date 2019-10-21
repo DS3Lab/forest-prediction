@@ -105,6 +105,11 @@ def get_aggregated_loss(img_arr, beg=1, end=12):
     return loss_arr
 
 def save_fc(img_arr, out_name, year):
+    """
+    img_arr: hansen db
+    out_name: full path of the forest loss name
+    year: to extract
+    """
     FC_IDX = 0 # forest cover index
     gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video'
     GAIN_IDX = 1 # forest gain index
@@ -120,8 +125,13 @@ def save_fc(img_arr, out_name, year):
     fc2000 = preprocess_fc(fc2000)
     img_arr = create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year)
 
+<<<<<<< HEAD
     # forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
     forest_cover_dir = os.path.join(gee_dir, 'forest_cover', '20' + str(year))
+=======
+    forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
+    create_dir(forest_cover_dir)
+>>>>>>> 2c5e5ea87deb11d161be9dca0ff1fd894907170f
     fl_name = out_name.split('/')[-1]
     fc_name = 'fc' + '20' + str(year) + '_' + '_'.join(fl_name.split('_')[1:])
     fc_name = os.path.join(forest_cover_dir, fc_name)
@@ -158,12 +168,21 @@ def extract_fc_and_fl_tile(img_db, lon, lat, year, out_name):
     img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
     if img_arr.size == 0:
         print('WARNING:', out_name)
+<<<<<<< HEAD
     img_arr_loss = np.copy(img_arr[LOSS_IDX])
     loss_mask = np.where(img_arr_loss == year)
     no_loss_mask = np.where(img_arr_loss != year)
     img_arr_loss[loss_mask] = 1
     img_arr_loss[no_loss_mask] = 0
     np.save(out_name, img_arr_loss)
+=======
+    loss_arr = np.copy(img_arr[LOSS_IDX])
+    loss_mask = np.where(loss_arr == year)
+    no_loss_mask = np.where(loss_arr != year)
+    loss_arr[loss_mask] = 1
+    loss_arr[no_loss_mask] = 0
+    np.save(out_name, loss_arr)
+>>>>>>> 2c5e5ea87deb11d161be9dca0ff1fd894907170f
     save_fc(img_arr, out_name, year)
 
 def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
@@ -181,8 +200,14 @@ def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
 
 ###
 def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
+<<<<<<< HEAD
     years = ['2014', '2015', '2016', '2016_1', '2017', '2017_1']
     tiles = {}
+=======
+    # years = ['2013', '2014', '2015', '2016', '2017']
+    years = ['2016_1', '2016']
+    tiles = []
+>>>>>>> 2c5e5ea87deb11d161be9dca0ff1fd894907170f
     for year in years:
         year_tiles = glob.glob(os.path.join(path, year, '*.npy'))
         for yt in year_tiles:
@@ -202,9 +227,20 @@ def extract_video_tiles(tiles, year, hansen_db, forest_loss_dir):
         int_year = int(year[2:])
         extract_fc_and_fl_tile(hansen_db, lon, lat, int_year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
 
+def extract_forma_tiles(tiles, year, hansen_db, forest_loss_dir):
+    # TODO: CHANGE SAVE_FC SAVING MODE!!!!!!!
+    out_fl = os.path.join(forest_loss_dir, year)
+    create_dir(out_fl)
+    fl_template = 'fl{year}_{z}_{x}_{y}.npy'
+    for z, x, y in tiles:
+        out_name = os.path.join(out_fl, fl_template.format(z=z, x=x, y=y))
+        lon, lat = num2deg(int(x), int(y), int(z))
+        int_year = int(year[2:])
+        img_arr = extract_tile(hansen_db, lon, lat, 256, crs='ESPG:4326')
+        save_fc(img_arr, out_name, int_year)
 
 def main():
-    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video'
+    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/z11'
     # landsat_db_dir = os.path.join(gee_dir, 'ls7')
 
     bbox = {
@@ -213,14 +249,16 @@ def main():
     }
     zoom = 11
     # tiles = bbox2tiles(bbox, zoom)
-    tiles = get_tiles()
+    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2016.pkl', rb) as f:
+        tiles = pkl.load(f)
 
-    forest_cover_dir = os.path.join(gee_dir, 'forest_cover')
-    forest_loss_dir = os.path.join(gee_dir, 'forest_loss')
+    forest_cover_dir = os.path.join(gee_dir, 'forest_coverv2')
+    forest_loss_dir = os.path.join(gee_dir, 'forest_lossv2')
     # landsat_dir = os.path.join(gee_dir, 'ls7', 'processed')
     create_dir(forest_cover_dir)
     create_dir(forest_loss_dir)
-    years = ['2013', '2014', '2015', '2016', '2017', '2018']
+    # years = ['2013', '2014', '2015', '2016', '2017', '2018']
+    years = ['2016', '2017']
     # landsat_dbs = {}
     for year in years:
         create_dir(os.path.join(forest_cover_dir, year))
@@ -233,8 +271,9 @@ def main():
     for year in years:
         # p = Process(target=extract_tiles, args=(tiles, year, hansen_db,
         #         forest_loss_dir,))
-        p = Process(target=extract_video_tiles, args=(tiles, year, hansen_db, forest_loss_dir))
-        p.start()
+        # p = Process(target=extract_video_tiles, args=(tiles, year, hansen_db, forest_loss_dir))
+        # p.start()
+        p = Process(target=extract_forma_tiles, args=(tiles, year, hansen_db, forest_loss_dir))
         processes.append(p)
 
     for p in processes:
