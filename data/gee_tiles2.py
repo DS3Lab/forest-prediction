@@ -22,7 +22,7 @@ fh = logging.FileHandler('gee.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
-    
+
 def add_in_dict(dic, key):
     z, x, y = key[0], key[1], key[2]
     if key not in dic:
@@ -111,7 +111,7 @@ def save_fc(img_arr, out_name, year):
     year: to extract
     """
     FC_IDX = 0 # forest cover index
-    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video'
+    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/z11'
     GAIN_IDX = 1 # forest gain index
     LOSS_IDX = 2 # forest loss index
     # loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
@@ -125,13 +125,9 @@ def save_fc(img_arr, out_name, year):
     fc2000 = preprocess_fc(fc2000)
     img_arr = create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year)
 
-<<<<<<< HEAD
-    # forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
-    forest_cover_dir = os.path.join(gee_dir, 'forest_cover', '20' + str(year))
-=======
     forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
     create_dir(forest_cover_dir)
->>>>>>> 2c5e5ea87deb11d161be9dca0ff1fd894907170f
+
     fl_name = out_name.split('/')[-1]
     fc_name = 'fc' + '20' + str(year) + '_' + '_'.join(fl_name.split('_')[1:])
     fc_name = os.path.join(forest_cover_dir, fc_name)
@@ -168,21 +164,12 @@ def extract_fc_and_fl_tile(img_db, lon, lat, year, out_name):
     img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
     if img_arr.size == 0:
         print('WARNING:', out_name)
-<<<<<<< HEAD
     img_arr_loss = np.copy(img_arr[LOSS_IDX])
     loss_mask = np.where(img_arr_loss == year)
     no_loss_mask = np.where(img_arr_loss != year)
     img_arr_loss[loss_mask] = 1
     img_arr_loss[no_loss_mask] = 0
     np.save(out_name, img_arr_loss)
-=======
-    loss_arr = np.copy(img_arr[LOSS_IDX])
-    loss_mask = np.where(loss_arr == year)
-    no_loss_mask = np.where(loss_arr != year)
-    loss_arr[loss_mask] = 1
-    loss_arr[no_loss_mask] = 0
-    np.save(out_name, loss_arr)
->>>>>>> 2c5e5ea87deb11d161be9dca0ff1fd894907170f
     save_fc(img_arr, out_name, year)
 
 def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
@@ -200,21 +187,16 @@ def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
 
 ###
 def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
-<<<<<<< HEAD
-    years = ['2014', '2015', '2016', '2016_1', '2017', '2017_1']
-    tiles = {}
-=======
     # years = ['2013', '2014', '2015', '2016', '2017']
     years = ['2016_1', '2016']
     tiles = []
->>>>>>> 2c5e5ea87deb11d161be9dca0ff1fd894907170f
     for year in years:
         year_tiles = glob.glob(os.path.join(path, year, '*.npy'))
         for yt in year_tiles:
             # fl{year}_{z}_{x}_{y}.npy
             tile = yt.split('/')[-1].split('_')
             key = (tile[1], tile[2], tile[3][:-4])
-            add_in_dict(tiles, key) 
+            add_in_dict(tiles, key)
     return list(tiles.keys())
 ###
 def extract_video_tiles(tiles, year, hansen_db, forest_loss_dir):

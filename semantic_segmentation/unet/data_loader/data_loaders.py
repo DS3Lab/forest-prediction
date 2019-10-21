@@ -353,3 +353,76 @@ class PlanetVideoDataLoader(BaseDataLoader):
             num_workers=16):
         self.dataset = PlanetSingleVideoDataset(img_dir, label_dir, video_dir, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
+
+class PlanetResultsDataset(Dataset):
+    """
+    Planet 3-month mosaic dataset
+    """
+    def __init__(self, img_dir, label_dir, years, max_dataset_size, video=False, mode='train'):
+        """Initizalize dataset.
+            Params:
+                data_dir: absolute path, string
+                years: list of years
+                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
+        """
+        self.img_dir = img_dir
+        self.label_dir = label_dir
+        self.paths = []
+        # Delete after video training or update dataset properly
+        if video:
+            with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/train_val_test.pkl', 'rb') as pkl_file:
+                train_val_test = pkl.load(pkl_file)
+            for key in train_val_test[mode].keys():
+                imgs = train_val_test[mode][key]
+                for year in years:
+                    mask_path = get_mask(imgs[year], self.label_dir)
+                    self.paths.append(mask_path)
+        else:
+            for year in years:
+                imgs_path = os.path.join(label_dir, year)
+                self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
+        self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
+        self.paths.sort()
+        # TODO: update mean/std
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            utils.Normalize((0.3326, 0.3570, 0.2224),
+                (0.1059, 0.1086, 0.1283))
+        ])
+        self.dataset_size = len(self.paths)
+
+    def __len__(self):
+        # print('Planet Dataset len called')
+        return self.dataset_size
+
+    def __getitem__(self, index):
+        r"""Returns data point and its binary mask"""
+        # Notes: tiles in annual mosaics need to be divided by 255.
+        mask_path = self.paths[index]
+        year, z, x, y = get_tile_info(mask_path.split('/')[-1])
+        print('PREDICTING TILE {z}_{x}_{y}'.format(z=z, x=x, y=y))
+        # For img_dir give
+        # /mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct
+        img_path = get_img(mask_path, self.img_dir)
+
+        mask_arr = open_image(mask_path)
+        img_arr = open_image(img_path)
+        mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
+        img_arr = self.transforms(img_arr)
+
+        return img_arr.float(), mask_arr.float()
+
+class PlanetResultsLoader(BaseDataLoader):
+    def __init__(self, img_dir,
+            label_dir,
+            batch_size,
+            years,
+            max_dataset_size=float('inf'),
+            shuffle=True,
+            num_workers=16,
+            video=False,
+            mode='train'):
+        if max_dataset_size == 'inf':
+            max_dataset_size = float('inf')
+        self.dataset = PlanetResultsDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
+        super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
