@@ -22,6 +22,15 @@ fh = logging.FileHandler('gee.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
+    
+def add_in_dict(dic, key):
+    z, x, y = key[0], key[1], key[2]
+    if key not in dic:
+        dic[key] = {}
+        dic[key]['z']= z
+        dic[key]['x']= x
+        dic[key]['y']= z
+
 def check_quality_label(img, threshold = 0.01):
     """
     img = np.array(256,256)
@@ -97,7 +106,7 @@ def get_aggregated_loss(img_arr, beg=1, end=12):
 
 def save_fc(img_arr, out_name, year):
     FC_IDX = 0 # forest cover index
-    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data'
+    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video'
     GAIN_IDX = 1 # forest gain index
     LOSS_IDX = 2 # forest loss index
     # loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
@@ -111,9 +120,10 @@ def save_fc(img_arr, out_name, year):
     fc2000 = preprocess_fc(fc2000)
     img_arr = create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year)
 
-    forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
+    # forest_cover_dir = os.path.join(gee_dir, 'z11', 'forest_coverv2', '20' + str(year))
+    forest_cover_dir = os.path.join(gee_dir, 'forest_cover', '20' + str(year))
     fl_name = out_name.split('/')[-1]
-    fc_name = 'fl' + '20' + str(year) + '_' + '_'.join(fl_name.split('_')[1:])
+    fc_name = 'fc' + '20' + str(year) + '_' + '_'.join(fl_name.split('_')[1:])
     fc_name = os.path.join(forest_cover_dir, fc_name)
     np.save(fc_name, img_arr)
 
@@ -148,12 +158,12 @@ def extract_fc_and_fl_tile(img_db, lon, lat, year, out_name):
     img_arr = extract_tile(img_db, lon, lat, 256, crs='ESPG:4326')
     if img_arr.size == 0:
         print('WARNING:', out_name)
-    img_arr = np.copy(img_arr[LOSS_IDX])
-    loss_mask = np.where(img_arr == year)
-    no_loss_mask = np.where(img_arr != year)
-    img_arr[loss_mask] = 1
-    img_arr[no_loss_mask] = 0
-    np.save(out_name, img_arr)
+    img_arr_loss = np.copy(img_arr[LOSS_IDX])
+    loss_mask = np.where(img_arr_loss == year)
+    no_loss_mask = np.where(img_arr_loss != year)
+    img_arr_loss[loss_mask] = 1
+    img_arr_loss[no_loss_mask] = 0
+    np.save(out_name, img_arr_loss)
     save_fc(img_arr, out_name, year)
 
 def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
@@ -168,17 +178,20 @@ def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
         # gen_tile(hansen_db, lon, lat, 'fc', int_year, os.path.join(out_fc, fc_template.format(year=year, z=z, x=x, y=y)))
         gen_tile(hansen_db, lon, lat, int_year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
 
+
+###
 def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
-    years = ['2013', '2014', '2015', '2016', '2017']
-    tiles = []
+    years = ['2014', '2015', '2016', '2016_1', '2017', '2017_1']
+    tiles = {}
     for year in years:
         year_tiles = glob.glob(os.path.join(path, year, '*.npy'))
         for yt in year_tiles:
             # fl{year}_{z}_{x}_{y}.npy
             tile = yt.split('/')[-1].split('_')
-            tiles.append((tile[0][2:], tile[1], tile[2], tile[3][:-4]))
-    return tiles
-
+            key = (tile[1], tile[2], tile[3][:-4])
+            add_in_dict(tiles, key) 
+    return list(tiles.keys())
+###
 def extract_video_tiles(tiles, year, hansen_db, forest_loss_dir):
     out_fl = os.path.join(forest_loss_dir, year)
     create_dir(out_fl)
@@ -214,7 +227,7 @@ def main():
         create_dir(os.path.join(forest_loss_dir, year))
         # create_dir(os.path.join(landsat_dir, year))
         # landsat_dbs[year] = rasterio.open(os.path.join(landsat_db_dir, 'landsat' + year + '.vrt'))
-    hansen_db = rasterio.open(os.path.join(gee_dir, 'hansen11.vrt'))
+    hansen_db = rasterio.open('/mnt/ds3lab-scratch/lming/gee_data/hansen11.vrt')
 
     processes = []
     for year in years:
