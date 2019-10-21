@@ -61,15 +61,15 @@ def get_output_dir(img_dir):
 
 def create_loss(fc0, fc1):
     """
-    fc0: forest cover at time year t
-    fc1: forest cover at time year t+1
+    fc0: forest cover at time year t-1
+    fc1: forest cover at time year t
     fc0 - fc1 = forest loss at year t
     """
     fl0 = fc0 - fc1
     gain_mask = np.where(fl0 < 0) # there is forest in t+1 but not in t
     fl0[gain_mask] = 0
     return fl0
-    
+
 def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances

@@ -9,7 +9,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import save_simple_images, NormalizeInverse, save_double_images
+from utils.util import NormalizeInverse, save_result_images
 from torch.nn import functional as F
 
 
@@ -52,17 +52,23 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
 def get_output_dir(img_dir):
-    if 'pix2pix' in img_dir:
-        return 'pix2pix'
-    elif 'landsat' in img_dir:
-        return 'landsat'
-    else:
-        return 'planet'
+    return 'loss'
+
+def create_loss(fc0, fc1):
+    """
+    fc0: forest cover at time year t-1
+    fc1: forest cover at time year t
+    fc0 - fc1 = forest loss at year t
+    """
+    fl0 = fc0 - fc1
+    gain_mask = np.where(fl0 < 0) # there is forest in t+1 but not in t
+    fl0[gain_mask] = 0
+    return fl0
 
 def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances
-    batch_size = 9
+    batch_size = 1
     if config['data_loader_val']['args']['max_dataset_size'] == 'inf':
         max_dataset_size = float('inf')
     else:
@@ -70,7 +76,7 @@ def main(config):
     data_loader = getattr(module_data, config['data_loader_val']['type'])(
         img_dir=config['data_loader_val']['args']['img_dir'],
         label_dir=config['data_loader_val']['args']['label_dir'],
-        batch_size=batch_size,
+        batch_size=1,
         years=config['data_loader_val']['args']['years'],
         max_dataset_size=max_dataset_size,
         shuffle=False,
@@ -115,33 +121,58 @@ def main(config):
         # for i, (data, target) in enumerate(tqdm(data_loader)):
             init_time = time.time()
             loss = None
-            data, target = batch
-            udata = normalize_inverse(data, landsat_mean, landsat_std)
 
-            data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
-            output = model(data)
+            imgs2016 = batch['2016']
+            imgs2017 = batch['2017']
 
-            output_probs = F.sigmoid(output)
-            binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
-            output_binary = _threshold_outputs(
-                output_probs.data.cpu().numpy().flatten())
+            ld2016 = imgs2016['img']
+            ld2017 = imgs2017['img']
+            fc2016 = imgs2016['fc']
+            fc2017 = imgs2017['fc']
+            fl2017 = batch['fl']
+
+            uld2016, uld2017 = normalize_inverse(ld2016, landsat_mean, landsat_std),\
+                normalize_inverse(ld2017, landsat_mean, landsat_std)
+            ld2016, fc2016 = ld2016.to(device, dtype=torch.float), fc2016.to(device, dtype=torch.float)
+            ld2017, fc2017 = ld2017.to(device, dtype=torch.float), fc2017.to(device, dtype=torch.float)
+
+            output2016 = model(ld2016)
+            output2017 = model(ld2017)
+
+            output_probs2016 = F.sigmoid(output2016)
+            output_probs2017 = F.sigmoid(output2017)
+
+            binary_target2016 = _threshold_outputs(fc2016.data.cpu().numpy().flatten())
+            binary_target2017 = _threshold_outputs(fc2017.data.cpu().numpy().flatten())
+            output_binary2016 = _threshold_outputs(
+                output_probs2016.data.cpu().numpy().flatten())
+            output_binary2017 = _threshold_outputs(
+                output_probs2017.data.cpu().numpy().flatten())
+
+            fl_pred2017 = create_loss(output_binary2016, output_binary2017)
+            fl_rec2017 = create_loss(fc2017.cpu().numpy(), fc2016.cpu().numpy())
             # print(output_binary.shape, 'SHAPEEE')
-            mlz = _fast_hist(output_binary, binary_target)
+            mlz = _fast_hist(flpred2017, fl2017)
             print('HELLO', mlz)
-            hist += _fast_hist(output_binary, binary_target)
+            hist += _fast_hist(flpred2017, fl2017)
             images = {
-                'img': udata.cpu().numpy(),
-                'gt': target.cpu().numpy(),
-                'pred': output_binary.reshape(-1, 1, 256, 256),
+                'img2016': uld2016.cpu().numpy(),
+                'img2017': uld2017.cpu().numpy(),
+                'fc2016': fc2016.cpu().numpy(),
+                'fc2017': fc2017.cpu().numpy(),
+                'fc_pred2016': output_binary2016.reshape(-1, 1, 256, 256),
+                'fc_pred2017': output_binary2017.reshape(-1, 1, 256, 256),
+                'fl2017': fl2017.cpu().numpy(),
+                'flrec2017': flrec2017,
+                'fl_pred2017': fl_pred2017.reshape(-1, 1, 256, 256)
             }
 
             print('prediction_time', time.time() - init_time)
 
             print('Save images shape input', images['img'].shape)
-            if images['img'].shape[1] == 3:
-                save_simple_images(3, images, out_dir, i*batch_size)
-            else:
-                save_double_images(3, images, out_dir, i*batch_size)
+
+            save_result_images(1, images, out_dir, i*batch_size)
+
             # computing loss, metrics on test set
             loss = loss_fn(output, target)
             batch_size = data.shape[0]

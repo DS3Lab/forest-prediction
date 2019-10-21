@@ -365,22 +365,10 @@ class PlanetResultsDataset(Dataset):
                 years: list of years
                 filetype: png or npy. If png it is raw data, if npy it has been preprocessed
         """
-        self.img_dir = img_dir
-        self.label_dir = label_dir
-        self.paths = []
+        with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
+            self.paths = pkl.load(f)
         # Delete after video training or update dataset properly
-        if video:
-            with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/train_val_test.pkl', 'rb') as pkl_file:
-                train_val_test = pkl.load(pkl_file)
-            for key in train_val_test[mode].keys():
-                imgs = train_val_test[mode][key]
-                for year in years:
-                    mask_path = get_mask(imgs[year], self.label_dir)
-                    self.paths.append(mask_path)
-        else:
-            for year in years:
-                imgs_path = os.path.join(label_dir, year)
-                self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
+
         self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
         self.paths.sort()
         # TODO: update mean/std
@@ -398,19 +386,40 @@ class PlanetResultsDataset(Dataset):
     def __getitem__(self, index):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
-        mask_path = self.paths[index]
-        year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-        print('PREDICTING TILE {z}_{x}_{y}'.format(z=z, x=x, y=y))
-        # For img_dir give
-        # /mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct
-        img_path = get_img(mask_path, self.img_dir)
+        z, x, y = self.paths[index]
+        fc_templ = 'fc{year}_{z}_{x}_{y}.npy'
+        fl_templ = 'fl{year}_{z}_{x}_{y}.npy'
+        ld_templ = 'ld{year}_{z}_{x}_{y}.png'
 
-        mask_arr = open_image(mask_path)
-        img_arr = open_image(img_path)
-        mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
-        img_arr = self.transforms(img_arr)
+        fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2016'
+        fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2017'
+        fl_path = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2/fl_for_results/'
+        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
+        fc_path0 = os.path.join(fc_path0, fc_templ.format(year='2016', z=z, x=x, y=y))
+        fc_path1 = os.path.join(fc_path1, fc_templ.format(year='2017', z=z, x=x, y=y))
+        fl_path = os.path.join(fl_path, fl_templ.format(year='2017', z=z, x=x, y=y))
+        img_path0 = os.path.join(ld_path, ld_templ.format(year='2016', z=z, x=x, y=y))
+        img_path1 = os.path.join(ld_path, ld_templ.format(year='2017', z=z, x=x, y=y))
 
-        return img_arr.float(), mask_arr.float()
+        fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
+        fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)
+        fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
+
+        img_arr0 = self.transforms(open_image(img_path0))
+        img_arr1 = self.transforms(open_image(img_path1))
+
+        return {
+            '2016':{
+                'img': img_arr0,
+                'fc': fc_arr0,
+            },
+            '2017':{
+                'img': img_arr1,
+                'fc': fc_arr1
+            },
+            'fl': fl_arr
+        }
+
 
 class PlanetResultsLoader(BaseDataLoader):
     def __init__(self, img_dir,

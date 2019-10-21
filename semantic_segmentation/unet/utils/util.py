@@ -64,6 +64,121 @@ def update_total_loss(loss, new_loss):
 def int_year(str_year):
     return int(str_year[:4])
 
+def save_result_images(images, out_dir, idx_start):
+    images = {
+        'img2016': uld2016.cpu().numpy(),
+        'img2017': uld2017.cpu().numpy(),
+        'fc2016': fc2016.cpu().numpy(),
+        'fc2017': fc2017.cpu().numpy(),
+        'fc_pred2016': output_binary2016.reshape(-1, 1, 256, 256),
+        'fc_pred2017': output_binary2017.reshape(-1, 1, 256, 256),
+        'fl2017': fl2017.cpu().numpy(),
+        'flrec2017': flrec2017,
+        'fl_pred2017': fl_pred2017.reshape(-1, 1, 256, 256)
+    }
+
+    keys = ['img2016', 'img2017', 'fc2016', 'fc2017', 'fl2017', 'frec2017',
+        'fc_pred2016', 'fc_pred2017', 'fl_pred2017'
+    ]
+    num_y_tiles = 9
+    f = plt.figure(figsize=(4, num_y_tiles*2))
+    gs = gridspec.GridSpec(num_y_tiles, 1, wspace=0.0, hspace=0.0)
+
+    for i in range(len(keys)):
+        key = keys[i]
+        img = images[key]
+        ax = plt.subplot(gs[i, 0])
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if 'img' in key:
+            plt.imshow(np.transpose(img[0], axes=[1,2,0]))
+        else
+            plt.imshow(img[0][0], cmap=plt.cm.binary)
+        out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
+        print('Saved!', out_imgs_dir)
+        plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+        plt.close(f)
+
+def save_simple_images(batch_size, images, out_dir, idx_start):
+
+    for i in range(0, images['img'].shape[0], batch_size):
+        num_y_tiles = 3 # input, gt, prediction
+        f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
+        gs = gridspec.GridSpec(num_y_tiles, batch_size, wspace=0.0, hspace=0.0)
+        tiles = list(range(i, i + batch_size))
+
+        for tile in tiles:
+            # img1, img2, gt, pred
+            if tile < images['img'].shape[0]:
+                img = images['img'][tile]
+                gt = images['gt'][tile]
+                pred = images['pred'][tile]
+                # Set up plot
+                ax = plt.subplot(gs[0, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 0')
+                plt.imshow(np.transpose(img, axes=[1,2,0]))
+                ax = plt.subplot(gs[1, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 1')
+                plt.imshow(gt[0], cmap=plt.cm.binary)
+                ax = plt.subplot(gs[2, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 2')
+                plt.imshow(pred[0], cmap=plt.cm.binary)
+
+        out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
+        print('Saved!', out_imgs_dir)
+        plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+        plt.close(f)
+
+def save_double_images(batch_size, images, out_dir, idx_start):
+
+    for i in range(0, images['img'].shape[0], batch_size):
+        num_y_tiles = 4 # input, gt, prediction
+        f = plt.figure(figsize=(batch_size*4, num_y_tiles*2))
+        gs = gridspec.GridSpec(num_y_tiles, batch_size, wspace=0.0, hspace=0.0)
+        tiles = list(range(i, i + batch_size))
+
+        for tile in tiles:
+            # img1, img2, gt, pred
+            if tile < images['img'].shape[0]:
+                img = images['img'][tile]
+                gt = images['gt'][tile]
+                pred = images['pred'][tile]
+                # Set up plot
+                ax = plt.subplot(gs[0, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 0')
+                plt.imshow(np.transpose(img[:3], axes=[1,2,0]))
+                ax = plt.subplot(gs[1, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 1')
+                plt.imshow(np.transpose(img[3:], axes=[1,2,0]))
+                ax = plt.subplot(gs[2, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 2')
+                plt.imshow(gt[0], cmap=plt.cm.binary)
+                ax = plt.subplot(gs[3, tile%batch_size])
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+                print('plot 3')
+                plt.imshow(pred[0], cmap=plt.cm.binary)
+
+        out_imgs_dir = os.path.join(out_dir, '{}.png'.format(i + idx_start))
+        print('Saved!', out_imgs_dir)
+        plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+        plt.close(f)
+
+
+    matplotlib.image.imsave(os.path.join(out_landsat, str(year) + 'img.png'), img)
+
 def save_video_images256(images, out_dir, idx_start):
     years0 = ['2013', '2014', '2015', '2016', '2017']
     years1 = ['2013', '2014', '2015p', '2016p', '2017p']
@@ -88,7 +203,7 @@ def save_video_images256(images, out_dir, idx_start):
         mask_pred = np.where(total_loss_pred_gt != 0)
         if len(mask_pred[0]) != 0:
             img_with_loss_pred_gt[mask_pred] = 1,0,0
-        
+
         out_landsat_loss_gt = os.path.join(out, 'landsat_loss_gt')
         out_landsat_loss_pred_gt = os.path.join(out, 'landsat_loss_pred_gt')
         out_landsat = os.path.join(out, 'landsat_gt')
@@ -136,7 +251,7 @@ def save_video_images256(images, out_dir, idx_start):
         matplotlib.image.imsave(os.path.join(out_landsat, str(year) + 'img.png'), img)
         matplotlib.image.imsave(os.path.join(out_gt, str(year) + 'gt.png'), gt)
         matplotlib.image.imsave(os.path.join(out_pred_gt, str(year) + 'pred_gt.png'), pred_gt)
-        
+
         '''
         img_with_loss_gt = np.copy(img)
         mask_gt = np.where(total_loss_gt != 0)
@@ -158,7 +273,7 @@ def save_video_images256(images, out_dir, idx_start):
         gt = images[year]['gt'][0][0]
         pred_pred = images[year]['pred'][0][0]
         # print(img.shape, gt.shape, pred_pred.shape)
-        
+
         out_landsat_loss_pred_pred = os.path.join(out, 'landsat_loss_pred_pred')
         create_dir(out_landsat_loss_pred_pred)
         img_with_loss_pred_pred = np.copy(img)
