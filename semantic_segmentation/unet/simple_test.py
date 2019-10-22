@@ -52,6 +52,7 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
 def get_output_dir(img_dir):
+    return 'forest_loss_forma_baseline'
     if 'pix2pix' in img_dir:
         return 'pix2pix'
     elif 'landsat' in img_dir:

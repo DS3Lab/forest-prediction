@@ -9,7 +9,7 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import NormalizeInverse, save_result_images
+from utils.util import NormalizeInverse, save_result_images, save_forma_images
 from torch.nn import functional as F
 
 
@@ -125,12 +125,12 @@ def main(config):
             uimg_arr0, = normalize_inverse(img_arr0, landsat_mean, landsat_std)
             uimg_arr1, = normalize_inverse(img_arr1, landsat_mean, landsat_std)
             forma, hansen = forma.to(device, dtype=torch.float), hansen.to(device, dtype=torch.float)
-
             binary_forma = _threshold_outputs(forma.data.cpu().numpy().flatten())
             binary_hansen = _threshold_outputs(hansen.data.cpu().numpy().flatten())
 
             # print(output_binary.shape, 'SHAPEEE')
             mlz = _fast_hist(binary_forma, binary_hansen)
+            print(mlz)
             hist += mlz
             images = {
                 'img0': uimg_arr0.cpu().numpy(),
@@ -138,11 +138,11 @@ def main(config):
                 'forma': forma.cpu().numpy(),
                 'hansen': hansen.cpu().numpy()
             }
-            save_forma_images(1, images, out_dir, i*batch_size)
+            save_forma_images(images, out_dir, i*batch_size)
 
             # computing loss, metrics on test set
-            loss = loss_fn(output, target)
-            batch_size = data.shape[0]
+            loss = loss_fn(forma, hansen)
+            batch_size = forma.shape[0]
             total_loss += loss.item() * batch_size
             # for i, metric in enumerate(metric_fns):
             #     total_metrics[i] += metric(output, target.float()) * batch_size

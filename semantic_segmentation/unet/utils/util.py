@@ -78,9 +78,11 @@ def save_forma_images(images, out_dir, idx_start):
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         if 'img' in key:
-            plt.imshow(np.transpose(img[0], axes=[1,2,0]))
+            if len(img.shape) == 4:
+                plt.imshow(np.transpose(img[0], axes=[1,2,0]))
+            else:
+                plt.imshow(np.transpose(img, axes=[1,2,0]))
         else:
-            print(img.shape, 'SHAPEE', key)
             plt.imshow(img[0][0], cmap=plt.cm.binary)
     out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
     print('Saved!', out_imgs_dir)
