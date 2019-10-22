@@ -398,8 +398,8 @@ class PlanetResultsDataset(Dataset):
         fc_path0 = os.path.join(fc_path0, fc_templ.format(year='2016', z=z, x=x, y=y))
         fc_path1 = os.path.join(fc_path1, fc_templ.format(year='2017', z=z, x=x, y=y))
         fl_path = os.path.join(fl_path, fl_templ.format(year='2017', z=z, x=x, y=y))
-        img_path0 = os.path.join(ld_path, ld_templ.format(year='2016', z=z, x=x, y=y))
-        img_path1 = os.path.join(ld_path, ld_templ.format(year='2017', z=z, x=x, y=y))
+        img_path0 = os.path.join(ld_path, '2016', ld_templ.format(year='2016', z=z, x=x, y=y))
+        img_path1 = os.path.join(ld_path, '2017', ld_templ.format(year='2017', z=z, x=x, y=y))
 
         fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
         fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)

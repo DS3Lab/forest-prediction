@@ -65,19 +65,8 @@ def int_year(str_year):
     return int(str_year[:4])
 
 def save_result_images(images, out_dir, idx_start):
-    images = {
-        'img2016': uld2016.cpu().numpy(),
-        'img2017': uld2017.cpu().numpy(),
-        'fc2016': fc2016.cpu().numpy(),
-        'fc2017': fc2017.cpu().numpy(),
-        'fc_pred2016': output_binary2016.reshape(-1, 1, 256, 256),
-        'fc_pred2017': output_binary2017.reshape(-1, 1, 256, 256),
-        'fl2017': fl2017.cpu().numpy(),
-        'flrec2017': flrec2017,
-        'fl_pred2017': fl_pred2017.reshape(-1, 1, 256, 256)
-    }
-
-    keys = ['img2016', 'img2017', 'fc2016', 'fc2017', 'fl2017', 'frec2017',
+    print(images.keys())
+    keys = ['img2016', 'img2017', 'fc2016', 'fc2017', 'fl2017', 'fl_rec2017',
         'fc_pred2016', 'fc_pred2017', 'fl_pred2017'
     ]
     num_y_tiles = 9
@@ -92,12 +81,13 @@ def save_result_images(images, out_dir, idx_start):
         ax.get_yaxis().set_visible(False)
         if 'img' in key:
             plt.imshow(np.transpose(img[0], axes=[1,2,0]))
-        else
+        else:
+            print(img.shape, 'SHAPEE', key)
             plt.imshow(img[0][0], cmap=plt.cm.binary)
-        out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
-        print('Saved!', out_imgs_dir)
-        plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
-        plt.close(f)
+    out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
+    print('Saved!', out_imgs_dir)
+    plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+    plt.close(f)
 
 def save_simple_images(batch_size, images, out_dir, idx_start):
 

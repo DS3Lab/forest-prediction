@@ -29,14 +29,19 @@ def extract_forma_tiles(tiles, year, forma_db, forest_loss_dir):
 
 def main():
     gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/'
-    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', rb) as f:
+    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
         tiles = pkl.load(f)
 
     forma_dir = os.path.join(gee_dir, 'forma')
-    forma_db2017 = rasterio.open('/mnt/ds3lab-scratch/gee_data/forma/forma_db2017.vrt')
+    forma2017db = rasterio.open('/mnt/ds3lab-scratch/lming/gee_data/forma/forma2017.vrt')
     out_dir = os.path.join(forma_dir, '2017')
+    create_dir(out_dir)
     forma_name = 'forma{year}_{z}_{x}_{y}.npy'
     for tile in tiles:
-        lon, lat = num2deg(xtile, ytile, 11)
-        tile = extract_tile(forma2017_db, lon, lat, 256, crs='ESPG:4326')[0]
+        z, x, y = tile
+        lon, lat = num2deg(int(x), int(y), int(z))
+        tile = extract_tile(forma2017db, lon, lat, 256, crs='ESPG:4326')[0]
         np.save(os.path.join(out_dir, forma_name.format(year='2017', z=z, x=x, y=y)), tile)
+
+if __name__=='__main__':
+    main()

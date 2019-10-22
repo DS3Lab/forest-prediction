@@ -231,7 +231,7 @@ def main():
     }
     zoom = 11
     # tiles = bbox2tiles(bbox, zoom)
-    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2016.pkl', 'rb') as f:
+    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
         tiles = pkl.load(f)
 
     forest_cover_dir = os.path.join(gee_dir, 'forest_coverv2')
