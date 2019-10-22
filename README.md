@@ -1,6 +1,8 @@
 # forest-prediction
 🛰Deep learning for deforestation classification and forecasting in satellite imagery
 
+[![](https://tinyurl.com/greenai-pledge)](https://github.com/daviddao/green-ai)
+
 ## Overview
 In this repository we provide implementations for:
 1. Data scraping (Tile services and Google Earth Engine)
