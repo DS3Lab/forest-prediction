@@ -52,7 +52,7 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
 def get_output_dir(img_dir):
-    return 'loss'
+    return 'forma'
 
 def create_loss(fc0, fc1):
     """

@@ -64,6 +64,29 @@ def update_total_loss(loss, new_loss):
 def int_year(str_year):
     return int(str_year[:4])
 
+def save_forma_images(images, out_dir, idx_start):
+    print(images.keys())
+    keys = ['img0', 'img1', 'forma', 'hansen']
+    num_y_tiles = 4
+    f = plt.figure(figsize=(4, num_y_tiles*2))
+    gs = gridspec.GridSpec(num_y_tiles, 1, wspace=0.0, hspace=0.0)
+
+    for i in range(len(keys)):
+        key = keys[i]
+        img = images[key]
+        ax = plt.subplot(gs[i, 0])
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if 'img' in key:
+            plt.imshow(np.transpose(img[0], axes=[1,2,0]))
+        else:
+            print(img.shape, 'SHAPEE', key)
+            plt.imshow(img[0][0], cmap=plt.cm.binary)
+    out_imgs_dir = os.path.join(out_dir, '{}.png'.format(idx_start))
+    print('Saved!', out_imgs_dir)
+    plt.savefig(out_imgs_dir, dpi=200, bbox_inches='tight', pad_inches=0.0)
+    plt.close(f)
+
 def save_result_images(images, out_dir, idx_start):
     print(images.keys())
     keys = ['img2016', 'img2017', 'fc2016', 'fc2017', 'fl2017', 'fl_rec2017',
