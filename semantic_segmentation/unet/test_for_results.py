@@ -131,8 +131,8 @@ def main(config):
             fc2017 = imgs2017['fc']
             fl2017 = batch['fl']
 
-            uld2016, uld2017 = normalize_inverse(ld2016, landsat_mean, landsat_std),\
-                normalize_inverse(ld2017, landsat_mean, landsat_std)
+            uld2016 = normalize_inverse(ld2016, landsat_mean, landsat_std) 
+            uld2017 = normalize_inverse(ld2017, landsat_mean, landsat_std)
             ld2016, fc2016 = ld2016.to(device, dtype=torch.float), fc2016.to(device, dtype=torch.float)
             ld2017, fc2017 = ld2017.to(device, dtype=torch.float), fc2017.to(device, dtype=torch.float)
 
@@ -150,11 +150,11 @@ def main(config):
                 output_probs2017.data.cpu().numpy().flatten())
 
             fl_pred2017 = create_loss(output_binary2016, output_binary2017)
-            fl_rec2017 = create_loss(fc2017.cpu().numpy(), fc2016.cpu().numpy())
-            # print(output_binary.shape, 'SHAPEEE')
-            mlz = _fast_hist(flpred2017, fl2017)
+            fl_rec2017 = create_loss(fc2016.cpu().numpy().flatten(), fc2017.cpu().numpy().flatten())
+
+            mlz = _fast_hist(fl_pred2017, fl2017.cpu().numpy().flatten())
             print('HELLO', mlz)
-            hist += _fast_hist(flpred2017, fl2017)
+            hist += _fast_hist(fl_pred2017, fl2017.cpu().numpy().flatten())
             images = {
                 'img2016': uld2016.cpu().numpy(),
                 'img2017': uld2017.cpu().numpy(),
@@ -163,20 +163,21 @@ def main(config):
                 'fc_pred2016': output_binary2016.reshape(-1, 1, 256, 256),
                 'fc_pred2017': output_binary2017.reshape(-1, 1, 256, 256),
                 'fl2017': fl2017.cpu().numpy(),
-                'flrec2017': flrec2017,
+                'fl_rec2017': fl_rec2017.reshape(-1, 1, 256, 256),
                 'fl_pred2017': fl_pred2017.reshape(-1, 1, 256, 256)
             }
 
             print('prediction_time', time.time() - init_time)
 
-            print('Save images shape input', images['img'].shape)
+            print('Save images shape input', images['img2016'].shape)
 
-            save_result_images(1, images, out_dir, i*batch_size)
+            save_result_images(images, out_dir, i*batch_size)
 
             # computing loss, metrics on test set
-            loss = loss_fn(output, target)
-            batch_size = data.shape[0]
-            total_loss += loss.item() * batch_size
+            loss2016 = loss_fn(output2016, fc2016)
+            loss2017 = loss_fn(output2017, fc2017)
+            batch_size = ld2016.shape[0]
+            total_loss += loss2016.item() + loss2017.item()
             # for i, metric in enumerate(metric_fns):
             #     total_metrics[i] += metric(output, target.float()) * batch_size
 
