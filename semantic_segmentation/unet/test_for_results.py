@@ -52,7 +52,7 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
 def get_output_dir(img_dir):
-    return 'loss'
+    return 'compare_with_forma'
 
 def create_loss(fc0, fc1):
     """
@@ -130,7 +130,6 @@ def main(config):
             fc2016 = imgs2016['fc']
             fc2017 = imgs2017['fc']
             fl2017 = batch['fl']
-
             uld2016 = normalize_inverse(ld2016, landsat_mean, landsat_std) 
             uld2017 = normalize_inverse(ld2017, landsat_mean, landsat_std)
             ld2016, fc2016 = ld2016.to(device, dtype=torch.float), fc2016.to(device, dtype=torch.float)
@@ -151,7 +150,8 @@ def main(config):
 
             fl_pred2017 = create_loss(output_binary2016, output_binary2017)
             fl_rec2017 = create_loss(fc2016.cpu().numpy().flatten(), fc2017.cpu().numpy().flatten())
-
+            
+            np.save('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/pred_loss{}.npy'.format(i), fl_pred2017.reshape(-1,1,256,256)[0,0,:,:])
             mlz = _fast_hist(fl_pred2017, fl2017.cpu().numpy().flatten())
             print('HELLO', mlz)
             hist += _fast_hist(fl_pred2017, fl2017.cpu().numpy().flatten())

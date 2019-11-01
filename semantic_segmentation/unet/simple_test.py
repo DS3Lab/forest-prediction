@@ -74,7 +74,7 @@ def create_loss(fc0, fc1):
 def main(config):
     logger = config.get_logger('test')
     # setup data_loader instances
-    batch_size = 9
+    batch_size = 1
     if config['data_loader_val']['args']['max_dataset_size'] == 'inf':
         max_dataset_size = float('inf')
     else:
@@ -114,7 +114,8 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
-    out_dir = os.path.join(pred_dir, get_output_dir(config['data_loader_val']['args']['img_dir']))
+    # out_dir = os.path.join(pred_dir, get_output_dir(config['data_loader_val']['args']['img_dir']))
+    out_dir = os.path.join(pred_dir, 'hello_')
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):
@@ -137,6 +138,8 @@ def main(config):
             binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
             output_binary = _threshold_outputs(
                 output_probs.data.cpu().numpy().flatten())
+
+            np.save('planet_prediction_{}.npy'.format(i), output_binary.reshape(-1,1,256,256)[0,0,:,:])
             # print(output_binary.shape, 'SHAPEEE')
             mlz = _fast_hist(output_binary, binary_target)
             print('HELLO', mlz)
