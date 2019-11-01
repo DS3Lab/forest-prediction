@@ -176,6 +176,9 @@ class PlanetDoubleDataset(Dataset):
             imgs_path = os.path.join(label_dir, year)
             self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
         self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
+        # with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
+        #     self.paths = pkl.load(f)
+        # self.paths = [('11','773','1071')]
         self.paths.sort()
         # TODO: update mean/std
         self.transforms = transforms.Compose([
@@ -192,7 +195,32 @@ class PlanetDoubleDataset(Dataset):
     def __getitem__(self, index):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
+        '''
+        z, x, y = self.paths[index]
+        fc_templ = 'fc{year}_{z}_{x}_{y}.npy'
+        fl_templ = 'fl{year}_{z}_{x}_{y}.npy'
+        ld_templ = 'pl{year}_{z}_{x}_{y}.npy'
+
+        fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_cover/2016'
+        fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_cover/2017'
+        fl_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_loss/2017'
+        fl_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        # ld_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
+        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/planet/annual'
+        fl_path = os.path.join(fl_path, fl_templ.format(year='2017', z=z, x=x, y=y))
+        img_path0 = os.path.join(ld_path, '2016', ld_templ.format(year='2016', z=z, x=x, y=y))
+        img_path1 = os.path.join(ld_path, '2017', ld_templ.format(year='2017', z=z, x=x, y=y))
+
+        fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
+
+        img_arr0 = self.transforms(open_image(img_path0))
+        img_arr1 = self.transforms(open_image(img_path1))
+
+        img_arr = torch.cat((img_arr0, img_arr1), 0)
+        return img_arr.float(), fl_arr.float()
+        '''
         mask_path = self.paths[index]
+        print('INDEX', index, 'PATH', mask_path)
         year, z, x, y = get_tile_info(mask_path.split('/')[-1])
         img_path1, img_path2 = get_img(mask_path, self.img_dir, double=True)
 
@@ -204,7 +232,7 @@ class PlanetDoubleDataset(Dataset):
         img_arr2 = self.transforms(img_arr2)
         img_arr = torch.cat((img_arr1, img_arr2), 0)
         return img_arr.float(), mask_arr.float()
-
+        
 class PlanetDoubleDataLoader(BaseDataLoader):
     def __init__(self, img_dir,
             label_dir,
@@ -365,13 +393,21 @@ class PlanetResultsDataset(Dataset):
                 years: list of years
                 filetype: png or npy. If png it is raw data, if npy it has been preprocessed
         """
-        with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
-            self.paths = pkl.load(f)
+        # with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
+        #     self.paths = pkl.load(f)
+        path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        self.paths = [('11','753','1076'),('11','773','1071')]
         # Delete after video training or update dataset properly
-
-        self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
-        self.paths.sort()
+        # No in training are images from min loss that are not in training from the 5k images in video prediction (I think)
+        # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') as f:
+        #     no_in_training = pkl.load(f)
+        # self.paths = no_in_training
+        # self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
         # TODO: update mean/std
+        # self.paths = get_immediate_subdirectories('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_final/ours_deterministic_l1')
+        self.paths.sort()
+        # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') 
+
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
             utils.Normalize((0.3326, 0.3570, 0.2224),
@@ -387,35 +423,57 @@ class PlanetResultsDataset(Dataset):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
         z, x, y = self.paths[index]
+        print('HELLO, INDEX', index, 'zxy', z,x,y)
         fc_templ = 'fc{year}_{z}_{x}_{y}.npy'
         fl_templ = 'fl{year}_{z}_{x}_{y}.npy'
         ld_templ = 'ld{year}_{z}_{x}_{y}.png'
 
-        fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2016'
-        fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2017'
-        fl_path = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2/fl_for_results/'
-        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
+        # fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2016'
+        # fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_coverv2/2017'
+        # fl_path = '/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2/fl_for_results/'
+
+        # this 3 i am getting in order to get nice losses images
+        # fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_cover/2016'
+        # fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_cover/2017'
+        # fl_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_loss/2017'
+        # ld_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
+        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare' 
+        fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        fl_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        img_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        img_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+
         fc_path0 = os.path.join(fc_path0, fc_templ.format(year='2016', z=z, x=x, y=y))
         fc_path1 = os.path.join(fc_path1, fc_templ.format(year='2017', z=z, x=x, y=y))
         fl_path = os.path.join(fl_path, fl_templ.format(year='2017', z=z, x=x, y=y))
-        img_path0 = os.path.join(ld_path, '2016', ld_templ.format(year='2016', z=z, x=x, y=y))
-        img_path1 = os.path.join(ld_path, '2017', ld_templ.format(year='2017', z=z, x=x, y=y))
+        img_path0 = os.path.join(ld_path, ld_templ.format(year='2016', z=z, x=x, y=y))
+        img_path1 = os.path.join(ld_path, ld_templ.format(year='2017', z=z, x=x, y=y))
 
         fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
         fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)
         fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
-
+        
         img_arr0 = self.transforms(open_image(img_path0))
         img_arr1 = self.transforms(open_image(img_path1))
+        
+        print(img_arr0.shape, img_arr1.shape, fc_arr0.shape, fc_arr1.shape, fl_arr.shape)
 
+
+        #################
+        forma2017_arr = open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
+        forma_arr1 = torch.from_numpy(forma2017_arr)
+
+        ################
         return {
             '2016':{
                 'img': img_arr0,
-                'fc': fc_arr0,
+                'fc': fc_arr0
             },
             '2017':{
                 'img': img_arr1,
-                'fc': fc_arr1
+                'fc': fc_arr1,
+                'forma': forma_arr1
             },
             'fl': fl_arr
         }

@@ -111,7 +111,7 @@ def save_fc(img_arr, out_name, year):
     year: to extract
     """
     FC_IDX = 0 # forest cover index
-    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/z11'
+    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
     GAIN_IDX = 1 # forest gain index
     LOSS_IDX = 2 # forest loss index
     # loss_arr = extract_tile(img_db[LOSS_IDX], lon, lat, 256, crs='ESPG:4326')
@@ -169,8 +169,9 @@ def extract_fc_and_fl_tile(img_db, lon, lat, year, out_name):
     no_loss_mask = np.where(img_arr_loss != year)
     img_arr_loss[loss_mask] = 1
     img_arr_loss[no_loss_mask] = 0
+    print(img_arr_loss.shape)
     np.save(out_name, img_arr_loss)
-    save_fc(img_arr, out_name, year)
+    # save_fc(img_arr, out_name, year)
 
 def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
     out_fl = os.path.join(forest_loss_dir, year)
@@ -218,11 +219,14 @@ def extract_forma_tiles(tiles, year, hansen_db, forest_loss_dir):
         out_name = os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y))
         lon, lat = num2deg(int(x), int(y), int(z))
         int_year = int(year[2:])
-        img_arr = extract_tile(hansen_db, lon, lat, 256, crs='ESPG:4326')
-        save_fc(img_arr, out_name, int_year)
+        # img_arr = extract_tile(hansen_db, lon, lat, 256, crs='ESPG:4326')
+        # np.save(os.path.join(forest_loss_dir, fl_template.format(year=year, z=z, x=x, y=y)), img_arr)
+        # save_fc(img_arr, out_name, int_year)
+                
+        extract_fc_and_fl_tile(hansen_db, lon, lat, int_year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
 
 def main():
-    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/z11'
+    gee_dir = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
     # landsat_db_dir = os.path.join(gee_dir, 'ls7')
 
     bbox = {
@@ -231,11 +235,14 @@ def main():
     }
     zoom = 11
     # tiles = bbox2tiles(bbox, zoom)
-    with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
-        tiles = pkl.load(f)
+    # with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
+    #     tiles = pkl.load(f)
+    tiles = [('11','753','1076'), ('11','773','1071')]
 
     forest_cover_dir = os.path.join(gee_dir, 'forest_coverv2')
     forest_loss_dir = os.path.join(gee_dir, 'forest_lossv2')
+    forest_cover_dir = gee_dir
+    forest_loss_dir = gee_dir
     # landsat_dir = os.path.join(gee_dir, 'ls7', 'processed')
     create_dir(forest_cover_dir)
     create_dir(forest_loss_dir)
