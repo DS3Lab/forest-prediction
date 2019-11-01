@@ -80,7 +80,7 @@ def download_tile(tile, out_dir):
     quarters = ['q1', 'q2', 'q3', 'q4']
     year, z, x, y = tile
     year = int(year)
-    
+
     landsat_path1 = os.path.join(out_dir, 'landsat', str(year-1), landsat_name.format(year=year-1, z=z, x=x, y=y))
     landsat_path2 = os.path.join(out_dir, 'landsat', str(year), landsat_name.format(year=year, z=z, x=x, y=y))
     if not os.path.exists(landsat_path1) and year!= 2013:
@@ -89,7 +89,7 @@ def download_tile(tile, out_dir):
     if not os.path.exists(landsat_path2):
         landsat_url2 = LANDSAT_URLS[str(year)].format(z=z, x=x, y=y)
         download_file(landsat_url2, landsat_path2)
-    
+
     # Download planet file
     for q in quarters:
         if year in [2017, 2018]:
@@ -112,7 +112,7 @@ def download_tilev2(tile, out_dir):
         if not os.path.exists(landsat_path):
             landsat_url = LANDSAT_URLS[str(year)].format(z=z, x=x, y=y)
             download_file(landsat_url, landsat_path)
-    
+
 def add_in_dict(dic, key):
     z, x, y = key[0], key[1], key[2]
     if key not in dic:
@@ -142,12 +142,13 @@ def get_tilesv2(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
             # fl{year}_{z}_{x}_{y}.npy
             tile = yt.split('/')[-1].split('_')
             key = (tile[1], tile[2], tile[3][:-4])
-            add_in_dict(tiles, key) 
+            add_in_dict(tiles, key)
     return tiles
 
 def main():
     zoom = 11
-    tiles = list(get_tilesv2().keys())
+    # tiles = list(get_tilesv2().keys())
+    tiles = [(),()]
     print(len(tiles))
     out_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
     create_dir(out_dir)
