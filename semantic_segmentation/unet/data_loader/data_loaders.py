@@ -232,7 +232,7 @@ class PlanetDoubleDataset(Dataset):
         img_arr2 = self.transforms(img_arr2)
         img_arr = torch.cat((img_arr1, img_arr2), 0)
         return img_arr.float(), mask_arr.float()
-        
+
 class PlanetDoubleDataLoader(BaseDataLoader):
     def __init__(self, img_dir,
             label_dir,
@@ -406,7 +406,7 @@ class PlanetResultsDataset(Dataset):
         # TODO: update mean/std
         # self.paths = get_immediate_subdirectories('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/results_final/ours_deterministic_l1')
         self.paths.sort()
-        # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') 
+        # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb')
 
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
@@ -437,7 +437,7 @@ class PlanetResultsDataset(Dataset):
         # fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_cover/2017'
         # fl_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/hansen_video/forest_loss/2017'
         # ld_path = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
-        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare' 
+        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
         fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
         fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
         fl_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
@@ -453,10 +453,10 @@ class PlanetResultsDataset(Dataset):
         fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
         fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)
         fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
-        
+
         img_arr0 = self.transforms(open_image(img_path0))
         img_arr1 = self.transforms(open_image(img_path1))
-        
+
         print(img_arr0.shape, img_arr1.shape, fc_arr0.shape, fc_arr1.shape, fl_arr.shape)
 
 
@@ -493,4 +493,83 @@ class PlanetResultsLoader(BaseDataLoader):
             max_dataset_size = float('inf')
         self.dataset = PlanetResultsDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
-z
+
+class PlanetDoubleResultsDataset(Dataset):
+    """
+    Planet 3-month mosaic dataset
+    """
+    def __init__(self, img_dir, label_dir, years, max_dataset_size, video=False, mode='train'):
+        """Initizalize dataset.
+            Params:
+                data_dir: absolute path, string
+                years: list of years
+                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
+        """
+        # with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
+        #     self.paths = pkl.load(f)
+        path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        self.paths = [('11','753','1076'),('11','773','1071')]
+        self.paths.sort()
+        # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb')
+
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            utils.Normalize((0.3326, 0.3570, 0.2224),
+                (0.1059, 0.1086, 0.1283))
+        ])
+        self.dataset_size = len(self.paths)
+
+    def __len__(self):
+        # print('Planet Dataset len called')
+        return self.dataset_size
+
+    def __getitem__(self, index):
+        r"""Returns data point and its binary mask"""
+        # Notes: tiles in annual mosaics need to be divided by 255.
+        z, x, y = self.paths[index]
+        print('HELLO, INDEX', index, 'zxy', z,x,y)
+        fc_templ = 'fc{year}_{z}_{x}_{y}.npy'
+        fl_templ = 'fl{year}_{z}_{x}_{y}.npy'
+        ld_templ = 'ld{year}_{z}_{x}_{y}.png'
+
+        ld_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        fc_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        fc_path1 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        fl_path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        img_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+        img_path0 = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
+
+        fc_path0 = os.path.join(fc_path0, fc_templ.format(year='2016', z=z, x=x, y=y))
+        fc_path1 = os.path.join(fc_path1, fc_templ.format(year='2017', z=z, x=x, y=y))
+        fl_path = os.path.join(fl_path, fl_templ.format(year='2017', z=z, x=x, y=y))
+        img_path0 = os.path.join(ld_path, ld_templ.format(year='2016', z=z, x=x, y=y))
+        img_path1 = os.path.join(ld_path, ld_templ.format(year='2017', z=z, x=x, y=y))
+
+        fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
+        fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)
+        fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
+
+        img_arr0 = self.transforms(open_image(img_path0))
+        img_arr1 = self.transforms(open_image(img_path1))
+        img_arr = torch.cat((img_arr1, img_arr2), 0)
+        #################
+        forma2017_arr = open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
+        forma_arr1 = torch.from_numpy(forma2017_arr)
+
+        ################
+        return img_arr.float(), mask_arr.float()
+
+class PlanetDoubleResultsLoader(BaseDataLoader):
+    def __init__(self, img_dir,
+            label_dir,
+            batch_size,
+            years,
+            max_dataset_size=float('inf'),
+            shuffle=True,
+            num_workers=16,
+            video=False,
+            mode='train'):
+        if max_dataset_size == 'inf':
+            max_dataset_size = float('inf')
+        self.dataset = PlanetResultsDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
+        super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
