@@ -14,7 +14,8 @@ In this repository we provide implementations for:
 ```console
 $ git clone https://github.com/DS3Lab/forest-prediction.git
 $ cd forest-prediction
-$ conda create --name forest-env -r requirements.txt
+$ conda create --name forest-env python=3.7
+$ ./install.sh
 $ source activate forest-env
 ```
 ## Running
