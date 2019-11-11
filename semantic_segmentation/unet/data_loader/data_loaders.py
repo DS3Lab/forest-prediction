@@ -1,3 +1,6 @@
+"""
+Here we define the Pytorch Dataset and Dataloaders to use for training
+"""
 import os
 import glob
 import numpy as np
@@ -5,116 +8,30 @@ import cv2
 import torch
 import torchvision
 import pickle as pkl
-# import rasterio
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import datasets, transforms
 from base import BaseDataLoader
 from data_loader import utils
 
-# TODO: put in utils
-def get_tile_info(tile):
-    """
-    Retrieve the year, zoom, x, y from a tile. Example: ly2017_12_1223_2516.png
-    """
-    tile_items = tile.split('_')
-    year = tile_items[0][2:]
-    z = tile_items[1]
-    x = tile_items[2]
-    y = tile_items[3][:-4]
-    return int(year), z, x, y
 
-# TODO: put in utils
-def open_image(img_path):
-    filetype = img_path[-3:]
-    assert filetype in ['png', 'npy']
-    if filetype == 'npy':
-        # try:
-        img_arr = np.load(img_path)
-        if len(img_arr.shape) == 3: # RGB
-            if img_arr.shape[0] == 3: # NCHW
-                img_arr = img_arr.transpose([1,2,0])
-            img_arr = img_arr / 255.
-        #     print(img_arr.shape)
-            return img_arr
-        elif len(img_arr.shape) == 2: # mask
-                # change to binary mask
-            nonzero = np.where(img_arr!=0)
-            img_arr[nonzero] = 1
-            return img_arr
-        # except:
-        #     print('ERROR', img_path)
-        #     return None
-        # return img_arr / 255.
-    else:
-        # For images transforms.ToTensor() does range to (0.,1.)
-
-        img_arr = cv2.imread(img_path)
-        try:
-            img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
-        except:
-            print("ERROR OPENING IMAGE", img_path)
-        return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
-
-def get_img(mask_path, img_dir, double=False):
-    year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-    if not double:
-        if 'planet2landsat' in img_dir:
-            img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.png')
-        elif 'landsat' in img_dir:
-            img_template = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
-        else:
-            img_template = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
-        return img_template.format(year=year, z=z, x=x, y=y)
-    else:
-        if 'planet2landsat' in img_dir:
-            img_template1 = os.path.join(img_dir, str(year-1), 'pl{year}_{z}_{x}_{y}.png')
-            img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.png')
-        elif 'landsat' in img_dir:
-            img_template1 = os.path.join(img_dir, str(year-1), 'ld{year}_{z}_{x}_{y}.png')
-            img_template2 = os.path.join(img_dir, str(year), 'ld{year}_{z}_{x}_{y}.png')
-        else:
-            img_template1 = os.path.join(img_dir, str(year-1), 'pl{year}_{z}_{x}_{y}.npy')
-            img_template2 = os.path.join(img_dir, str(year), 'pl{year}_{z}_{x}_{y}.npy')
-        return img_template1.format(year=year-1, z=z, x=x, y=y), img_template2.format(year=year, z=z, x=x, y=y)
-def get_mask(img_path, mask_dir):
-    year, z, x, y = get_tile_info(img_path.split('/')[-1])
-    if 'loss' in mask_dir:
-        mask_template = os.path.join(mask_dir, str(year), 'fl{year}_{z}_{x}_{y}.npy')
-    else: # cover
-        mask_template = os.path.join(mask_dir, str(year), 'fc{year}_{z}_{x}_{y}.npy')
-    return mask_template.format(year=year, z=z, x=x, y=y)
-
-class PlanetSingleDataset(Dataset):
+class SingleDataset(Dataset):
+    """Dataset for single image input
+        Params:
+            img_dir: directory of the input raw images (Planet or Landsat)
+            label_dir: directory of the semantic segmentation labels (Hansen)
+            years: list of years
+            max_dataset_size
     """
-    Planet 3-month mosaic dataset
-    """
-    def __init__(self, img_dir, label_dir, years, max_dataset_size, video=False, mode='train'):
-        """Initizalize dataset.
-            Params:
-                data_dir: absolute path, string
-                years: list of years
-                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
-        """
+    def __init__(self, img_dir, label_dir, years, max_dataset_size):
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.paths = []
-        # Delete after video training or update dataset properly
-        if video:
-            with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/train_val_test.pkl', 'rb') as pkl_file:
-                train_val_test = pkl.load(pkl_file)
-            for key in train_val_test[mode].keys():
-                imgs = train_val_test[mode][key]
-                for year in years:
-                    mask_path = get_mask(imgs[year], self.label_dir)
-                    self.paths.append(mask_path)
-        else:
-            for year in years:
-                imgs_path = os.path.join(label_dir, year)
-                self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
+        for year in years:
+            imgs_path = os.path.join(label_dir, year)
+            self.paths.extend(glob.glob(os.path.join(imgs_path, '*')))
         self.paths = self.paths[:min(len(self.paths), max_dataset_size)]
         self.paths.sort()
-        # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
             utils.Normalize((0.3326, 0.3570, 0.2224),
@@ -128,22 +45,17 @@ class PlanetSingleDataset(Dataset):
 
     def __getitem__(self, index):
         r"""Returns data point and its binary mask"""
-        # Notes: tiles in annual mosaics need to be divided by 255.
         mask_path = self.paths[index]
-        year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-        print('PREDICTING TILE {z}_{x}_{y}'.format(z=z, x=x, y=y))
-        # For img_dir give
-        # /mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct
-        img_path = get_img(mask_path, self.img_dir)
+        img_path = utils.get_img(mask_path, self.img_dir)
 
-        mask_arr = open_image(mask_path)
-        img_arr = open_image(img_path)
+        mask_arr = utils.open_image(mask_path)
+        img_arr = utils.open_image(img_path)
         mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
         img_arr = self.transforms(img_arr)
 
         return img_arr.float(), mask_arr.float()
 
-class PlanetDataLoader(BaseDataLoader):
+class SingleDataLoader(BaseDataLoader):
     def __init__(self, img_dir,
             label_dir,
             batch_size,
@@ -155,20 +67,18 @@ class PlanetDataLoader(BaseDataLoader):
             mode='train'):
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
-        self.dataset = PlanetSingleDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
+        self.dataset = SingleDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
 
-class PlanetDoubleDataset(Dataset):
-    """
-    Planet 3-month mosaic dataset
+class DoubleDataset(Dataset):
+    """Dataset for double image input.
+        Params:
+            img_dir: directory of the input raw images (Planet or Landsat)
+            label_dir: directory of the semantic segmentation labels (Hansen)
+            years: list of years
+            max_dataset_size
     """
     def __init__(self, img_dir, label_dir, years, max_dataset_size):
-        """Initizalize dataset.
-            Params:
-                data_dir: absolute path, string
-                years: list of years
-                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
-        """
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.paths = []
@@ -180,7 +90,6 @@ class PlanetDoubleDataset(Dataset):
         #     self.paths = pkl.load(f)
         # self.paths = [('11','773','1071')]
         self.paths.sort()
-        # TODO: update mean/std
         self.transforms = transforms.Compose([
             transforms.ToTensor(),
             utils.Normalize((0.3326, 0.3570, 0.2224),
@@ -189,7 +98,6 @@ class PlanetDoubleDataset(Dataset):
         self.dataset_size = len(self.paths)
 
     def __len__(self):
-        # print('Planet Dataset len called')
         return self.dataset_size
 
     def __getitem__(self, index):
@@ -220,20 +128,19 @@ class PlanetDoubleDataset(Dataset):
         return img_arr.float(), fl_arr.float()
         '''
         mask_path = self.paths[index]
-        print('INDEX', index, 'PATH', mask_path)
-        year, z, x, y = get_tile_info(mask_path.split('/')[-1])
-        img_path1, img_path2 = get_img(mask_path, self.img_dir, double=True)
+        img_path1, img_path2 = utils.get_img(mask_path, self.img_dir, double=True)
 
-        mask_arr = open_image(mask_path)
-        img_arr1 = open_image(img_path1)
-        img_arr2 = open_image(img_path2)
+        mask_arr = utils.open_image(mask_path)
+        img_arr1 = utils.open_image(img_path1)
+        img_arr2 = utils.open_image(img_path2)
         mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
         img_arr1 = self.transforms(img_arr1)
         img_arr2 = self.transforms(img_arr2)
         img_arr = torch.cat((img_arr1, img_arr2), 0)
         return img_arr.float(), mask_arr.float()
 
-class PlanetDoubleDataLoader(BaseDataLoader):
+
+class DoubleDataLoader(BaseDataLoader):
     def __init__(self, img_dir,
             label_dir,
             batch_size,
@@ -243,11 +150,9 @@ class PlanetDoubleDataLoader(BaseDataLoader):
             num_workers=16):
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
-        self.dataset = PlanetDoubleDataset(img_dir, label_dir, years, max_dataset_size)
+        self.dataset = DoubleDataset(img_dir, label_dir, years, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
 
-def get_immediate_subdirectories(a_dir):
-    return [name for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
 class PlanetSingleVideoDataset(Dataset):
     """
@@ -266,7 +171,7 @@ class PlanetSingleVideoDataset(Dataset):
         self.img_dir = img_dir
         self.label_dir = label_dir
         self.video_dir = video_dir
-        self.paths = get_immediate_subdirectories(self.video_dir)
+        self.paths = utils.get_immediate_subdirectories(self.video_dir)
         # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') as f:
         #     no_in_training = pkl.load(f)
         # self.paths = no_in_training
@@ -340,8 +245,8 @@ class PlanetSingleVideoDataset(Dataset):
         }
 
     def _process_img_pair(self, img_dict):
-        img_arr = open_image(img_dict['img_dir'])
-        mask_arr = open_image(img_dict['label_dir'])
+        img_arr = utils.open_image(img_dict['img_dir'])
+        mask_arr = utils.open_image(img_dict['label_dir'])
         img_arr = self.transforms(img_arr)
         mask_arr = torch.from_numpy(mask_arr).unsqueeze(0)
 
@@ -452,18 +357,18 @@ class PlanetResultsDataset(Dataset):
         img_path0 = os.path.join(ld_path, ld_templ.format(year='2016', z=z, x=x, y=y))
         img_path1 = os.path.join(ld_path, ld_templ.format(year='2017', z=z, x=x, y=y))
 
-        fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
-        fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)
-        fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
+        fc_arr0 = torch.from_numpy(utils.open_image(fc_path0)).unsqueeze(0)
+        fc_arr1 = torch.from_numpy(utils.open_image(fc_path1)).unsqueeze(0)
+        fl_arr = torch.from_numpy(utils.open_image(fl_path)).unsqueeze(0)
 
-        img_arr0 = self.transforms(open_image(img_path0))
-        img_arr1 = self.transforms(open_image(img_path1))
+        img_arr0 = self.transforms(utils.open_image(img_path0))
+        img_arr1 = self.transforms(utils.open_image(img_path1))
 
         print(img_arr0.shape, img_arr1.shape, fc_arr0.shape, fc_arr1.shape, fl_arr.shape)
 
 
         #################
-        forma2017_arr = open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
+        forma2017_arr = utils.open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
         forma_arr1 = torch.from_numpy(forma2017_arr)
 
         ################
@@ -548,15 +453,15 @@ class PlanetDoubleResultsDataset(Dataset):
         img_path0 = os.path.join(ld_path, ld_templ.format(year='2016', z=z, x=x, y=y))
         img_path1 = os.path.join(ld_path, ld_templ.format(year='2017', z=z, x=x, y=y))
 
-        fc_arr0 = torch.from_numpy(open_image(fc_path0)).unsqueeze(0)
-        fc_arr1 = torch.from_numpy(open_image(fc_path1)).unsqueeze(0)
-        fl_arr = torch.from_numpy(open_image(fl_path)).unsqueeze(0)
+        fc_arr0 = torch.from_numpy(utils.open_image(fc_path0)).unsqueeze(0)
+        fc_arr1 = torch.from_numpy(utils.open_image(fc_path1)).unsqueeze(0)
+        fl_arr = torch.from_numpy(utils.open_image(fl_path)).unsqueeze(0)
 
-        img_arr0 = self.transforms(open_image(img_path0))
-        img_arr1 = self.transforms(open_image(img_path1))
+        img_arr0 = self.transforms(utils.open_image(img_path0))
+        img_arr1 = self.transforms(utils.open_image(img_path1))
         img_arr = torch.cat((img_arr0, img_arr1), 0)
         #################
-        forma2017_arr = open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
+        forma2017_arr = utils.open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
         forma_arr1 = torch.from_numpy(forma2017_arr)
         print('HELLO????')
         ################
