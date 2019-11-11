@@ -1,5 +1,6 @@
 """
-Here we define the Pytorch Dataset and Dataloaders to use for training
+Module to define the Pytorch Dataset and Dataloaders for training/testing.
+Note: the custom DataLoader must inherit from BaseDataLoader
 """
 import os
 import glob
