@@ -68,7 +68,7 @@ class SingleDataLoader(BaseDataLoader):
             mode='train'):
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
-        self.dataset = SingleDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
+        self.dataset = SingleDataset(img_dir, label_dir, years, max_dataset_size)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)
 
 class DoubleDataset(Dataset):

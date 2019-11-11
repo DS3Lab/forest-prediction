@@ -8,7 +8,7 @@
         }
     },
     "data_loader_train": {
-        "type": "PlanetDataLoader",
+        "type": "SingleDataLoader",
         "args":{
             "img_dir": "/mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct",
             "label_dir": "/mnt/ds3lab-scratch/lming/gee_data/z11/forest_cover",
@@ -25,7 +25,7 @@
     },
 
     "data_loader_val": {
-        "type": "PlanetDataLoader",
+        "type": "SingleDataLoader",
         "args":{
             "img_dir": "/mnt/ds3lab-scratch/lming/data/min_quality11/landsat/min_pct",
             "label_dir": "/mnt/ds3lab-scratch/lming/gee_data/z11/forest_cover",

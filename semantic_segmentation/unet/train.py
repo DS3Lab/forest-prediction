@@ -22,7 +22,7 @@ import model.metric as module_metric
 import model.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
-from data_loader.data_loaders import PlanetDataLoader
+# from data_loader.data_loaders import PlanetDataLoader
 
 
 def main(config):
