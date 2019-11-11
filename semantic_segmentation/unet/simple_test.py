@@ -88,6 +88,7 @@ def main(config):
         shuffle=False,
         num_workers=1,
     )
+    print('USING DATA LOADER ', config['data_loader_val']['type'])
     landsat_mean, landsat_std = (0.3326, 0.3570, 0.2224), (0.1059, 0.1086, 0.1283)
     # build model architecture
     model = config.initialize('arch', module_arch)
@@ -115,7 +116,7 @@ def main(config):
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
     # pred_dir = os.path.join(pred_dir, 'predictions')
     # out_dir = os.path.join(pred_dir, get_output_dir(config['data_loader_val']['args']['img_dir']))
-    out_dir = os.path.join(pred_dir, 'hello_')
+    out_dir = os.path.join(pred_dir, 'forma_compare_loss')
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):

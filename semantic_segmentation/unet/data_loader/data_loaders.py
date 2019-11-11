@@ -396,7 +396,8 @@ class PlanetResultsDataset(Dataset):
         # with open('/mnt/ds3lab-scratch/lming/gee_data/forma_tiles2017.pkl', 'rb') as f:
         #     self.paths = pkl.load(f)
         path = '/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare'
-        self.paths = [('11','753','1076'),('11','773','1071')]
+        self.paths = [('11','773','1071')]
+
         # Delete after video training or update dataset properly
         # No in training are images from min loss that are not in training from the 5k images in video prediction (I think)
         # with open('/mnt/ds3lab-scratch/lming/forest-prediction/video_prediction/no_in_training.pkl', 'rb') as f:
@@ -423,6 +424,7 @@ class PlanetResultsDataset(Dataset):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
         z, x, y = self.paths[index]
+        print('PLANET SINGLE RESULTS DATASET')
         print('HELLO, INDEX', index, 'zxy', z,x,y)
         fc_templ = 'fc{year}_{z}_{x}_{y}.npy'
         fl_templ = 'fl{year}_{z}_{x}_{y}.npy'
@@ -527,6 +529,7 @@ class PlanetDoubleResultsDataset(Dataset):
         r"""Returns data point and its binary mask"""
         # Notes: tiles in annual mosaics need to be divided by 255.
         z, x, y = self.paths[index]
+        print('PLANET DOUBLE RESULTS DATASET')
         print('HELLO, INDEX', index, 'zxy', z,x,y)
         fc_templ = 'fc{year}_{z}_{x}_{y}.npy'
         fl_templ = 'fl{year}_{z}_{x}_{y}.npy'
@@ -551,13 +554,13 @@ class PlanetDoubleResultsDataset(Dataset):
 
         img_arr0 = self.transforms(open_image(img_path0))
         img_arr1 = self.transforms(open_image(img_path1))
-        img_arr = torch.cat((img_arr1, img_arr2), 0)
+        img_arr = torch.cat((img_arr0, img_arr1), 0)
         #################
         forma2017_arr = open_image('/mnt/ds3lab-scratch/lming/gee_data/images_forma_compare/forma2017_{}_{}_{}.npy'.format(z,x,y))
         forma_arr1 = torch.from_numpy(forma2017_arr)
-
+        print('HELLO????')
         ################
-        return img_arr.float(), mask_arr.float()
+        return img_arr.float(), fl_arr.float()
 
 class PlanetDoubleResultsLoader(BaseDataLoader):
     def __init__(self, img_dir,
@@ -571,5 +574,5 @@ class PlanetDoubleResultsLoader(BaseDataLoader):
             mode='train'):
         if max_dataset_size == 'inf':
             max_dataset_size = float('inf')
-        self.dataset = PlanetResultsDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
+        self.dataset = PlanetDoubleResultsDataset(img_dir, label_dir, years, max_dataset_size, video, mode)
         super().__init__(self.dataset, batch_size, shuffle, 0, num_workers)

@@ -1,4 +1,5 @@
 import argparse
+import pickle as pkl
 import torch
 import os
 import numpy as np
@@ -52,7 +53,7 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
 def get_output_dir(img_dir):
-    return 'compare_with_forma'
+    return 'compare_with_forma_doublecheck'
 
 def create_loss(fc0, fc1):
     """
@@ -166,11 +167,12 @@ def main(config):
                 'fl_rec2017': fl_rec2017.reshape(-1, 1, 256, 256),
                 'fl_pred2017': fl_pred2017.reshape(-1, 1, 256, 256)
             }
-
+            
             print('prediction_time', time.time() - init_time)
 
             print('Save images shape input', images['img2016'].shape)
-
+            with open('save_fc.pkl', 'wb') as f:
+                    pkl.dump(images, f)
             save_result_images(images, out_dir, i*batch_size)
 
             # computing loss, metrics on test set
