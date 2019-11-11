@@ -13,7 +13,7 @@ In this repository we provide implementations for:
 ## Installation
 ```console
 $ git clone https://github.com/DS3Lab/forest-prediction.git
-$ cd forest-prediction
+$ cd forest-prediction/semantic_segmentation/unet
 $ conda create --name forest-env python=3.7
 $ ./install.sh
 $ source activate forest-env
