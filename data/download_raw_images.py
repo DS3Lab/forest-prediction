@@ -1,4 +1,4 @@
-"""Module to download "high quality" hansen tiles (min 5% forest loss)
+"""Module to download "high quality" hansen tiles (min 2% forest loss)
 """
 import os
 import sys
@@ -13,16 +13,12 @@ import cv2
 import numpy as np
 from itertools import product
 import requests
-import os
-import glob
 import rasterio
 import gdal
 import numpy as np
 import math
 import argparse
-import matplotlib.pyplot as plt
-import pickle as pkl
-import logging
+
 from utils import deg2num, num2deg, geodesic2spherical, create_dir
 from rasterio.merge import merge
 from rasterio.windows import Window
@@ -147,9 +143,6 @@ def get_tilesv2(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
 
 def main():
     zoom = 11
-    # tiles = list(get_tilesv2().keys())
-    tiles = [(),()]
-    print(len(tiles))
     out_dir = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/video'
     create_dir(out_dir)
     # create_dir(os.path.join(out_dir, 'planet'))
@@ -161,9 +154,6 @@ def main():
     for chunk in chunks(tiles, 16):
         with multiprocessing.Pool(processes=16) as pool:
             results = pool.starmap(download_tilev2, create_tuple(chunk, out_dir))
-
-    # with open('redownload.pkl', 'wb') as pkl_file:
-    #     pkl.dump(REDOWNLOAD, pkl_file)
 
 if __name__ == '__main__':
     main()

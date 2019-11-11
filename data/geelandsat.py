@@ -74,9 +74,6 @@ def main(args):
                 logger.debug('WARNING: {} has nans'.format(tile))
             outname = os.path.join(args.output_dir, year, name_template.format(year=year, z=zoom, x=x, y=y))
             np.save(outname, img_arr)
-    
-    with open('nans.pkl', 'wb') as f:
-        pkl.dump(nans, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
