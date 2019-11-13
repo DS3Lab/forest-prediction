@@ -1,3 +1,7 @@
+"""
+This module extends the functionality of a Pytorch nn.Module. It is used
+to define the custom Models in unet/models/model.py
+"""
 import torch.nn as nn
 import numpy as np
 from abc import abstractmethod

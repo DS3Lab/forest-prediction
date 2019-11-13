@@ -1,3 +1,7 @@
+"""
+This module extends the basic Pytorch DataLoader functionality. It is used
+to define the custom DataLoaders in unet/data_loader/data_loaders.py
+"""
 import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
@@ -9,6 +13,12 @@ class BaseDataLoader(DataLoader):
     Base class for all data loaders
     """
     def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=default_collate):
+        """
+        params:
+            dataset: Pytorch Dataset object
+            validation_split: float between 0 and 1. Indicates the percentage
+                of data to assign to the validation set
+        """
         self.validation_split = validation_split
         self.shuffle = shuffle
 
@@ -26,6 +36,11 @@ class BaseDataLoader(DataLoader):
         super().__init__(sampler=self.sampler, **self.init_kwargs)
 
     def _split_sampler(self, split):
+        """
+        Randomly splits the dataset into two of size (1-split, split)
+        params:
+            split: float between 0 and 1
+        """
         if split == 0.0:
             return None, None
 
@@ -55,6 +70,9 @@ class BaseDataLoader(DataLoader):
         return train_sampler, valid_sampler
 
     def split_validation(self):
+        """
+        Returns a Pytorch DataLoader if there is validation set
+        """
         if self.valid_sampler is None:
             return None
         else:

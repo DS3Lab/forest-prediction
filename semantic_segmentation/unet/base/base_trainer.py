@@ -1,13 +1,22 @@
+"""
+This module defines a base class for all trainers, whose task is to run the
+training of the neural network models.
+"""
 import torch
 from abc import abstractmethod
 from numpy import inf
 from logger import TensorboardWriter
 
 class BaseTrainer:
-    """
-    Base class for all trainers
-    """
     def __init__(self, model, loss, metrics, optimizer, config):
+        """
+        params:
+            model: neural network model
+            loss: function to optimize
+            metrics: list of metrics to validate during training
+            optimizer:
+            config: ConfigParser object
+        """
         self.config = config
         self.logger = config.get_logger('trainer', config['trainer']['verbosity'])
 
@@ -159,22 +168,6 @@ class BaseTrainer:
         checkpoints = checkpoints[:-self.keep_last]
         for c in checkpoints:
             c.unlink()
-
-        # bests = self.checkpoint_dir.parent.rglob("model_best.pth")
-        # bests = sorted(bests, key=lambda f: f.stat().st_mtime)
-        # bests = bests[:-1]
-        # for c in bests:
-        #     c.unlink()
-        #
-        # configs = self.checkpoint_dir.parent.rglob("config.json")
-        # configs = sorted(configs, key=lambda f: f.stat().st_mtime)
-        # configs = configs[:-1]
-        # for c in configs:
-        #     c.unlink()
-        #
-        # for f in self.checkpoint_dir.parent.glob('*'):
-        #     if f.is_dir() and len(list(f.glob('*'))) == 0:
-        #         f.rmdir()
 
     def _resume_checkpoint(self, resume_path):
         """
