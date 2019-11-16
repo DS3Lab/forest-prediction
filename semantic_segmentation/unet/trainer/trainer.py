@@ -136,7 +136,7 @@ class Trainer(BaseTrainer):
             acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
                 evaluate(hist=hist)
 
-        # add histogram of model parameters to the tensorboard
+        # add histogram of model parameters to tensorboard
         for name, p in self.model.named_parameters():
             self.writer.add_histogram(name, p, bins='auto')
 
@@ -171,7 +171,6 @@ def _fast_hist(outputs, targets, num_classes=2):
         outputs[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
     return hist
 
-
 def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     if hist is None:
         hist = np.zeros((num_classes, num_classes))
@@ -195,14 +194,3 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     f1_score = 2. * ((precision * recall) / (precision + recall + eps))
 
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
-
-
-def get_jaccard(y_true, y_pred):
-    epsilon = 1e-15
-    print(y_true.shape, y_pred.shape)
-    y_true = y_true.squeeze(1)
-    y_pred = y_pred.squeeze(1)
-    intersection = (y_pred * y_true).sum(dim=-2).sum(dim=-1)
-    union = y_true.sum(dim=-2).sum(dim=-1) + y_pred.sum(dim=-2).sum(dim=-1)
-
-    return list(((intersection + epsilon) / (union - intersection + epsilon)).data.cpu().numpy())
