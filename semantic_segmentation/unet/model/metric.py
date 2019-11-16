@@ -12,4 +12,3 @@ def get_jaccard(y_pred, y_true):
     union = y_true.sum(dim=-2).sum(dim=-1) + y_pred.sum(dim=-2).sum(dim=-1)
     result = ((intersection + epsilon) / (union - intersection + epsilon)).data.cpu().numpy()
     return np.mean(result)
-    # return list(((intersection + epsilon) / (union - intersection + epsilon)).data.cpu().numpy())
