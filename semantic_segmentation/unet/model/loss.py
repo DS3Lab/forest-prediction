@@ -9,6 +9,7 @@ import numpy as np
 class LossBinary(nn.Module):
     """
     Loss defined as \alpha BCE - (1 - \alpha) SoftJaccard
+    Code borrowed from https://github.com/ternaus/robot-surgery-segmentation/blob/master/loss.py
     """
 
     def __init__(self, jaccard_weight=0):
@@ -29,10 +30,3 @@ class LossBinary(nn.Module):
 
             loss -= self.jaccard_weight * torch.log((intersection + eps) / (union - intersection + eps))
         return loss
-
-def get_jaccard(y_true, y_pred):
-    epsilon = 1e-15
-    intersection = (y_pred * y_true).sum(dim=-2).sum(dim=-1)
-    union = y_true.sum(dim=-2).sum(dim=-1) + y_pred.sum(dim=-2).sum(dim=-1)
-
-    return list(((intersection + epsilon) / (union - intersection + epsilon)).data.cpu().numpy())
