@@ -1,4 +1,6 @@
-
+"""
+This module specifies the losses we want to optimize in the neural network.
+"""
 import torch
 from torch import nn
 from torch.nn import functional as F
