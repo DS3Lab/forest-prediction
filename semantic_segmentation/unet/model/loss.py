@@ -13,7 +13,6 @@ class LossBinary(nn.Module):
     Loss defined as \alpha BCE - (1 - \alpha) SoftJaccard
     Code borrowed from https://github.com/ternaus/robot-surgery-segmentation/blob/master/loss.py
     """
-
     def __init__(self, jaccard_weight=0):
         super().__init__()
         self.nll_loss = nn.BCEWithLogitsLoss()
