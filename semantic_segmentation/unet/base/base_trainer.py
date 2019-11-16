@@ -78,8 +78,6 @@ class BaseTrainer:
             for key, value in result.items():
                 if key == 'metrics':
                     log.update({mtr.__name__: value[i] for i, mtr in enumerate(self.metrics)})
-                # elif key == 'val_metrics':
-                #     log.update({'val_' + mtr.__name__: value[i] for i, mtr in enumerate(self.metrics)})
                 else:
                     log[key] = value
             if val_result:
@@ -147,7 +145,7 @@ class BaseTrainer:
         state = {
             'arch': arch,
             'epoch': epoch,
-           'state_dict': self.model.state_dict(),
+            'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'monitor_best': self.mnt_best,
             'config': self.config
@@ -163,6 +161,9 @@ class BaseTrainer:
         self._remove_checkpoints()
 
     def _remove_checkpoints(self):
+        """
+        Keep the last self.keep_last checkpoints after each epoch.
+        """
         checkpoints = self.checkpoint_dir.rglob("checkpoint-epoch*.pth")
         checkpoints = sorted(checkpoints, key=lambda f: f.stat().st_mtime)
         checkpoints = checkpoints[:-self.keep_last]
