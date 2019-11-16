@@ -60,6 +60,9 @@ def make_layers(cfg, in_channels=6, batch_norm=False):
 
 
 class UNet11(nn.Module):
+    """
+    U-Net model with VGG11 encoder architecture
+    """
     def __init__(self, num_filters=32, pretrained=False):
         """
         :param num_classes:
@@ -247,6 +250,9 @@ class AlbuNet(nn.Module):
 
 
 class UNet16(nn.Module):
+    """
+    U-Net model with VGG16 encoder architecture
+    """
     def __init__(self, num_classes=1, num_filters=32, pretrained=False, is_deconv=False):
         """
         :param num_classes:
@@ -331,6 +337,9 @@ class UNet16(nn.Module):
         return x_out
 
 class DRNSeg(nn.Module):
+    """
+    Dilated Residual Network
+    """
     def __init__(self, model_name, classes, pretrained_model=None,
                  pretrained=True, use_torch_up=True):
         super(DRNSeg, self).__init__()
