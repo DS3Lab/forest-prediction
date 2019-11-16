@@ -37,13 +37,6 @@ def inf_loop(data_loader):
     for loader in repeat(data_loader):
         yield from loader
 
-def make_grid_2(tensor, nrow=8, padding=2, normalize=False, range=None, scale_each=False, pad_value=0):
-    tensor1 = tensor[:,:3,:,:]
-    tensor2 = tensor[:,3:,:,:]
-
-    tensor = torch.cat([tensor1, tensor2], dim=3)
-    return make_grid(tensor, nrow, padding, normalize, range, scale_each, pad_value)
-
 def create_loss(fc0, fc1):
     """
     fc0: forest cover at time year t
