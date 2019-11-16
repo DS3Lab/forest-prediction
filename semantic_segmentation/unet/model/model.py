@@ -1,5 +1,6 @@
-''' Code borrowed from https://github.com/ternaus/TernausNet/blob/master/unet_models.py
-TODO: cite propertly
+''' 
+U-Net models borrowed from https://github.com/ternaus/TernausNet/blob/master/unet_models.py
+DSR borrowed from https://github.com/fyu/drn/blob/master/drn.py
 '''
 from torch import nn
 from torch.nn import functional as F
@@ -9,8 +10,8 @@ import torchvision
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import base_models # ResNet
-import drn
+from resnet import resnet34 # ResNet
+import drn # Dilated Residual Network
 import math
 
 def conv3x3(in_, out):
@@ -193,9 +194,8 @@ class AlbuNet(nn.Module):
 
         self.pool = nn.MaxPool2d(2, 2)
 
-        self.encoder = base_models.resnet34(pretrained=pretrained, num_channels=num_channels)
-        # self.encoder = torchvision.models.resnet34(pretrained=pretrained)
-
+        self.encoder = resnet34(pretrained=pretrained, num_channels=num_channels)
+        
         self.relu = nn.ReLU(inplace=True)
 
         self.conv1 = nn.Sequential(self.encoder.conv1,
@@ -330,19 +330,6 @@ class UNet16(nn.Module):
 
         return x_out
 
-################################################################################
-
-# def fill_up_weights(up):
-#     w = up.weight.data
-#     f = math.ceil(w.size(2) / 2)
-#     c = (2 * f - 1 - f % 2) / (2. * f)
-#     for i in range(w.size(2)):
-#         for j in range(w.size(3)):
-#             w[0, 0, i, j] = \
-#                 (1 - math.fabs(i / f - c)) * (1 - math.fabs(j / f - c))
-#     for c in range(1, w.size(0)):
-#         w[c, 0, :, :] = w[0, 0, :, :]
-
 class DRNSeg(nn.Module):
     def __init__(self, model_name, classes, pretrained_model=None,
                  pretrained=True, use_torch_up=True):
@@ -374,13 +361,7 @@ class DRNSeg(nn.Module):
     def forward(self, x):
         x = self.base(x)
         x = self.seg(x)
-        # y = self.up(x)
-        # return self.softmax(y), x
         y = self.up(x)
-
-        # TODO: check if by returning x it gets better results
-        # y -> upsampling, x -> normal logits
-        # don't return softmax in order to use BCE
         return y
 
     def __params__(self):
