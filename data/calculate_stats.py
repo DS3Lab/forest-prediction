@@ -1,7 +1,6 @@
 """
 This script is used to calculate the online mean and std of the dataset
 """
-
 import os
 import glob
 import numpy as np
@@ -12,16 +11,11 @@ import pickle as pkl
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
-def open_image(img_path):
-    filetype = img_path[-3:]
-    assert filetype in ['png', 'npy']
-    if filetype == 'npy':
-        return np.load(img_path).transpose([1,2,0]) / 255.
-    else:
-        img_arr = cv2.imread(img_path)
-        return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
 def open_image(img_path):
+    """
+    Open image as ndarray
+    """
     filetype = img_path[-3:]
     assert filetype in ['png', 'npy']
     if filetype == 'npy':
@@ -50,6 +44,7 @@ def open_image(img_path):
             print(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
+    
 def online_mean_and_std(loader):
     """
         Compute the mean and sd in an online fashion [1].
@@ -82,15 +77,8 @@ class MyDataset(Dataset):
     def __init__(self, img_paths):
         """Initizalize dataset.
             Params:
-                data_dir: absolute path, string
-                years: list of years
-                filetype: png or npy. If png it is raw data, if npy it has been preprocessed
+                img_paths: list of image files of the dataset.
         """
-        # if timelapse == 'quarter':
-        #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/quarter'
-        # else:
-        #     self.data_dir = '/mnt/ds3lab-scratch/lming/data/min_quality/planet/annual'
-
         self.dataset = img_paths
         self.dataset_size = len(self.dataset)
         print('Loaded {} files'.format(self.dataset_size))
@@ -104,10 +92,6 @@ class MyDataset(Dataset):
 
     def __getitem__(self, index):
         r"""Returns data point and its binary mask"""
-
-        # img_path = self.img_paths[index % self.img_size]  # make sure index is within then range
-        # mask_path = self.mask_paths[index % self.mask_size]
-        # TODO - use paths_dict
         img = open_image(self.dataset[index])
         img = self.transforms(img)
         # print(img)
