@@ -24,6 +24,9 @@ logger.addHandler(fh)
 
 
 def add_in_dict(dic, key):
+    """
+    Add a new key in the dictionary if it does not exist.
+    """
     z, x, y = key[0], key[1], key[2]
     if key not in dic:
         dic[key] = {}
@@ -33,7 +36,10 @@ def add_in_dict(dic, key):
 
 def check_quality_label(img, threshold = 0.01):
     """
-    img = np.array(256,256)
+    Checks whether the ratio of positive values are greater or equal
+    to a given threshold.
+    Params:
+        img: ndarray
     """
     count_nonzero = np.count_nonzero(img)  # asume BGR, labels in red channel
     img_size = img.size
@@ -43,7 +49,9 @@ def check_quality_label(img, threshold = 0.01):
         return False
 
 def bbox2tiles(bbox, zoom):
-    """ Return tile coordinates from a bounding box"""
+    """ 
+    Return the tile coordinates that forms a bounding box.
+    """
     upper_left_tile = deg2num(bbox['upper_left'][0], bbox['upper_left'][1], zoom)
     lower_right_tile = deg2num(bbox['lower_right'][0], bbox['lower_right'][1], zoom)
     tile_coords = []
@@ -54,10 +62,15 @@ def bbox2tiles(bbox, zoom):
     return tile_coords
 
 def extract_tile(mosaicdb, lon, lat, tile_size, crs):
-    '''
-    Extract tile_size x tile_size tile from a bif tif starting from lon, lat
-    bigtif: Rasterio Data Reader
-    '''
+    """
+    Extracts a tile of tile_size from a bigger tile. 
+    Params:
+	mosaicdb: Rasterio DataReader
+	lon: longitude value in ESPG:4326 or x coordinate in ESPG:3857
+	lat: longitude value in ESPG:4326 or y coordinate in ESPG:3857
+	tile_size: size of the tile to return
+	crs: string, ESPG:4326 or ESPG:3857
+    """
     assert crs in ['ESPG:3857', 'ESPG:4326']
     if crs == 'ESPG:4326':
         xgeo, ygeo = geodesic2spherical(lon, lat)
@@ -67,7 +80,8 @@ def extract_tile(mosaicdb, lon, lat, tile_size, crs):
     return mosaicdb.read(window=Window(idy, idx, 256, 256))
 
 def preprocess_fc(img_arr, threshold=0.25):
-    """Threshold percentage values to be binary to 0.25
+    """
+    Threshold percentage values to be binary with a 0.25 threshold.
     """
     if img_arr.max() == 100.:
         img_arr = img_arr / 100.
@@ -79,11 +93,13 @@ def preprocess_fc(img_arr, threshold=0.25):
 
 def create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year):
     """
+    Create forest cover the specified year. For gain and loss on the same pixel
+    between 2000-2012, we assume that nothing happened.
     Params:
-    fc2000: ndarray binary mask
-    gain2000_2012: ndarray binary mask
-    loss2000_2012: ndarray binary mask
-    loss2013_year: ndarray binary mask
+        fc2000: ndarray binary mask. Forest cover from 2000.
+        gain2000_2012: ndarray binary mask. Forest gain from 2000 to 2012.
+        loss2000_2012: ndarray binary mask. Forest loss from 2000 to 2012.
+        loss2013_year: ndarray binary mask. Forest loss from 2013 to year.
     """
     gain_loss2000_2012 = gain2000_2012 - loss2000_2012 # 0 if loss and gain, 1 if only gain, -1 if only loss
     gain_mask = np.where(gain_loss2000_2012==1)
@@ -96,7 +112,8 @@ def create_forest_cover(fc2000, gain2000_2012, loss2000_2012, loss2013_year):
     return fc2000
 
 def get_aggregated_loss(img_arr, beg=1, end=12):
-    """Gets the loss from 2001 to 2012
+    """
+    Gets the forest total loss from 2001 to 2012.
     """
     loss_arr = np.zeros(img_arr.shape)
     for i in range(beg, end+1): # +1 because range is exclusive
