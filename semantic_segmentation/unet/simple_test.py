@@ -1,3 +1,6 @@
+"""
+Test module for the binary segmentation task.
+"""
 import argparse
 import torch
 import os
@@ -14,13 +17,15 @@ from torch.nn import functional as F
 
 
 def _threshold_outputs(outputs, output_threshold=0.3):
+    """
+    Binarize output probabilities up to a certain threshold
+    """
     idx = outputs > output_threshold
     outputs = np.zeros(outputs.shape, dtype=np.int8)
     outputs[idx] = 1
     return outputs
 
 def _fast_hist(outputs, targets, num_classes=2):
-    print(outputs.shape, targets.shape)
     mask = (targets >= 0) & (targets < num_classes)
     hist = np.bincount(
         num_classes * targets[mask].astype(int) +
@@ -88,7 +93,6 @@ def main(config):
         shuffle=False,
         num_workers=1,
     )
-    print('USING DATA LOADER ', config['data_loader_val']['type'])
     landsat_mean, landsat_std = (0.3326, 0.3570, 0.2224), (0.1059, 0.1086, 0.1283)
     # build model architecture
     model = config.initialize('arch', module_arch)
@@ -162,8 +166,6 @@ def main(config):
             loss = loss_fn(output, target)
             batch_size = data.shape[0]
             total_loss += loss.item() * batch_size
-            # for i, metric in enumerate(metric_fns):
-            #     total_metrics[i] += metric(output, target.float()) * batch_size
 
     acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
         evaluate(hist=hist)
@@ -179,6 +181,12 @@ def main(config):
     logger.info(log)
 
 def normalize_inverse(batch, mean, std):
+    """
+    Performs the inverse of normalization. Returns unnormalized batch.
+        :param batch: batch from DataLoader, NCHW format
+        :param mean: tensor of shape (3,)
+        :param std: tensor of shape (3,)
+    """
     with torch.no_grad():
         img = batch.clone()
         ubatch = torch.Tensor(batch.shape)
