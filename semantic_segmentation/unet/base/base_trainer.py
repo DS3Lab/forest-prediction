@@ -1,6 +1,6 @@
 """
-This module defines a base class for all trainers, whose task is to run the
-training of the neural network models.
+This module defines a base class for all trainers. A trainer class is used as
+the main engine to run the training of the neural network models.
 """
 import torch
 from abc import abstractmethod
@@ -21,19 +21,24 @@ class BaseTrainer:
         self.logger = config.get_logger('trainer', config['trainer']['verbosity'])
 
         # setup GPU device if available, move model into configured device
-        # self.device, device_ids = self._prepare_device(config['n_gpu'], config['device_id'])
         self.device, device_ids = self._prepare_device(config['n_gpu'])
         self.model = model.to(self.device)
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
+        # Loss to optimize
         self.loss = loss
+        # Metric to validate
         self.metrics = metrics
+        # Optimizer to use, e.g Adam
         self.optimizer = optimizer
 
         cfg_trainer = config['trainer']
+        # Number of epochs to train
         self.epochs = cfg_trainer['epochs']
+        # Save model every # epochs
         self.save_period = cfg_trainer['save_period']
+        # Whether to monitor best model and apply early stopping
         self.monitor = cfg_trainer.get('monitor', 'off')
 
         # configuration to monitor model performance and save best
@@ -45,9 +50,11 @@ class BaseTrainer:
             assert self.mnt_mode in ['min', 'max']
 
             self.mnt_best = inf if self.mnt_mode == 'min' else -inf
+            # Num epochs to track
             self.early_stop = cfg_trainer.get('early_stop', inf)
 
         self.start_epoch = 1
+        # Last model in the model directory
         self.keep_last = config['trainer']['keep_last']
         self.checkpoint_dir = config.save_dir
 
