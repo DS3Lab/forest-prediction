@@ -1,3 +1,8 @@
+"""
+Module for the ResNet architecture. 
+Code from https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
+"""
+
 from torch import nn
 from torchvision.models.resnet import BasicBlock, conv1x1
 

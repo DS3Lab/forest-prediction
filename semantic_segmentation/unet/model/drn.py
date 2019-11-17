@@ -1,3 +1,6 @@
+"""
+Dilated Residual Network: Code borrowed from https://github.com/fyu/drn
+"""
 import pdb
 
 import torch.nn as nn

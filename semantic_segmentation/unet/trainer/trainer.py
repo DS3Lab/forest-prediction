@@ -1,3 +1,6 @@
+"""
+Main training engine used to train the models. 
+"""
 import time
 import numpy as np
 import torch
@@ -31,13 +34,17 @@ class Trainer(BaseTrainer):
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
         self.save_train_img_step = self.log_step * 4
-        # print('===========LOG STEP=============', self.log_step)
-        # self.val_step = int(self.len_epoch / 10)
-        # self.val_step = 1
-        # self.log_step = self.epochs
+        
+        # Binarize NN output
         self.output_threshold = 0.3
 
     def _eval_metrics(self, output, target):
+        """
+        Make an evaluation of all the specified metrics and store it in an ndarray.
+        :params
+            output: prediction of the model
+            target: ground truth
+        """
         acc_metrics = np.zeros(len(self.metrics))
         for i, metric in enumerate(self.metrics):
             m = metric(output, target.float())
@@ -82,12 +89,7 @@ class Trainer(BaseTrainer):
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
-                    # self.writer.add_image('input', make_grid_2(data.cpu(), nrow=8, normalize=True))
-            # if batch_idx % self.val_step == 0:
-            #     if self.do_validation:
-            #         val_log = self._valid_epoch(epoch)
-            #         log.update(val_log)
-
+            
             if batch_idx == self.len_epoch:
                 break
 
@@ -96,7 +98,6 @@ class Trainer(BaseTrainer):
             'metrics': (total_metrics / self.len_epoch).tolist()
         }
 
-        # self.writer.add_image('input_train', make_grid_2(data.cpu(), nrow=8, normalize=True))
         val_log = {}
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
@@ -111,9 +112,6 @@ class Trainer(BaseTrainer):
         Validate after training an epoch
 
         :return: A log that contains information about validation
-
-        Note:
-            The validation metrics in log must have the key 'val_metrics'.
         """
         self.model.eval()
         total_val_loss = 0
@@ -138,7 +136,7 @@ class Trainer(BaseTrainer):
             acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
                 evaluate(hist=hist)
 
-        # add histogram of model parameters to the tensorboard
+        # add histogram of model parameters to tensorboard
         for name, p in self.model.named_parameters():
             self.writer.add_histogram(name, p, bins='auto')
 
@@ -173,7 +171,6 @@ def _fast_hist(outputs, targets, num_classes=2):
         outputs[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
     return hist
 
-
 def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     if hist is None:
         hist = np.zeros((num_classes, num_classes))
@@ -197,14 +194,3 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     f1_score = 2. * ((precision * recall) / (precision + recall + eps))
 
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
-
-
-def get_jaccard(y_true, y_pred):
-    epsilon = 1e-15
-    print(y_true.shape, y_pred.shape)
-    y_true = y_true.squeeze(1)
-    y_pred = y_pred.squeeze(1)
-    intersection = (y_pred * y_true).sum(dim=-2).sum(dim=-1)
-    union = y_true.sum(dim=-2).sum(dim=-1) + y_pred.sum(dim=-2).sum(dim=-1)
-
-    return list(((intersection + epsilon) / (union - intersection + epsilon)).data.cpu().numpy())
