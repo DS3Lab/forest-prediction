@@ -1,4 +1,5 @@
-"""This module produces annual mosaics from quarter mosaics in Planet Data
+"""
+This script produces annual mosaics from shorter time-period mosaics.
 """
 import cv2
 import numpy as np
@@ -7,14 +8,19 @@ import os
 from utils import create_dir
 
 PLANETPATH = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/planet' 
-# years = ['2016', '2017']
 years = ['2016', '2017','2018']
 OUTPATH = '/mnt/ds3lab-scratch/lming/gee_data/ldpl/planet/annual'
 create_dir(OUTPATH)
+
 for year in years:
     create_dir(os.path.join(OUTPATH, year))
 
 def annual_mosaic(imgs):
+    """
+    Create annual mosaic from a list of shorter time period mosaics.
+    Params:
+        imgs: list of mosaics. Example: [img_q1, img_q2, img_q3, img_q4]
+    """
     n = 0
     annual = np.zeros(imgs[0].shape)
     for img in imgs:
@@ -23,6 +29,9 @@ def annual_mosaic(imgs):
     return annual / n
 
 def get_imgs(path):
+    """
+    Get all the images from a directory.
+    """
     all_imgs = glob.glob(path)
     imgs = {}
     for img in all_imgs:
