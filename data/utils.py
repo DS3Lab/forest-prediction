@@ -1,10 +1,17 @@
-""""""
+"""
+This module include helper functions for Coordinate System data manipulation 
+and directory/file management
+"""
 import os
 import math
 from pyproj import Proj, transform
 from rasterio.merge import merge
 
 def deg2num(lon_deg, lat_deg, zoom):
+  """
+  Transform a point in (lon, lat) to its corresponding tile given a specific zoom level.
+  Note that it will the tile coordinate that contains this (lon, lat) point.
+  """
   lat_rad = math.radians(lat_deg)
   n = 2.0 ** zoom
   xtile = int((lon_deg + 180.0) / 360.0 * n)
@@ -12,6 +19,9 @@ def deg2num(lon_deg, lat_deg, zoom):
   return (xtile, ytile)
 
 def num2deg(xtile, ytile, zoom):
+  """
+  Transform a tile at a specific zoom into a (lon, lat) value.
+  """
   n = 2.0 ** zoom
   lon_deg = xtile / n * 360.0 - 180.0
   lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
@@ -37,5 +47,8 @@ def geodesic2spherical(x1, y1, inverse=False):
     return x2, y2
 
 def create_dir(folder):
+  """
+  Create dir if it does not exist.
+  """
     if not os.path.exists(folder):
         os.makedirs(folder)
