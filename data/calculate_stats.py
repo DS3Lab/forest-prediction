@@ -1,5 +1,6 @@
 """
-This script is used to calculate the online mean and std of the dataset
+This script is used to calculate the online mean and std of the dataset.
+Note: it should be used only on the training dataset.
 """
 import os
 import glob
@@ -44,7 +45,7 @@ def open_image(img_path):
             print(img_path)
         return cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
 
-    
+
 def online_mean_and_std(loader):
     """
         Compute the mean and sd in an online fashion [1].
@@ -72,7 +73,7 @@ def online_mean_and_std(loader):
 
 class MyDataset(Dataset):
     """
-    Custom dataset to calculate the mean of annual & quarter mosaics
+    Custom dataset to calculate the mean and standard deviation of a dataset
     """
     def __init__(self, img_paths):
         """Initizalize dataset.
