@@ -12,10 +12,11 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
+from trainer import _fast_hist, evaluate, _threshold_outputs
 from utils.util import save_simple_images, NormalizeInverse, save_double_images
 from torch.nn import functional as F
 
-
+"""
 def _threshold_outputs(outputs, output_threshold=0.3):
     """
     Binarize output probabilities up to a certain threshold
@@ -64,7 +65,7 @@ def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
     f1_score = 2. * ((precision * recall) / (precision + recall + eps))
 
     return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
-
+"""
 def get_output_dir(img_dir):
     return 'forest_loss_forma_baseline'
     if 'pix2pix' in img_dir:
