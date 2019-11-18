@@ -157,11 +157,11 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
 
-def threshold_outputs(outputs):
+def threshold_outputs(outputs, output_threshold=0.3):
     """
     Binarize output probabilities up to a certain threshold
     """
-    idx = outputs > self.output_threshold
+    idx = outputs > output_threshold
     outputs = np.zeros(outputs.shape, dtype=np.int8)
     outputs[idx] = 1
     return outputs
