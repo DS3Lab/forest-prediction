@@ -157,7 +157,7 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
 
-def threshold_outputs(self, outputs):
+def threshold_outputs(outputs):
     """
     Binarize output probabilities up to a certain threshold
     """
