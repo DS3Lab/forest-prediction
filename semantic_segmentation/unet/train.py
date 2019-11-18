@@ -40,7 +40,6 @@ def main(config):
     loss = config.initialize('loss', module_loss)
     # loss = getattr(module_loss, config['loss'])
     metrics = [getattr(module_metric, met) for met in config['metrics']]
-
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     print(trainable_params)

@@ -157,15 +157,14 @@ class Trainer(BaseTrainer):
         return base.format(current, total, 100.0 * current / total)
 
 
-def _threshold_outputs(self, outputs):
+def threshold_outputs(self, outputs):
     idx = outputs > self.output_threshold
     outputs = np.zeros(outputs.shape, dtype=np.int8)
     outputs[idx] = 1
     return outputs
 
-# TODO: This should be in the loss script. Just here to fast testing
 
-def _fast_hist(outputs, targets, num_classes=2):
+def fast_hist(outputs, targets, num_classes=2):
     mask = (targets >= 0) & (targets < num_classes)
     hist = np.bincount(
         num_classes * targets[mask].astype(int) +

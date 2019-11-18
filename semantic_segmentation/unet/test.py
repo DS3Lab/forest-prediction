@@ -12,25 +12,24 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from trainer import _fast_hist, evaluate, _threshold_outputs
-from utils.util import save_simple_images, NormalizeInverse, save_double_images
+from trainer import fast_hist as _fast_hist
+from trainer import threshold_outputs as threshold_outputs 
+from trainer import evaluate
+
+from utils.util import save_simple_images, save_double_images
 from torch.nn import functional as F
 
 """
 def _threshold_outputs(outputs, output_threshold=0.3):
-    """
     Binarize output probabilities up to a certain threshold
-    """
     idx = outputs > output_threshold
     outputs = np.zeros(outputs.shape, dtype=np.int8)
     outputs[idx] = 1
     return outputs
 
 def _fast_hist(outputs, targets, num_classes=2):
-    """
     Computes confusion matrix of predictions.
     Implementation from: https://github.com/zijundeng/pytorch-semantic-segmentation/
-    """
     mask = (targets >= 0) & (targets < num_classes)
     hist = np.bincount(
         num_classes * targets[mask].astype(int) +
@@ -38,11 +37,9 @@ def _fast_hist(outputs, targets, num_classes=2):
     return hist
 
 def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
-     """
      Compute different binary classification metrics:
         accuracy, acc_cls, IoU, fwavacc, precision, recall, f1_score.
     Implementation from: https://github.com/zijundeng/pytorch-semantic-segmentation/
-    """
     if hist is None:
         hist = np.zeros((num_classes, num_classes))
         for lp, lt in zip(outputs, targets):
