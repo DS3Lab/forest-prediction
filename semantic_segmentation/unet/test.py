@@ -1,5 +1,17 @@
 """
-Test module for the binary segmentation task.
+Main entry point for the binary segmentation task.
+It takes following arguments:
+-r full path to the trained model
+-d specifies the GPU ids to be used (it takes max n_gpus defined in config.json)
+
+Note: if the model was trained on n GPU, the testing is expecting n GPU.
+Note2: in the path_of_saved_model directory, it expects a config.json
+    It is saved by default in the training
+
+Example usage:
+```
+python test.py -r path_of_saved_model/model.pth -d [gpu_id,]
+```
 """
 import argparse
 import torch
