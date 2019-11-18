@@ -12,59 +12,14 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from trainer import fast_hist as _fast_hist
-from trainer import threshold_outputs as threshold_outputs 
-from trainer import evaluate
-
+from trainer import evaluate, fast_hist, threshold_outputs
 from utils.util import save_simple_images, save_double_images
 from torch.nn import functional as F
 
-"""
-def _threshold_outputs(outputs, output_threshold=0.3):
-    Binarize output probabilities up to a certain threshold
-    idx = outputs > output_threshold
-    outputs = np.zeros(outputs.shape, dtype=np.int8)
-    outputs[idx] = 1
-    return outputs
-
-def _fast_hist(outputs, targets, num_classes=2):
-    Computes confusion matrix of predictions.
-    Implementation from: https://github.com/zijundeng/pytorch-semantic-segmentation/
-    mask = (targets >= 0) & (targets < num_classes)
-    hist = np.bincount(
-        num_classes * targets[mask].astype(int) +
-        outputs[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
-    return hist
-
-def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
-     Compute different binary classification metrics:
-        accuracy, acc_cls, IoU, fwavacc, precision, recall, f1_score.
-    Implementation from: https://github.com/zijundeng/pytorch-semantic-segmentation/
-    if hist is None:
-        hist = np.zeros((num_classes, num_classes))
-        for lp, lt in zip(outputs, targets):
-            hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
-    # axis 0: gt, axis 1: prediction
-    eps = 1e-10
-    acc = np.diag(hist).sum() / hist.sum()
-    acc_cls = np.diag(hist) / hist.sum(axis=1)
-    acc_cls = np.nanmean(acc_cls)
-    iu = np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) - np.diag(hist))
-    mean_iu = np.nanmean(iu)
-    freq = hist.sum(axis=1) / hist.sum()
-    fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-
-    true_pos = hist[1, 1]
-    false_pos = hist[0, 1]
-    false_neg = hist[1, 0]
-    precision = true_pos / (true_pos + false_pos + eps)
-    recall = true_pos / (true_pos + false_neg + eps)
-    f1_score = 2. * ((precision * recall) / (precision + recall + eps))
-
-    return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
-"""
 def get_output_dir(img_dir):
-    return 'forest_loss_forma_baseline'
+    """
+    Set output dir according to the image test directory
+    """
     if 'pix2pix' in img_dir:
         return 'pix2pix'
     elif 'landsat' in img_dir:
@@ -74,8 +29,10 @@ def get_output_dir(img_dir):
 
 def create_loss(fc0, fc1):
     """
-    fc0: forest cover at time year t-1
-    fc1: forest cover at time year t
+    Create forest loss from forest cover at time 0 and 1
+    Params:
+        fc0: forest cover at time year t-1
+        fc1: forest cover at time year t
     fc0 - fc1 = forest loss at year t
     """
     fl0 = fc0 - fc1
@@ -125,15 +82,13 @@ def main(config):
     total_loss = 0.0
     total_metrics = torch.zeros(len(metric_fns))
     pred_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
-    # pred_dir = os.path.join(pred_dir, 'predictions')
-    # out_dir = os.path.join(pred_dir, get_output_dir(config['data_loader_val']['args']['img_dir']))
-    out_dir = os.path.join(pred_dir, 'forma_compare_loss')
+    out_dir = os.path.join(pred_dir, get_output_dir(config['data_loader_val']['args']['img_dir']))
+
     if not os.path.isdir(pred_dir):
         os.makedirs(pred_dir)
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
-    # out_dir = '/'.join(str(config.resume.absolute()).split('/')[:-1])
-    # out_dir = os.path.join(out_dir, 'predictions')
+
     hist = np.zeros((2,2))
     with torch.no_grad():
         for i, batch in enumerate(tqdm(data_loader)):
@@ -147,24 +102,20 @@ def main(config):
             output = model(data)
 
             output_probs = F.sigmoid(output)
-            binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
-            output_binary = _threshold_outputs(
+            binary_target = threshold_outputs(target.data.cpu().numpy().flatten())
+            output_binary = threshold_outputs(
                 output_probs.data.cpu().numpy().flatten())
 
             np.save('planet_prediction_{}.npy'.format(i), output_binary.reshape(-1,1,256,256)[0,0,:,:])
             # print(output_binary.shape, 'SHAPEEE')
-            mlz = _fast_hist(output_binary, binary_target)
-            print('HELLO', mlz)
-            hist += _fast_hist(output_binary, binary_target)
+            hist += fast_hist(output_binary, binary_target)
             images = {
                 'img': udata.cpu().numpy(),
                 'gt': target.cpu().numpy(),
                 'pred': output_binary.reshape(-1, 1, 256, 256),
             }
 
-            print('prediction_time', time.time() - init_time)
-
-            print('Save images shape input', images['img'].shape)
+            # Save single images (C=3) or double images (C=6)
             if images['img'].shape[1] == 3:
                 save_simple_images(3, images, out_dir, i*batch_size)
             else:
@@ -174,6 +125,7 @@ def main(config):
             batch_size = data.shape[0]
             total_loss += loss.item() * batch_size
 
+    # Update binary segmentation metrics
     acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score = \
         evaluate(hist=hist)
     n_samples = len(data_loader.sampler)
@@ -181,10 +133,6 @@ def main(config):
         'acc': acc, 'mean_iu': mean_iu, 'fwavacc': fwavacc,
         'precision': precision, 'recall': recall, 'f1_score': f1_score
     }
-
-    # log.update({
-    #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
-    # })
     logger.info(log)
 
 def normalize_inverse(batch, mean, std):

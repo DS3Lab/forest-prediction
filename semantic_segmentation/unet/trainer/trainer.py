@@ -1,5 +1,5 @@
 """
-Main training engine used to train the models. 
+Main training engine used to train the models.
 """
 import time
 import numpy as np
@@ -34,7 +34,7 @@ class Trainer(BaseTrainer):
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
         self.save_train_img_step = self.log_step * 4
-        
+
         # Binarize NN output
         self.output_threshold = 0.3
 
@@ -89,7 +89,7 @@ class Trainer(BaseTrainer):
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
-            
+
             if batch_idx == self.len_epoch:
                 break
 
@@ -123,12 +123,12 @@ class Trainer(BaseTrainer):
                 output = self.model(data) # logits
                 output_probs = F.sigmoid(output)
                 loss = self.loss(output, target)
-                target = _threshold_outputs(target.data.cpu().numpy().flatten())
-                output_binary = self._threshold_outputs(
+                target = threshold_outputs(target.data.cpu().numpy().flatten())
+                output_binary = threshold_outputs(
                     output_probs.data.cpu().numpy().flatten())
 
                 # update the confusion matrix
-                hist += _fast_hist(output_binary, target)
+                hist += fast_hist(output_binary, target)
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.writer.add_scalar('loss', loss.item())
@@ -158,6 +158,9 @@ class Trainer(BaseTrainer):
 
 
 def threshold_outputs(self, outputs):
+    """
+    Binarize output probabilities up to a certain threshold
+    """
     idx = outputs > self.output_threshold
     outputs = np.zeros(outputs.shape, dtype=np.int8)
     outputs[idx] = 1
@@ -165,6 +168,9 @@ def threshold_outputs(self, outputs):
 
 
 def fast_hist(outputs, targets, num_classes=2):
+    """
+    Computes confusion matrix of predictions
+    """
     mask = (targets >= 0) & (targets < num_classes)
     hist = np.bincount(
         num_classes * targets[mask].astype(int) +
@@ -172,10 +178,15 @@ def fast_hist(outputs, targets, num_classes=2):
     return hist
 
 def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
+    """
+    Compute different binary classification metrics:
+       accuracy, acc_cls, IoU, fwavacc, precision, recall, f1_score.
+    Implementation from: https://github.com/zijundeng/pytorch-semantic-segmentation/
+    """
     if hist is None:
         hist = np.zeros((num_classes, num_classes))
         for lp, lt in zip(outputs, targets):
-            hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
+            hist += fast_hist(lp.flatten(), lt.flatten(), num_classes)
     # axis 0: gt, axis 1: prediction
     eps = 1e-10
     acc = np.diag(hist).sum() / hist.sum()
