@@ -7,7 +7,7 @@ import torch
 from torch.nn import functional as F
 from torchvision.utils import make_grid
 from base import BaseTrainer
-from utils import inf_loop, make_grid_2
+from utils import inf_loop
 
 
 class Trainer(BaseTrainer):
