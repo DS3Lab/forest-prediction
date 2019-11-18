@@ -1,3 +1,18 @@
+"""
+Main entry point for the binary segmentation task for video prediction results.
+It takes following arguments:
+-r full path to the trained model
+-d specifies the GPU ids to be used (it takes max n_gpus defined in config.json)
+
+Note: if the model was trained on n GPU, the testing is expecting n GPU.
+Note2: in the path_of_saved_model directory, it expects a config.json
+    It is saved by default in the training
+
+Example usage:
+```
+python test.py -r path_of_saved_model/model.pth -d [gpu_id,]
+```
+"""
 import argparse
 import torch
 import os
@@ -9,55 +24,18 @@ import model.metric as module_metric
 import model.model as module_arch
 import time
 from parse_config import ConfigParser
-from utils.util import save_images, NormalizeInverse, save_video_images256
+from trainer import evaluate, fast_hist, threshold_outputs
+from utils.util import save_simple_images, save_double_images
 from torch.nn import functional as F
-
-def _threshold_outputs(outputs, output_threshold=0.3):
-    idx = outputs > output_threshold
-    outputs = np.zeros(outputs.shape, dtype=np.int8)
-    outputs[idx] = 1
-    return outputs
-
-def _fast_hist(outputs, targets, num_classes=2):
-    # print(outputs.shape, targets.shape)
-    mask = (targets >= 0) & (targets < num_classes)
-    hist = np.bincount(
-        num_classes * targets[mask].astype(int) +
-        outputs[mask], minlength=num_classes ** 2).reshape(num_classes, num_classes)
-    return hist
-
-def evaluate(outputs=None, targets=None, hist=None, num_classes=2):
-    if hist is None:
-        hist = np.zeros((num_classes, num_classes))
-        for lp, lt in zip(outputs, targets):
-            hist += _fast_hist(lp.flatten(), lt.flatten(), num_classes)
-    # axis 0: gt, axis 1: prediction
-    eps = 1e-10
-    acc = np.diag(hist).sum() / hist.sum()
-    acc_cls = np.diag(hist) / hist.sum(axis=1)
-    acc_cls = np.nanmean(acc_cls)
-    iu = np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) - np.diag(hist))
-    mean_iu = np.nanmean(iu)
-    freq = hist.sum(axis=1) / hist.sum()
-    fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-
-    true_pos = hist[1, 1]
-    false_pos = hist[0, 1]
-    false_neg = hist[1, 0]
-    precision = true_pos / (true_pos + false_pos + eps)
-    recall = true_pos / (true_pos + false_neg + eps)
-    f1_score = 2. * ((precision * recall) / (precision + recall + eps))
-
-    return acc, acc_cls, mean_iu, fwavacc, precision, recall, f1_score
 
 def update_individual_hists(data, target, hist, device, model):
     data, target = data.to(device, dtype=torch.float), target.to(device, dtype=torch.float)
     output = model(data)
     output_probs = F.sigmoid(output)
-    binary_target = _threshold_outputs(target.data.cpu().numpy().flatten())
-    output_binary = _threshold_outputs(
+    binary_target = threshold_outputs(target.data.cpu().numpy().flatten())
+    output_binary = threshold_outputs(
         output_probs.data.cpu().numpy().flatten())
-    hist += _fast_hist(output_binary, binary_target)
+    hist += fast_hist(output_binary, binary_target)
     return output_binary.reshape(-1, 1, 256, 256)
 
 def main(config):
@@ -123,7 +101,6 @@ def main(config):
         for i, batch in enumerate(tqdm(data_loader)):
             if i not in [0, 84, 55]:
                 continue
-
             # if i not in [18, 43, 51, 61, 73, 84, 85, 88, 116, 124, 198, 201, 214, 245, 325, 330]:
             # if i not in [84, 85, 88, 116, 124, 198, 201, 214, 245, 325]:
             #     continue
@@ -155,7 +132,7 @@ def main(config):
             pred2015 = update_individual_hists(img_arr2015, mask_arr2015, hist2015, device, model)
             pred2016 = update_individual_hists(img_arr2016, mask_arr2016, hist2016, device, model)
             pred2017 = update_individual_hists(img_arr2017, mask_arr2017, hist2017, device, model)
-            
+
             pred2015p = update_individual_hists(img_arr2015p, mask_arr2015, hist2015, device, model)
             pred2016p = update_individual_hists(img_arr2016p, mask_arr2016, hist2016, device, model)
             pred2017p = update_individual_hists(img_arr2017p, mask_arr2017, hist2017, device, model)
@@ -203,12 +180,7 @@ def main(config):
                 },
             }
             save_video_images256(images, out_dir, i*batch_size)
-            # computing loss, metrics on test set
-            # loss = loss_fn(output, target_cover)
-            # batch_size = datavd.shape[0]
-            # total_loss += loss.item() * batch_size
-            # for i, metric in enumerate(metric_fns):
-            #     total_metrics[i] += metric(output, target.float()) * batch_size
+
     acc2013, acc_cls2013, mean_iu2013, fwavacc2013, precision2013, recall2013, f1_score2013 = \
         evaluate(hist=hist2013)
 
@@ -223,6 +195,7 @@ def main(config):
     acc2017, acc_cls2017, mean_iu2017, fwavacc2017, precision2017, recall2017, f1_score2017 = \
         evaluate(hist=hist2017)
     n_samples = len(data_loader.sampler)
+
     log2013 = {'loss2013': -1,
         'acc': acc2013, 'mean_iu': mean_iu2013, 'fwavacc': fwavacc2013,
         'precision': precision2013, 'recall': recall2013, 'f1_score': f1_score2013
@@ -247,20 +220,18 @@ def main(config):
         'acc': acc2017, 'mean_iu': mean_iu2017, 'fwavacc': fwavacc2017,
         'precision': precision2017, 'recall': recall2017, 'f1_score': f1_score2017
     }
-    # log.update({
-    #     met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
-    # })
+
     logger.info(log2013)
     logger.info(log2014)
     logger.info(log2015)
     logger.info(log2016)
     logger.info(log2017)
+
 def normalize_inverse(batch, mean, std, input_type='one'):
 
     with torch.no_grad():
         img = batch.clone()
         ubatch = torch.Tensor(batch.shape)
-
         ubatch[:, 0, :, :] = img[:, 0, :, :] * std[0] + mean[0]
         ubatch[:, 1, :, :] = img[:, 1, :, :] * std[1] + mean[1]
         ubatch[:, 2, :, :] = img[:, 2, :, :] * std[2] + mean[2]
