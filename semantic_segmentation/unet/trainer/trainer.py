@@ -123,7 +123,7 @@ class Trainer(BaseTrainer):
                 output = self.model(data) # logits
                 output_probs = F.sigmoid(output)
                 loss = self.loss(output, target)
-                target = self._threshold_outputs(target.data.cpu().numpy().flatten())
+                target = _threshold_outputs(target.data.cpu().numpy().flatten())
                 output_binary = self._threshold_outputs(
                     output_probs.data.cpu().numpy().flatten())
 
@@ -156,11 +156,12 @@ class Trainer(BaseTrainer):
             total = self.len_epoch
         return base.format(current, total, 100.0 * current / total)
 
-    def _threshold_outputs(self, outputs):
-        idx = outputs > self.output_threshold
-        outputs = np.zeros(outputs.shape, dtype=np.int8)
-        outputs[idx] = 1
-        return outputs
+
+def _threshold_outputs(self, outputs):
+    idx = outputs > self.output_threshold
+    outputs = np.zeros(outputs.shape, dtype=np.int8)
+    outputs[idx] = 1
+    return outputs
 
 # TODO: This should be in the loss script. Just here to fast testing
 
