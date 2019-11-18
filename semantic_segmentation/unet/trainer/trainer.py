@@ -123,9 +123,9 @@ class Trainer(BaseTrainer):
                 output = self.model(data) # logits
                 output_probs = F.sigmoid(output)
                 loss = self.loss(output, target)
-                target = threshold_outputs(target.data.cpu().numpy().flatten())
+                target = threshold_outputs(target.data.cpu().numpy().flatten(), self.output_threshold)
                 output_binary = threshold_outputs(
-                    output_probs.data.cpu().numpy().flatten())
+                    output_probs.data.cpu().numpy().flatten(), self.output_threshold)
 
                 # update the confusion matrix
                 hist += fast_hist(output_binary, target)
