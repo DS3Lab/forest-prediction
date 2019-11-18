@@ -1,4 +1,7 @@
-"""This module extracts the corresponding tiles of web mercator from GEE"""
+"""
+This module extracts the corresponding tiles of web mercator from a .tif
+This .tif file can be obtained from GEE
+"""
 import os
 import glob
 import rasterio
@@ -49,7 +52,7 @@ def check_quality_label(img, threshold = 0.01):
         return False
 
 def bbox2tiles(bbox, zoom):
-    """ 
+    """
     Return the tile coordinates that forms a bounding box.
     """
     upper_left_tile = deg2num(bbox['upper_left'][0], bbox['upper_left'][1], zoom)
@@ -63,7 +66,7 @@ def bbox2tiles(bbox, zoom):
 
 def extract_tile(mosaicdb, lon, lat, tile_size, crs):
     """
-    Extracts a tile of tile_size from a bigger tile. 
+    Extracts a tile of tile_size from a bigger tile.
     Params:
 	mosaicdb: Rasterio DataReader
 	lon: longitude value in ESPG:4326 or x coordinate in ESPG:3857
@@ -205,6 +208,9 @@ def extract_tiles(tiles, year, hansen_db, forest_loss_dir):
 
 ###
 def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
+    """
+    Get tiles from labels (Hansen)
+    """
     # years = ['2013', '2014', '2015', '2016', '2017']
     years = ['2016_1', '2016']
     tiles = []
@@ -216,7 +222,7 @@ def get_tiles(path='/mnt/ds3lab-scratch/lming/gee_data/z11/forest_lossv2'):
             key = (tile[1], tile[2], tile[3][:-4])
             add_in_dict(tiles, key)
     return list(tiles.keys())
-###
+
 def extract_video_tiles(tiles, year, hansen_db, forest_loss_dir):
     out_fl = os.path.join(forest_loss_dir, year)
     create_dir(out_fl)
@@ -239,7 +245,7 @@ def extract_forma_tiles(tiles, year, hansen_db, forest_loss_dir):
         # img_arr = extract_tile(hansen_db, lon, lat, 256, crs='ESPG:4326')
         # np.save(os.path.join(forest_loss_dir, fl_template.format(year=year, z=z, x=x, y=y)), img_arr)
         # save_fc(img_arr, out_name, int_year)
-                
+
         extract_fc_and_fl_tile(hansen_db, lon, lat, int_year, os.path.join(out_fl, fl_template.format(year=year, z=z, x=x, y=y)))
 
 def main():
