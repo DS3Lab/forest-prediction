@@ -1,4 +1,4 @@
-Pillow==8.1.1
+Pillow==9.0.1
 tensorboardX==1.8
 tqdm==4.32.2
 matplotlib==3.0.3
